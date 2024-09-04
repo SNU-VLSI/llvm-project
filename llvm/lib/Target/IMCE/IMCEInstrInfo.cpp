@@ -43,7 +43,7 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     return false;
   case IMCE::RET: {
     MachineInstrBuilder MIB =
-        BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::JMP)).addReg(IMCE::V1, RegState::Undef);
+        BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::JMP)).addReg(IMCE::S1, RegState::Undef);
 
     // Retain any imp-use flags.
     for (auto &MO : MI.operands()) {
@@ -57,4 +57,17 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   // Erase the pseudo instruction.
   MBB.erase(MI);
   return true;
+}
+
+void IMCEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
+                                const DebugLoc &DL, MCRegister DestReg, MCRegister SrcReg,
+                                bool KillSrc) const {
+
+  // MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(IMCE::ADD));
+
+  // if (DestReg)
+  //   MIB.addReg(DestReg, RegState::Define);
+
+  // if (SrcReg)
+  //   MIB.addReg(SrcReg, getKillRegState(KillSrc));
 }

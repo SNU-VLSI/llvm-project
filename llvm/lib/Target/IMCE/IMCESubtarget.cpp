@@ -29,12 +29,4 @@ void IMCESubtarget::anchor() {}
 IMCESubtarget::IMCESubtarget(const Triple &TT, const std::string &CPU, const std::string &FS,
                              const TargetMachine &TM)
     : IMCEGenSubtargetInfo(TT, CPU, /*TuneCPU*/ CPU, FS), InstrInfo(*this), TLInfo(TM, *this),
-      FrameLowering() {
-  // // GlobalISEL
-  // CallLoweringInfo.reset(new IMCECallLowering(*getTargetLowering()));
-  // Legalizer.reset(new IMCELegalizerInfo(*this));
-  // auto *RBI = new IMCERegisterBankInfo(*getRegisterInfo());
-  // RegBankInfo.reset(RBI);
-  // InstSelector.reset(
-  //     createIMCEInstructionSelector(*static_cast<const IMCETargetMachine *>(&TM), *this, *RBI));
-}
+      FrameLowering() {}

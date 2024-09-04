@@ -27,14 +27,16 @@ using namespace llvm;
 
 IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtarget &STI)
     : TargetLowering(TM), Subtarget(STI) {
+
   addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
+  addRegisterClass(MVT::i32, &IMCE::SGPRRegClass);
 
   // Compute derived properties from the register
   // classes
   computeRegisterProperties(Subtarget.getRegisterInfo());
 
   // Set up special registers.
-  setStackPointerRegisterToSaveRestore(IMCE::V31);
+  setStackPointerRegisterToSaveRestore(IMCE::S31);
 
   // How we extend i1 boolean values.
   setBooleanContents(ZeroOrOneBooleanContent);
@@ -42,16 +44,15 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   setMinFunctionAlignment(Align(4));
   setPrefFunctionAlignment(Align(4));
 
+  setOperationAction(ISD::ADD, MVT::v16i16, Legal);
   setOperationAction(ISD::AND, MVT::v16i16, Legal);
   setOperationAction(ISD::OR, MVT::v16i16, Legal);
   setOperationAction(ISD::XOR, MVT::v16i16, Legal);
 
-  // setOperationAction(ISD::CTPOP, MVT::v16i16, Expand);
-
-  // Special DAG combiner for bit-field operations.
-  // setTargetDAGCombine(ISD::AND);
-  // setTargetDAGCombine(ISD::OR);
-  // setTargetDAGCombine(ISD::SHL);
+  setOperationAction(ISD::ADD, MVT::i32, Legal);
+  setOperationAction(ISD::AND, MVT::i32, Legal);
+  setOperationAction(ISD::OR, MVT::i32, Legal);
+  setOperationAction(ISD::XOR, MVT::i32, Legal);
 }
 
 //===----------------------------------------------------------------------===//
@@ -88,6 +89,10 @@ SDValue IMCETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID 
         llvm_unreachable("Unexpected argument type");
       case MVT::v16i16:
         RC = &IMCE::VGPRRegClass;
+        break;
+
+      case MVT::i32:
+        RC = &IMCE::SGPRRegClass;
         break;
       }
 
@@ -161,9 +166,11 @@ SDValue IMCETargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
 SDValue IMCETargetLowering::LowerCall(CallLoweringInfo &CLI,
                                       SmallVectorImpl<SDValue> &InVals) const {
   llvm_unreachable("IMCE - LowerCall - Not Implemented");
+  // TODO: Implement LowerCall. emit intrinsic
 }
 
 const char *IMCETargetLowering::getTargetNodeName(unsigned Opcode) const {
+  // TODO: ISD? maybe register ADD, SUB, etc
   switch (Opcode) {
 #define OPCODE(Opc)                                                                                \
   case Opc:                                                                                        \

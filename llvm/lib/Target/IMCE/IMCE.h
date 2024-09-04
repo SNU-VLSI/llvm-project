@@ -24,13 +24,12 @@ class FunctionPass;
 class InstructionSelector;
 class PassRegistry;
 
-FunctionPass *createIMCEISelDag(IMCETargetMachine &TM,
-                                CodeGenOpt::Level OptLevel);
+FunctionPass *createIMCEISelDag(IMCETargetMachine &TM, CodeGenOpt::Level OptLevel);
 
 void initializeIMCEDAGToDAGISelPass(PassRegistry &);
 
-InstructionSelector *
-createIMCEInstructionSelector(const IMCETargetMachine &, const IMCESubtarget &,
-                              const IMCERegisterBankInfo &);
+// InstructionSelector *
+// createIMCEInstructionSelector(const IMCETargetMachine &, const IMCESubtarget &,
+//                               const IMCERegisterBankInfo &);
 } // end namespace llvm
 #endif

@@ -40,6 +40,9 @@ public:
   const IMCERegisterInfo &getRegisterInfo() const { return RI; }
 
   bool expandPostRAPseudo(MachineInstr &MI) const override;
+
+  void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator I, const DebugLoc &DL,
+                   MCRegister DestReg, MCRegister SrcReg, bool KillSrc) const override;
 };
 
 } // end namespace llvm

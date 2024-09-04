@@ -65,6 +65,16 @@ static DecodeStatus decodeVGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64
   return MCDisassembler::Success;
 }
 
+static DecodeStatus decodeSGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
+                                            const void *Decoder) {
+  if (RegNo > 31)
+    return MCDisassembler::Fail;
+
+  unsigned Register = GPRDecoderTable[RegNo];
+  Inst.addOperand(MCOperand::createReg(Register));
+  return MCDisassembler::Success;
+}
+
 #include "IMCEGenDisassemblerTables.inc"
 
 DecodeStatus IMCEDisassembler::getInstruction(MCInst &MI, uint64_t &Size, ArrayRef<uint8_t> Bytes,

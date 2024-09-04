@@ -46,6 +46,8 @@ enum NodeType : unsigned {
   ROT,
   FF1,
   FF0,
+
+  ADD
 };
 } // end namespace IMCEISD
 

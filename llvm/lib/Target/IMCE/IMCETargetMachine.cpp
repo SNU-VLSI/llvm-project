@@ -37,7 +37,7 @@ std::string computeDataLayout(const Triple &TT, StringRef CPU, StringRef FS) {
   std::string Ret;
 
   // Big endian.
-  Ret += "E";
+  Ret += "e";
 
   // Data mangling.
   Ret += DataLayout::getManglingComponent(TT);
