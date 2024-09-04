@@ -1,0 +1,59 @@
+//===-- IMCEInstrFormats.td - IMCE Instruction Formats -----*- tablegen -*-===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+class InstIMCE<dag outs, dag ins, string asm, string operands,
+               list<dag> pattern = []>
+  : Instruction {
+  bits<32> Inst;
+
+  bits<32> SoftFail = 0; // Needed by disassembler.
+
+  let Namespace = "IMCE";
+  let Size = 4;
+
+  dag OutOperandList = outs;
+  dag InOperandList = ins;
+  // Construct the assembler string from template parameters asm and operands.
+  // If the instruction has a delay slot, then append ".n" to the mnemonic.
+  let AsmString = !if(!eq(operands, ""), asm,
+                      !strconcat(asm, " ", operands));
+  let Pattern = pattern;
+
+  let DecoderNamespace = "IMCE";
+}
+
+class Pseudo<dag outs, dag ins, list<dag> pattern>
+  : InstIMCE<outs, ins, "", "", pattern> {
+  let isCodeGenOnly       = 1;
+  let isPseudo            = 1;
+  let hasNoSchedulingInfo = 1;
+}
+
+//===----------------------------------------------------------------------===//
+// The formats follow the categories specified in the User Manual.
+//===----------------------------------------------------------------------===//
+
+class InstRType<int op, dag outs, dag ins, string asm, string operands, list<dag> pattern = []>
+   : InstIMCE<outs, ins, asm, operands, pattern> {
+  bits<6> rd;
+  bits<6> rs1;
+  bits<6> rs2;
+  // bits<4> src_mask;
+  let Inst{5-0} = op;
+  let Inst{11-6} = rd;
+  let Inst{17-12} = rs1;
+  let Inst{23-18} = rs2;
+  // let Inst{27-24} = src_mask;
+}
+
+class InstJType<int op, dag outs, dag ins, string asm, string operands, list<dag> pattern = []>
+   : InstIMCE<outs, ins, asm, operands, pattern> {
+  bits<26> imm;
+  let Inst{5-0} = op;
+  let Inst{31-6} = imm;
+}

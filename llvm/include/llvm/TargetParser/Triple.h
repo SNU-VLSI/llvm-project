@@ -107,6 +107,7 @@ public:
     renderscript32, // 32-bit RenderScript
     renderscript64, // 64-bit RenderScript
     ve,             // NEC SX-Aurora Vector Engine
+    IMCE,
     LastArchType = ve
   };
   enum SubArchType {
@@ -195,7 +196,7 @@ public:
     IOS,
     KFreeBSD,
     Linux,
-    Lv2,        // PS3
+    Lv2, // PS3
     MacOSX,
     NetBSD,
     OpenBSD,
@@ -206,17 +207,17 @@ public:
     Haiku,
     Minix,
     RTEMS,
-    NaCl,       // Native Client
+    NaCl, // Native Client
     AIX,
-    CUDA,       // NVIDIA CUDA
-    NVCL,       // NVIDIA OpenCL
-    AMDHSA,     // AMD HSA Runtime
+    CUDA,   // NVIDIA CUDA
+    NVCL,   // NVIDIA OpenCL
+    AMDHSA, // AMD HSA Runtime
     PS4,
     PS5,
     ELFIAMCU,
-    TvOS,       // Apple tvOS
-    WatchOS,    // Apple watchOS
-    DriverKit,  // Apple DriverKit
+    TvOS,      // Apple tvOS
+    WatchOS,   // Apple watchOS
+    DriverKit, // Apple DriverKit
     Mesa3D,
     Contiki,
     AMDPAL,     // AMD PAL Runtime
@@ -255,7 +256,7 @@ public:
     Cygnus,
     CoreCLR,
     Simulator, // Simulator variants of other systems, e.g., Apple's iOS
-    MacABI, // Mac Catalyst variant of Apple's iOS deployment target.
+    MacABI,    // Mac Catalyst variant of Apple's iOS deployment target.
 
     // Shader Stages
     // The order of these values matters, and must be kept in sync with the
@@ -327,15 +328,11 @@ public:
          const Twine &EnvironmentStr);
 
   bool operator==(const Triple &Other) const {
-    return Arch == Other.Arch && SubArch == Other.SubArch &&
-           Vendor == Other.Vendor && OS == Other.OS &&
-           Environment == Other.Environment &&
-           ObjectFormat == Other.ObjectFormat;
+    return Arch == Other.Arch && SubArch == Other.SubArch && Vendor == Other.Vendor &&
+           OS == Other.OS && Environment == Other.Environment && ObjectFormat == Other.ObjectFormat;
   }
 
-  bool operator!=(const Triple &Other) const {
-    return !(*this == Other);
-  }
+  bool operator!=(const Triple &Other) const { return !(*this == Other); }
 
   /// @}
   /// @name Normalization
@@ -367,9 +364,7 @@ public:
   OSType getOS() const { return OS; }
 
   /// Does this triple have the optional environment (fourth) component?
-  bool hasEnvironment() const {
-    return getEnvironmentName() != "";
-  }
+  bool hasEnvironment() const { return getEnvironmentName() != ""; }
 
   /// Get the parsed environment type of this triple.
   EnvironmentType getEnvironment() const { return Environment; }
@@ -463,8 +458,7 @@ public:
 
   /// Helper function for doing comparisons against version numbers included in
   /// the target triple.
-  bool isOSVersionLT(unsigned Major, unsigned Minor = 0,
-                     unsigned Micro = 0) const {
+  bool isOSVersionLT(unsigned Major, unsigned Minor = 0, unsigned Micro = 0) const {
     if (Minor == 0) {
       return getOSVersion() < VersionTuple(Major);
     }
@@ -474,43 +468,30 @@ public:
     return getOSVersion() < VersionTuple(Major, Minor, Micro);
   }
 
-  bool isOSVersionLT(const Triple &Other) const {
-    return getOSVersion() < Other.getOSVersion();
-  }
+  bool isOSVersionLT(const Triple &Other) const { return getOSVersion() < Other.getOSVersion(); }
 
   /// Comparison function for checking OS X version compatibility, which handles
   /// supporting skewed version numbering schemes used by the "darwin" triples.
-  bool isMacOSXVersionLT(unsigned Major, unsigned Minor = 0,
-                         unsigned Micro = 0) const;
+  bool isMacOSXVersionLT(unsigned Major, unsigned Minor = 0, unsigned Micro = 0) const;
 
   /// Is this a Mac OS X triple. For legacy reasons, we support both "darwin"
   /// and "osx" as OS X triples.
-  bool isMacOSX() const {
-    return getOS() == Triple::Darwin || getOS() == Triple::MacOSX;
-  }
+  bool isMacOSX() const { return getOS() == Triple::Darwin || getOS() == Triple::MacOSX; }
 
   /// Is this an iOS triple.
   /// Note: This identifies tvOS as a variant of iOS. If that ever
   /// changes, i.e., if the two operating systems diverge or their version
   /// numbers get out of sync, that will need to be changed.
   /// watchOS has completely different version numbers so it is not included.
-  bool isiOS() const {
-    return getOS() == Triple::IOS || isTvOS();
-  }
+  bool isiOS() const { return getOS() == Triple::IOS || isTvOS(); }
 
   /// Is this an Apple tvOS triple.
-  bool isTvOS() const {
-    return getOS() == Triple::TvOS;
-  }
+  bool isTvOS() const { return getOS() == Triple::TvOS; }
 
   /// Is this an Apple watchOS triple.
-  bool isWatchOS() const {
-    return getOS() == Triple::WatchOS;
-  }
+  bool isWatchOS() const { return getOS() == Triple::WatchOS; }
 
-  bool isWatchABI() const {
-    return getSubArch() == Triple::ARMSubArch_v7k;
-  }
+  bool isWatchABI() const { return getSubArch() == Triple::ARMSubArch_v7k; }
 
   /// Is this an Apple DriverKit triple.
   bool isDriverKit() const { return getOS() == Triple::DriverKit; }
@@ -518,79 +499,50 @@ public:
   bool isOSzOS() const { return getOS() == Triple::ZOS; }
 
   /// Is this a "Darwin" OS (macOS, iOS, tvOS, watchOS, or DriverKit).
-  bool isOSDarwin() const {
-    return isMacOSX() || isiOS() || isWatchOS() || isDriverKit();
-  }
+  bool isOSDarwin() const { return isMacOSX() || isiOS() || isWatchOS() || isDriverKit(); }
 
-  bool isSimulatorEnvironment() const {
-    return getEnvironment() == Triple::Simulator;
-  }
+  bool isSimulatorEnvironment() const { return getEnvironment() == Triple::Simulator; }
 
-  bool isMacCatalystEnvironment() const {
-    return getEnvironment() == Triple::MacABI;
-  }
+  bool isMacCatalystEnvironment() const { return getEnvironment() == Triple::MacABI; }
 
   /// Returns true for targets that run on a macOS machine.
   bool isTargetMachineMac() const {
-    return isMacOSX() || (isOSDarwin() && (isSimulatorEnvironment() ||
-                                           isMacCatalystEnvironment()));
+    return isMacOSX() || (isOSDarwin() && (isSimulatorEnvironment() || isMacCatalystEnvironment()));
   }
 
-  bool isOSNetBSD() const {
-    return getOS() == Triple::NetBSD;
-  }
+  bool isOSNetBSD() const { return getOS() == Triple::NetBSD; }
 
-  bool isOSOpenBSD() const {
-    return getOS() == Triple::OpenBSD;
-  }
+  bool isOSOpenBSD() const { return getOS() == Triple::OpenBSD; }
 
-  bool isOSFreeBSD() const {
-    return getOS() == Triple::FreeBSD;
-  }
+  bool isOSFreeBSD() const { return getOS() == Triple::FreeBSD; }
 
-  bool isOSFuchsia() const {
-    return getOS() == Triple::Fuchsia;
-  }
+  bool isOSFuchsia() const { return getOS() == Triple::Fuchsia; }
 
   bool isOSDragonFly() const { return getOS() == Triple::DragonFly; }
 
-  bool isOSSolaris() const {
-    return getOS() == Triple::Solaris;
-  }
+  bool isOSSolaris() const { return getOS() == Triple::Solaris; }
 
-  bool isOSIAMCU() const {
-    return getOS() == Triple::ELFIAMCU;
-  }
+  bool isOSIAMCU() const { return getOS() == Triple::ELFIAMCU; }
 
   bool isOSUnknown() const { return getOS() == Triple::UnknownOS; }
 
   bool isGNUEnvironment() const {
     EnvironmentType Env = getEnvironment();
-    return Env == Triple::GNU || Env == Triple::GNUABIN32 ||
-           Env == Triple::GNUABI64 || Env == Triple::GNUEABI ||
-           Env == Triple::GNUEABIHF || Env == Triple::GNUF32 ||
-           Env == Triple::GNUF64 || Env == Triple::GNUSF ||
-           Env == Triple::GNUX32;
+    return Env == Triple::GNU || Env == Triple::GNUABIN32 || Env == Triple::GNUABI64 ||
+           Env == Triple::GNUEABI || Env == Triple::GNUEABIHF || Env == Triple::GNUF32 ||
+           Env == Triple::GNUF64 || Env == Triple::GNUSF || Env == Triple::GNUX32;
   }
 
-  bool isOSContiki() const {
-    return getOS() == Triple::Contiki;
-  }
+  bool isOSContiki() const { return getOS() == Triple::Contiki; }
 
   /// Tests whether the OS is Haiku.
-  bool isOSHaiku() const {
-    return getOS() == Triple::Haiku;
-  }
+  bool isOSHaiku() const { return getOS() == Triple::Haiku; }
 
   /// Tests whether the OS is UEFI.
-  bool isUEFI() const {
-    return getOS() == Triple::UEFI;
-  }
+  bool isUEFI() const { return getOS() == Triple::UEFI; }
 
   /// Tests whether the OS is Windows.
-  bool isOSWindows() const {
-    return getOS() == Triple::Win32;
-  }
+  bool isOSWindows() const { return getOS() == Triple::Win32; }
 
   /// Checks if the environment is MSVC.
   bool isKnownWindowsMSVCEnvironment() const {
@@ -605,8 +557,7 @@ public:
 
   // Checks if we're using the Windows Arm64EC ABI.
   bool isWindowsArm64EC() const {
-    return getArch() == Triple::aarch64 &&
-           getSubArch() == Triple::AArch64SubArch_arm64ec;
+    return getArch() == Triple::aarch64 && getSubArch() == Triple::AArch64SubArch_arm64ec;
   }
 
   bool isWindowsCoreCLREnvironment() const {
@@ -621,108 +572,72 @@ public:
     return isOSWindows() && getEnvironment() == Triple::Cygnus;
   }
 
-  bool isWindowsGNUEnvironment() const {
-    return isOSWindows() && getEnvironment() == Triple::GNU;
-  }
+  bool isWindowsGNUEnvironment() const { return isOSWindows() && getEnvironment() == Triple::GNU; }
 
   /// Tests for either Cygwin or MinGW OS
-  bool isOSCygMing() const {
-    return isWindowsCygwinEnvironment() || isWindowsGNUEnvironment();
-  }
+  bool isOSCygMing() const { return isWindowsCygwinEnvironment() || isWindowsGNUEnvironment(); }
 
   /// Is this a "Windows" OS targeting a "MSVCRT.dll" environment.
   bool isOSMSVCRT() const {
-    return isWindowsMSVCEnvironment() || isWindowsGNUEnvironment() ||
-           isWindowsItaniumEnvironment();
+    return isWindowsMSVCEnvironment() || isWindowsGNUEnvironment() || isWindowsItaniumEnvironment();
   }
 
   /// Tests whether the OS is NaCl (Native Client)
-  bool isOSNaCl() const {
-    return getOS() == Triple::NaCl;
-  }
+  bool isOSNaCl() const { return getOS() == Triple::NaCl; }
 
   /// Tests whether the OS is Linux.
-  bool isOSLinux() const {
-    return getOS() == Triple::Linux;
-  }
+  bool isOSLinux() const { return getOS() == Triple::Linux; }
 
   /// Tests whether the OS is kFreeBSD.
-  bool isOSKFreeBSD() const {
-    return getOS() == Triple::KFreeBSD;
-  }
+  bool isOSKFreeBSD() const { return getOS() == Triple::KFreeBSD; }
 
   /// Tests whether the OS is Hurd.
-  bool isOSHurd() const {
-    return getOS() == Triple::Hurd;
-  }
+  bool isOSHurd() const { return getOS() == Triple::Hurd; }
 
   /// Tests whether the OS is WASI.
-  bool isOSWASI() const {
-    return getOS() == Triple::WASI;
-  }
+  bool isOSWASI() const { return getOS() == Triple::WASI; }
 
   /// Tests whether the OS is Emscripten.
-  bool isOSEmscripten() const {
-    return getOS() == Triple::Emscripten;
-  }
+  bool isOSEmscripten() const { return getOS() == Triple::Emscripten; }
 
   /// Tests whether the OS uses glibc.
   bool isOSGlibc() const {
-    return (getOS() == Triple::Linux || getOS() == Triple::KFreeBSD ||
-            getOS() == Triple::Hurd) &&
+    return (getOS() == Triple::Linux || getOS() == Triple::KFreeBSD || getOS() == Triple::Hurd) &&
            !isAndroid();
   }
 
   /// Tests whether the OS is AIX.
-  bool isOSAIX() const {
-    return getOS() == Triple::AIX;
-  }
+  bool isOSAIX() const { return getOS() == Triple::AIX; }
 
   /// Tests whether the OS uses the ELF binary format.
-  bool isOSBinFormatELF() const {
-    return getObjectFormat() == Triple::ELF;
-  }
+  bool isOSBinFormatELF() const { return getObjectFormat() == Triple::ELF; }
 
   /// Tests whether the OS uses the COFF binary format.
-  bool isOSBinFormatCOFF() const {
-    return getObjectFormat() == Triple::COFF;
-  }
+  bool isOSBinFormatCOFF() const { return getObjectFormat() == Triple::COFF; }
 
   /// Tests whether the OS uses the GOFF binary format.
   bool isOSBinFormatGOFF() const { return getObjectFormat() == Triple::GOFF; }
 
   /// Tests whether the environment is MachO.
-  bool isOSBinFormatMachO() const {
-    return getObjectFormat() == Triple::MachO;
-  }
+  bool isOSBinFormatMachO() const { return getObjectFormat() == Triple::MachO; }
 
   /// Tests whether the OS uses the Wasm binary format.
-  bool isOSBinFormatWasm() const {
-    return getObjectFormat() == Triple::Wasm;
-  }
+  bool isOSBinFormatWasm() const { return getObjectFormat() == Triple::Wasm; }
 
   /// Tests whether the OS uses the XCOFF binary format.
-  bool isOSBinFormatXCOFF() const {
-    return getObjectFormat() == Triple::XCOFF;
-  }
+  bool isOSBinFormatXCOFF() const { return getObjectFormat() == Triple::XCOFF; }
 
   /// Tests whether the OS uses the DXContainer binary format.
-  bool isOSBinFormatDXContainer() const {
-    return getObjectFormat() == Triple::DXContainer;
-  }
+  bool isOSBinFormatDXContainer() const { return getObjectFormat() == Triple::DXContainer; }
 
   /// Tests whether the target is the PS4 platform.
   bool isPS4() const {
-    return getArch() == Triple::x86_64 &&
-           getVendor() == Triple::SCEI &&
-           getOS() == Triple::PS4;
+    return getArch() == Triple::x86_64 && getVendor() == Triple::SCEI && getOS() == Triple::PS4;
   }
 
   /// Tests whether the target is the PS5 platform.
   bool isPS5() const {
-    return getArch() == Triple::x86_64 &&
-      getVendor() == Triple::SCEI &&
-      getOS() == Triple::PS5;
+    return getArch() == Triple::x86_64 && getVendor() == Triple::SCEI && getOS() == Triple::PS5;
   }
 
   /// Tests whether the target is the PS4 or PS5 platform.
@@ -745,10 +660,8 @@ public:
 
   /// Tests whether the environment is musl-libc
   bool isMusl() const {
-    return getEnvironment() == Triple::Musl ||
-           getEnvironment() == Triple::MuslEABI ||
-           getEnvironment() == Triple::MuslEABIHF ||
-           getEnvironment() == Triple::MuslX32 ||
+    return getEnvironment() == Triple::Musl || getEnvironment() == Triple::MuslEABI ||
+           getEnvironment() == Triple::MuslEABIHF || getEnvironment() == Triple::MuslX32 ||
            getEnvironment() == Triple::OpenHOS || isOSLiteOS();
   }
 
@@ -761,52 +674,35 @@ public:
   bool isOSLiteOS() const { return getOS() == Triple::LiteOS; }
 
   /// Tests whether the target is DXIL.
-  bool isDXIL() const {
-    return getArch() == Triple::dxil;
-  }
+  bool isDXIL() const { return getArch() == Triple::dxil; }
 
   /// Tests whether the target is SPIR (32- or 64-bit).
-  bool isSPIR() const {
-    return getArch() == Triple::spir || getArch() == Triple::spir64;
-  }
+  bool isSPIR() const { return getArch() == Triple::spir || getArch() == Triple::spir64; }
 
   /// Tests whether the target is SPIR-V (32/64-bit).
-  bool isSPIRV() const {
-    return getArch() == Triple::spirv32 || getArch() == Triple::spirv64;
-  }
+  bool isSPIRV() const { return getArch() == Triple::spirv32 || getArch() == Triple::spirv64; }
 
   /// Tests whether the target is NVPTX (32- or 64-bit).
-  bool isNVPTX() const {
-    return getArch() == Triple::nvptx || getArch() == Triple::nvptx64;
-  }
+  bool isNVPTX() const { return getArch() == Triple::nvptx || getArch() == Triple::nvptx64; }
 
   /// Tests whether the target is AMDGCN
   bool isAMDGCN() const { return getArch() == Triple::amdgcn; }
 
-  bool isAMDGPU() const {
-    return getArch() == Triple::r600 || getArch() == Triple::amdgcn;
-  }
+  bool isAMDGPU() const { return getArch() == Triple::r600 || getArch() == Triple::amdgcn; }
 
   /// Tests whether the target is Thumb (little and big endian).
-  bool isThumb() const {
-    return getArch() == Triple::thumb || getArch() == Triple::thumbeb;
-  }
+  bool isThumb() const { return getArch() == Triple::thumb || getArch() == Triple::thumbeb; }
 
   /// Tests whether the target is ARM (little and big endian).
-  bool isARM() const {
-    return getArch() == Triple::arm || getArch() == Triple::armeb;
-  }
+  bool isARM() const { return getArch() == Triple::arm || getArch() == Triple::armeb; }
 
   /// Tests whether the target supports the EHABI exception
   /// handling standard.
   bool isTargetEHABICompatible() const {
     return (isARM() || isThumb()) &&
-           (getEnvironment() == Triple::EABI ||
-            getEnvironment() == Triple::GNUEABI ||
-            getEnvironment() == Triple::MuslEABI ||
-            getEnvironment() == Triple::EABIHF ||
-            getEnvironment() == Triple::GNUEABIHF ||
-            getEnvironment() == Triple::OpenHOS ||
+           (getEnvironment() == Triple::EABI || getEnvironment() == Triple::GNUEABI ||
+            getEnvironment() == Triple::MuslEABI || getEnvironment() == Triple::EABIHF ||
+            getEnvironment() == Triple::GNUEABIHF || getEnvironment() == Triple::OpenHOS ||
             getEnvironment() == Triple::MuslEABIHF || isAndroid()) &&
            isOSBinFormatELF();
   }
@@ -858,8 +754,7 @@ public:
     assert(PointerWidth == 64 || PointerWidth == 32);
     if (!isAArch64())
       return false;
-    return getArch() == Triple::aarch64_32 ||
-                   getEnvironment() == Triple::GNUILP32
+    return getArch() == Triple::aarch64_32 || getEnvironment() == Triple::GNUILP32
                ? PointerWidth == 32
                : PointerWidth == 64;
   }
@@ -874,56 +769,46 @@ public:
   bool isLoongArch() const { return isLoongArch32() || isLoongArch64(); }
 
   /// Tests whether the target is M88k.
-  bool isM88k() const {
-    return getArch() == Triple::m88k;
-  }
+  bool isM88k() const { return getArch() == Triple::m88k; }
+
+  /// Tests whether the target is IMCE.
+  bool isIMCE() const { return getArch() == Triple::IMCE; }
 
   /// Tests whether the target is MIPS 32-bit (little and big endian).
-  bool isMIPS32() const {
-    return getArch() == Triple::mips || getArch() == Triple::mipsel;
-  }
+  bool isMIPS32() const { return getArch() == Triple::mips || getArch() == Triple::mipsel; }
 
   /// Tests whether the target is MIPS 64-bit (little and big endian).
-  bool isMIPS64() const {
-    return getArch() == Triple::mips64 || getArch() == Triple::mips64el;
-  }
+  bool isMIPS64() const { return getArch() == Triple::mips64 || getArch() == Triple::mips64el; }
 
   /// Tests whether the target is MIPS (little and big endian, 32- or 64-bit).
-  bool isMIPS() const {
-    return isMIPS32() || isMIPS64();
-  }
+  bool isMIPS() const { return isMIPS32() || isMIPS64(); }
 
   /// Tests whether the target is PowerPC (32- or 64-bit LE or BE).
   bool isPPC() const {
-    return getArch() == Triple::ppc || getArch() == Triple::ppc64 ||
-           getArch() == Triple::ppcle || getArch() == Triple::ppc64le;
+    return getArch() == Triple::ppc || getArch() == Triple::ppc64 || getArch() == Triple::ppcle ||
+           getArch() == Triple::ppc64le;
   }
 
   /// Tests whether the target is 32-bit PowerPC (little and big endian).
-  bool isPPC32() const {
-    return getArch() == Triple::ppc || getArch() == Triple::ppcle;
-  }
+  bool isPPC32() const { return getArch() == Triple::ppc || getArch() == Triple::ppcle; }
 
   /// Tests whether the target is 64-bit PowerPC (little and big endian).
-  bool isPPC64() const {
-    return getArch() == Triple::ppc64 || getArch() == Triple::ppc64le;
-  }
+  bool isPPC64() const { return getArch() == Triple::ppc64 || getArch() == Triple::ppc64le; }
 
   /// Tests whether the target 64-bit PowerPC big endian ABI is ELFv2.
   bool isPPC64ELFv2ABI() const {
-    return (getArch() == Triple::ppc64 &&
-            ((getOS() == Triple::FreeBSD &&
-              (getOSMajorVersion() >= 13 || getOSVersion().empty())) ||
-             getOS() == Triple::OpenBSD || isMusl()));
+    return (
+        getArch() == Triple::ppc64 &&
+        ((getOS() == Triple::FreeBSD && (getOSMajorVersion() >= 13 || getOSVersion().empty())) ||
+         getOS() == Triple::OpenBSD || isMusl()));
   }
 
   /// Tests whether the target 32-bit PowerPC uses Secure PLT.
   bool isPPC32SecurePlt() const {
-    return ((getArch() == Triple::ppc || getArch() == Triple::ppcle) &&
-            ((getOS() == Triple::FreeBSD &&
-              (getOSMajorVersion() >= 13 || getOSVersion().empty())) ||
-             getOS() == Triple::NetBSD || getOS() == Triple::OpenBSD ||
-             isMusl()));
+    return (
+        (getArch() == Triple::ppc || getArch() == Triple::ppcle) &&
+        ((getOS() == Triple::FreeBSD && (getOSMajorVersion() >= 13 || getOSVersion().empty())) ||
+         getOS() == Triple::NetBSD || getOS() == Triple::OpenBSD || isMusl()));
   }
 
   /// Tests whether the target is 32-bit RISC-V.
@@ -936,9 +821,7 @@ public:
   bool isRISCV() const { return isRISCV32() || isRISCV64(); }
 
   /// Tests whether the target is 32-bit SPARC (little and big endian).
-  bool isSPARC32() const {
-    return getArch() == Triple::sparc || getArch() == Triple::sparcel;
-  }
+  bool isSPARC32() const { return getArch() == Triple::sparc || getArch() == Triple::sparcel; }
 
   /// Tests whether the target is 64-bit SPARC (big endian).
   bool isSPARC64() const { return getArch() == Triple::sparcv9; }
@@ -947,34 +830,23 @@ public:
   bool isSPARC() const { return isSPARC32() || isSPARC64(); }
 
   /// Tests whether the target is SystemZ.
-  bool isSystemZ() const {
-    return getArch() == Triple::systemz;
-  }
+  bool isSystemZ() const { return getArch() == Triple::systemz; }
 
   /// Tests whether the target is x86 (32- or 64-bit).
-  bool isX86() const {
-    return getArch() == Triple::x86 || getArch() == Triple::x86_64;
-  }
+  bool isX86() const { return getArch() == Triple::x86 || getArch() == Triple::x86_64; }
 
   /// Tests whether the target is VE
-  bool isVE() const {
-    return getArch() == Triple::ve;
-  }
+  bool isVE() const { return getArch() == Triple::ve; }
 
   /// Tests whether the target is wasm (32- and 64-bit).
-  bool isWasm() const {
-    return getArch() == Triple::wasm32 || getArch() == Triple::wasm64;
-  }
+  bool isWasm() const { return getArch() == Triple::wasm32 || getArch() == Triple::wasm64; }
 
   // Tests whether the target is CSKY
-  bool isCSKY() const {
-    return getArch() == Triple::csky;
-  }
+  bool isCSKY() const { return getArch() == Triple::csky; }
 
   /// Tests whether the target is the Apple "arm64e" AArch64 subarch.
   bool isArm64e() const {
-    return getArch() == Triple::aarch64 &&
-           getSubArch() == Triple::AArch64SubArch_arm64e;
+    return getArch() == Triple::aarch64 && getSubArch() == Triple::AArch64SubArch_arm64e;
   }
 
   /// Tests whether the target is X32.
@@ -984,14 +856,11 @@ public:
   }
 
   /// Tests whether the target is eBPF.
-  bool isBPF() const {
-    return getArch() == Triple::bpfel || getArch() == Triple::bpfeb;
-  }
+  bool isBPF() const { return getArch() == Triple::bpfel || getArch() == Triple::bpfeb; }
 
   /// Tests whether the target supports comdat
   bool supportsCOMDAT() const {
-    return !(isOSBinFormatMachO() || isOSBinFormatXCOFF() ||
-             isOSBinFormatDXContainer());
+    return !(isOSBinFormatMachO() || isOSBinFormatXCOFF() || isOSBinFormatDXContainer());
   }
 
   /// Tests whether the target uses emulated TLS as default.
@@ -1003,9 +872,7 @@ public:
   }
 
   /// Tests whether the target uses -data-sections as default.
-  bool hasDefaultDataSections() const {
-    return isOSBinFormatXCOFF() || isWasm();
-  }
+  bool hasDefaultDataSections() const { return isOSBinFormatXCOFF() || isWasm(); }
 
   /// Tests if the environment supports dllimport/export annotations.
   bool hasDLLImportExport() const { return isOSWindows() || isPS(); }
@@ -1137,11 +1004,9 @@ public:
   /// @}
 
   /// Returns a canonicalized OS version number for the specified OS.
-  static VersionTuple getCanonicalVersionForOS(OSType OSKind,
-                                               const VersionTuple &Version);
+  static VersionTuple getCanonicalVersionForOS(OSType OSKind, const VersionTuple &Version);
 };
 
-} // End llvm namespace
-
+} // namespace llvm
 
 #endif

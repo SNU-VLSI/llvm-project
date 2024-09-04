@@ -1,4 +1,4 @@
-//===-- M88k.td - Describe the M88000 Target Machine -------*- tablegen -*-===//
+//===-- IMCE.td - Describe the M88000 Target Machine -------*- tablegen -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -19,23 +19,22 @@ include "llvm/Target/Target.td"
 // Register File, Calling Conv, Instruction Descriptions
 //===----------------------------------------------------------------------===//
 
-include "M88kRegisterInfo.td"
-include "GISel/M88kRegisterBanks.td"
-include "M88kCallingConv.td"
-include "M88kInstrFormats.td"
-include "M88kInstrInfo.td"
+include "IMCERegisterInfo.td"
+include "IMCECallingConv.td"
+include "IMCEInstrFormats.td"
+include "IMCEInstrInfo.td"
 
 //===----------------------------------------------------------------------===//
 // Declare the target which we are implementing
 //===----------------------------------------------------------------------===//
 
-def M88kInstrInfo : InstrInfo;
-def M88kAsmParser : AsmParser;
-def M88kAsmParserVariant : AsmParserVariant {
+def IMCEInstrInfo : InstrInfo;
+def IMCEAsmParser : AsmParser;
+def IMCEAsmParserVariant : AsmParserVariant {
   let RegisterPrefix = "%";
 }
 
-def M88kAsmWriter : AsmWriter {
+def IMCEAsmWriter : AsmWriter {
   string AsmWriterClassName  = "InstPrinter";
   int PassSubtarget = 1;
   int Variant = 0;
@@ -43,9 +42,9 @@ def M88kAsmWriter : AsmWriter {
 
 def : ProcessorModel<"generic",  NoSchedModel, []>;
 
-def M88k : Target {
-  let InstructionSet = M88kInstrInfo;
-  let AssemblyParsers  = [M88kAsmParser];
-  let AssemblyParserVariants = [M88kAsmParserVariant];
-  let AssemblyWriters = [M88kAsmWriter];
+def IMCE : Target {
+  let InstructionSet = IMCEInstrInfo;
+  let AssemblyParsers  = [IMCEAsmParser];
+  let AssemblyParserVariants = [IMCEAsmParserVariant];
+  let AssemblyWriters = [IMCEAsmWriter];
 }
