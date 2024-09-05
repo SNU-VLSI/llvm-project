@@ -177,14 +177,6 @@ const char *IMCETargetLowering::getTargetNodeName(unsigned Opcode) const {
     return #Opc
     OPCODE(IMCEISD::RET_GLUE);
     OPCODE(IMCEISD::CALL);
-    OPCODE(IMCEISD::CLR);
-    OPCODE(IMCEISD::SET);
-    OPCODE(IMCEISD::EXT);
-    OPCODE(IMCEISD::EXTU);
-    OPCODE(IMCEISD::MAK);
-    OPCODE(IMCEISD::ROT);
-    OPCODE(IMCEISD::FF1);
-    OPCODE(IMCEISD::FF0);
 #undef OPCODE
   default:
     return nullptr;

@@ -22,7 +22,6 @@ def SDT_CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
 def SDT_Call         : SDTypeProfile<0, -1, [SDTCisPtrTy<0>]>;
 
 // Selection DAG nodes.
-
 def call             : SDNode<"IMCEISD::CALL", SDT_Call,
                               [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue,
                               SDNPVariadic]>;
@@ -44,12 +43,12 @@ def jumpOperand : Operand<OtherVT> {
 }
 
 // instructions
-def ADD : InstRType<0b00001, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, SGPROpnd:$rs2), "sadd", "$rs1 $rs2", [(set SGPROpnd:$rd, (add SGPROpnd:$rs1, SGPROpnd:$rs2))]>;
+def IMCE_ADD_ : InstRType<0b00001, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, SGPROpnd:$rs2), "sadd", "$rs1 $rs2", [(set SGPROpnd:$rd, (add SGPROpnd:$rs1, SGPROpnd:$rs2))]>;
 
-def VADD : InstRType<0b00000, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, VGPROpnd:$rs2), "vadd", "$rs1 $rs2", [(set VGPROpnd:$rd, (add VGPROpnd:$rs1, VGPROpnd:$rs2))]>;
+def IMCE_VADD_ : InstRType<0b00000, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, VGPROpnd:$rs2), "vadd", "$rs1 $rs2", [(set VGPROpnd:$rd, (add VGPROpnd:$rs1, VGPROpnd:$rs2))]>;
 
-def JMP : InstJType<0b00010, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]>;
+def IMCE_JMP_ : InstJType<0b00010, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]>;
 
 let isReturn = 1, isTerminator = 1, isBarrier = 1, AsmString = "RET" in {
-  def RET : Pseudo<(outs), (ins), [(retglue)]>;
+  def IMCE_RET_ : Pseudo<(outs), (ins), [(retglue)]>;
 }
