@@ -35,7 +35,10 @@ enum NodeType : unsigned {
   // Calls a function.  Operand 0 is the chain operand and operand 1
   // is the target address.  The arguments start at operand 2.
   // There is an optional glue operand at the end.
-  CALL
+  CALL,
+
+  // SEND intrinsic
+  IMCE_SEND
 };
 } // end namespace IMCEISD
 
@@ -60,6 +63,10 @@ public:
                       SelectionDAG &DAG) const override;
 
   SDValue LowerCall(CallLoweringInfo &CLI, SmallVectorImpl<SDValue> &InVals) const override;
+
+  SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+
+  SDValue LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const;
 };
 
 } // end namespace llvm

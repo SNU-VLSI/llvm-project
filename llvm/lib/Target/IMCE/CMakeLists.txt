@@ -12,8 +12,6 @@ tablegen(LLVM IMCEGenMCCodeEmitter.inc -gen-emitter)
 tablegen(LLVM IMCEGenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM IMCEGenSubtargetInfo.inc -gen-subtarget)
 
-tablegen(LLVM IMCEGenRegisterBank.inc -gen-register-bank)
-
 add_public_tablegen_target(IMCECommonTableGen)
 
 add_llvm_target(IMCECodeGen

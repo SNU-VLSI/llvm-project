@@ -1447,9 +1447,7 @@ enum MemIndexType { SIGNED_SCALED = 0, UNSIGNED_SCALED };
 
 static const int LAST_MEM_INDEX_TYPE = UNSIGNED_SCALED + 1;
 
-inline bool isIndexTypeSigned(MemIndexType IndexType) {
-  return IndexType == SIGNED_SCALED;
-}
+inline bool isIndexTypeSigned(MemIndexType IndexType) { return IndexType == SIGNED_SCALED; }
 
 //===--------------------------------------------------------------------===//
 /// LoadExtType enum - This enum defines the three variants of LOADEXT
@@ -1526,9 +1524,7 @@ inline bool isUnsignedIntSetCC(CondCode Code) {
 
 /// Return true if this is a setcc instruction that performs an equality
 /// comparison when used with integer operands.
-inline bool isIntEqualitySetCC(CondCode Code) {
-  return Code == SETEQ || Code == SETNE;
-}
+inline bool isIntEqualitySetCC(CondCode Code) { return Code == SETEQ || Code == SETNE; }
 
 /// Return true if the specified condition returns true if the two operands to
 /// the condition are equal. Note that if one of the two operands is a NaN,
@@ -1538,22 +1534,18 @@ inline bool isTrueWhenEqual(CondCode Cond) { return ((int)Cond & 1) != 0; }
 /// This function returns 0 if the condition is always false if an operand is
 /// a NaN, 1 if the condition is always true if the operand is a NaN, and 2 if
 /// the condition is undefined if the operand is a NaN.
-inline unsigned getUnorderedFlavor(CondCode Cond) {
-  return ((int)Cond >> 3) & 3;
-}
+inline unsigned getUnorderedFlavor(CondCode Cond) { return ((int)Cond >> 3) & 3; }
 
 /// Return the operation corresponding to !(X op Y), where 'op' is a valid
 /// SetCC operation.
 CondCode getSetCCInverse(CondCode Operation, EVT Type);
 
 inline bool isExtOpcode(unsigned Opcode) {
-  return Opcode == ISD::ANY_EXTEND || Opcode == ISD::ZERO_EXTEND ||
-         Opcode == ISD::SIGN_EXTEND;
+  return Opcode == ISD::ANY_EXTEND || Opcode == ISD::ZERO_EXTEND || Opcode == ISD::SIGN_EXTEND;
 }
 
 inline bool isExtVecInRegOpcode(unsigned Opcode) {
-  return Opcode == ISD::ANY_EXTEND_VECTOR_INREG ||
-         Opcode == ISD::ZERO_EXTEND_VECTOR_INREG ||
+  return Opcode == ISD::ANY_EXTEND_VECTOR_INREG || Opcode == ISD::ZERO_EXTEND_VECTOR_INREG ||
          Opcode == ISD::SIGN_EXTEND_VECTOR_INREG;
 }
 

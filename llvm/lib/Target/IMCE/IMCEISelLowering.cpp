@@ -16,9 +16,12 @@
 #include "IMCEISelLowering.h"
 #include "IMCESubtarget.h"
 #include "MCTargetDesc/IMCEMCTargetDesc.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
+#include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
+#include "llvm/IR/IntrinsicsIMCE.h"
 #include <cstdint>
 
 using namespace llvm;
@@ -53,6 +56,9 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   setOperationAction(ISD::AND, MVT::i32, Legal);
   setOperationAction(ISD::OR, MVT::i32, Legal);
   setOperationAction(ISD::XOR, MVT::i32, Legal);
+
+  setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
+                     {MVT::v16i16, MVT::i32}, Custom);
 }
 
 //===----------------------------------------------------------------------===//
@@ -180,5 +186,25 @@ const char *IMCETargetLowering::getTargetNodeName(unsigned Opcode) const {
 #undef OPCODE
   default:
     return nullptr;
+  }
+}
+
+SDValue IMCETargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
+  switch (Op.getOpcode()) {
+  default:
+    report_fatal_error("unimplemented operand");
+  case ISD::INTRINSIC_WO_CHAIN:
+  case ISD::INTRINSIC_W_CHAIN:
+  case ISD::INTRINSIC_VOID:
+    return LowerINTRINSIC(Op, DAG);
+  }
+}
+
+SDValue IMCETargetLowering::LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const {
+  switch (Op.getOpcode()) {
+  default:
+    llvm_unreachable("Invalid intrinsic");
+  case Intrinsic::IMCE_SEND:
+    return DAG.getNode(IMCEISD::IMCE_SEND, SDLoc(Op), Op.getValueType(), Op.getNode()->ops());
   }
 }

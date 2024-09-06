@@ -75,6 +75,13 @@ static DecodeStatus decodeSGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64
   return MCDisassembler::Success;
 }
 
+static DecodeStatus decodeUImmOperand6(MCInst &Inst, uint32_t Imm,
+                                      int64_t Address,
+                                      const MCDisassembler *Decoder) {
+  Inst.addOperand(MCOperand::createImm(Imm));
+  return MCDisassembler::Success;
+}
+
 #include "IMCEGenDisassemblerTables.inc"
 
 DecodeStatus IMCEDisassembler::getInstruction(MCInst &MI, uint64_t &Size, ArrayRef<uint8_t> Bytes,

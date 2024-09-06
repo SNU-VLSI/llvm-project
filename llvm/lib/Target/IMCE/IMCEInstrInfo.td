@@ -42,6 +42,21 @@ def jumpOperand : Operand<OtherVT> {
   // let PrintMethod = "printJumpOperand";
 }
 
+class ImmAsmOperand<string prefix, int width, string suffix> : AsmOperandClass {
+  let Name = prefix # "Imm" # width # suffix;
+  let RenderMethod = "addImmOperands";
+  let DiagnosticType = !strconcat("Invalid", Name);
+}
+
+class UImmAsmOperand<int width, string suffix = "">
+    : ImmAsmOperand<"U", width, suffix> {
+}
+
+def uimm6 : Operand<i32> {
+  let ParserMatchClass = UImmAsmOperand<6>;
+  let DecoderMethod = "decodeUImmOperand6";
+}
+
 // instructions
 def IMCE_ADD_ : InstRType<0b00001, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, SGPROpnd:$rs2), "sadd", "$rs1 $rs2", [(set SGPROpnd:$rd, (add SGPROpnd:$rs1, SGPROpnd:$rs2))]>;
 
@@ -52,3 +67,10 @@ def IMCE_JMP_ : InstJType<0b00010, (outs), (ins jumpOperand:$imm), "jmp", "$imm"
 let isReturn = 1, isTerminator = 1, isBarrier = 1, AsmString = "RET" in {
   def IMCE_RET_ : Pseudo<(outs), (ins), [(retglue)]>;
 }
+
+// intrinsics
+def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>,
+                                    SDTCisVT<1, v16i16>,
+                                    SDTCisVT<2, i32>]>;
+def IMCE_SEND : SDNode<"IMCEISD::SEND", SDT_SEND>;
+def IMCE_SEND_ : InstRType<0b11111, (outs), (ins VGPROpnd:$rs1, VGPROpnd:$rs2, uimm6:$src_mask), "send", "$rs1 $rs2 $src_mask", [()]>
