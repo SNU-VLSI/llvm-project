@@ -57,3 +57,18 @@ class InstJType<int op, dag outs, dag ins, string asm, string operands, list<dag
   let Inst{5-0} = op;
   let Inst{31-6} = imm;
 }
+
+class InstCType<int op, dag outs, dag ins, string asm, string operands, list<dag> pattern = []>
+   : InstIMCE<outs, ins, asm, operands, pattern> {
+
+  bits<6> imm2;
+  bits<6> rs1;
+  bits<6> fifo_id;
+  bits<8> flag_value;
+
+  let Inst{5-0} = op;
+  let Inst{11-6} = imm2;
+  let Inst{17-12} = rs1;
+  let Inst{23-18} = fifo_id;
+  let Inst{31-24} = flag_value;
+}

@@ -57,8 +57,10 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   setOperationAction(ISD::OR, MVT::i32, Legal);
   setOperationAction(ISD::XOR, MVT::i32, Legal);
 
+  // setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
+  //                    {MVT::v16i16, MVT::i32}, Custom);
   setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
-                     {MVT::v16i16, MVT::i32}, Custom);
+                     {MVT::Other, MVT::v16i16, MVT::i32}, Custom);
 }
 
 //===----------------------------------------------------------------------===//
@@ -183,6 +185,7 @@ const char *IMCETargetLowering::getTargetNodeName(unsigned Opcode) const {
     return #Opc
     OPCODE(IMCEISD::RET_GLUE);
     OPCODE(IMCEISD::CALL);
+    OPCODE(IMCEISD::IMCE_SEND);
 #undef OPCODE
   default:
     return nullptr;
@@ -204,7 +207,22 @@ SDValue IMCETargetLowering::LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const 
   switch (Op.getOpcode()) {
   default:
     llvm_unreachable("Invalid intrinsic");
-  case Intrinsic::IMCE_SEND:
-    return DAG.getNode(IMCEISD::IMCE_SEND, SDLoc(Op), Op.getValueType(), Op.getNode()->ops());
+  case ISD::INTRINSIC_WO_CHAIN:
+  case ISD::INTRINSIC_VOID:
+    llvm_unreachable("Invalid intrinsic");
+  case ISD::INTRINSIC_W_CHAIN:
+    unsigned int IntNo = Op.getConstantOperandVal(1);
+    switch (IntNo) {
+    default:
+      llvm_unreachable("Invalid intrinsic");
+    case Intrinsic::IMCE_SEND:
+      // SDValue Chain = Op.getValue(1);
+      // ArrayRef<EVT> ResultVTs(&Op.getNode()->getValueType(0), &Op.getNode()->getValueType(1));
+      // EVT vt_list[2] = {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)};
+      // SDVTList ResultVTList{vt_list, 2};
+      return DAG.getNode(IMCEISD::IMCE_SEND, SDLoc(Op),
+                         {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)},
+                         {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
+    }
   }
 }

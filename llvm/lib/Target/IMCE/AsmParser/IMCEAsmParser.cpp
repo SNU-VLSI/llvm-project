@@ -27,6 +27,7 @@
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/MathExtras.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/SubtargetFeature.h"
@@ -150,6 +151,14 @@ public:
       break;
     }
   }
+
+  bool isUImm6() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<6>(CE->getValue());
+    return false;
+  }
 };
 
 class IMCEAsmParser : public MCTargetAsmParser {
@@ -178,6 +187,14 @@ public:
       : MCTargetAsmParser(Options, STI, MII), Parser(Parser), SubtargetInfo(STI) {
     setAvailableFeatures(ComputeAvailableFeatures(SubtargetInfo.getFeatureBits()));
   }
+
+  enum IMCEMatchResultTy {
+    Match_Dummy = FIRST_TARGET_MATCH_RESULT_TY,
+    Match_RequiresEvenGPRs,
+#define GET_OPERAND_DIAGNOSTIC_TYPES
+#include "IMCEGenAsmMatcher.inc"
+#undef GET_OPERAND_DIAGNOSTIC_TYPES
+  };
 };
 
 } // end anonymous namespace

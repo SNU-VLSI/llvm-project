@@ -52,25 +52,30 @@ class UImmAsmOperand<int width, string suffix = "">
     : ImmAsmOperand<"U", width, suffix> {
 }
 
-def uimm6 : Operand<i32> {
+def uimm6 : Operand<i32>, ImmLeaf<i32, [{return ((Imm > 0) & (Imm < 64));}]> {
   let ParserMatchClass = UImmAsmOperand<6>;
   let DecoderMethod = "decodeUImmOperand6";
 }
 
 // instructions
-def IMCE_ADD_ : InstRType<0b00001, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, SGPROpnd:$rs2), "sadd", "$rs1 $rs2", [(set SGPROpnd:$rd, (add SGPROpnd:$rs1, SGPROpnd:$rs2))]>;
+def IMCE_ADD_INST : InstRType<0b00001, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, SGPROpnd:$rs2), "sadd", "$rs1 $rs2", [(set SGPROpnd:$rd, (add SGPROpnd:$rs1, SGPROpnd:$rs2))]>;
 
-def IMCE_VADD_ : InstRType<0b00000, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, VGPROpnd:$rs2), "vadd", "$rs1 $rs2", [(set VGPROpnd:$rd, (add VGPROpnd:$rs1, VGPROpnd:$rs2))]>;
+def IMCE_VADD_INST : InstRType<0b00000, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, VGPROpnd:$rs2), "vadd", "$rs1 $rs2", [(set VGPROpnd:$rd, (add VGPROpnd:$rs1, VGPROpnd:$rs2))]>;
 
-def IMCE_JMP_ : InstJType<0b00010, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]>;
+def IMCE_JMP_INST : InstJType<0b00010, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]>;
 
 let isReturn = 1, isTerminator = 1, isBarrier = 1, AsmString = "RET" in {
-  def IMCE_RET_ : Pseudo<(outs), (ins), [(retglue)]>;
+  def IMCE_RET_INST : Pseudo<(outs), (ins), [(retglue)]>;
 }
 
 // intrinsics
 def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>,
                                     SDTCisVT<1, v16i16>,
                                     SDTCisVT<2, i32>]>;
-def IMCE_SEND : SDNode<"IMCEISD::SEND", SDT_SEND>;
-def IMCE_SEND_ : InstRType<0b11111, (outs), (ins VGPROpnd:$rs1, VGPROpnd:$rs2, uimm6:$src_mask), "send", "$rs1 $rs2 $src_mask", [()]>
+// def SDT_SEND : SDTypeProfile<1, 3, [SDTCisVT<1, v16i16>,
+//                                     SDTCisVT<2, v16i16>,
+//                                     SDTCisVT<3, i32>]>;
+def IMCE_SEND_NODE : SDNode<"IMCEISD::IMCE_SEND", SDT_SEND, [SDNPHasChain]>;
+let fifo_id = 0 in {
+  def IMCE_SEND_INST : InstCType<0b11111, (outs), (ins VGPROpnd:$rs1, VGPROpnd:$flag_value, uimm6:$imm2), "send", "$rs1 $flag_value $imm2", [(IMCE_SEND_NODE VGPROpnd:$rs1, VGPROpnd:$flag_value, uimm6:$imm2)]>;
+}

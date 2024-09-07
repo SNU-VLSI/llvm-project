@@ -41,9 +41,9 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   switch (MI.getOpcode()) {
   default:
     return false;
-  case IMCE::IMCE_RET_: {
-    MachineInstrBuilder MIB =
-        BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_JMP_)).addReg(IMCE::S1, RegState::Undef);
+  case IMCE::IMCE_RET_INST: {
+    MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_JMP_INST))
+                                  .addReg(IMCE::S1, RegState::Undef);
 
     // Retain any imp-use flags.
     for (auto &MO : MI.operands()) {
