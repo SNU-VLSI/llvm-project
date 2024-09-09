@@ -220,9 +220,13 @@ SDValue IMCETargetLowering::LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const 
       // ArrayRef<EVT> ResultVTs(&Op.getNode()->getValueType(0), &Op.getNode()->getValueType(1));
       // EVT vt_list[2] = {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)};
       // SDVTList ResultVTList{vt_list, 2};
-      return DAG.getNode(IMCEISD::IMCE_SEND, SDLoc(Op),
-                         {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)},
-                         {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
+      SDLoc DL(Op);
+      SDValue Result = DAG.getNode(
+          IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)},
+          {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
+      SDValue Chain = Result.getValue(1);
+
+      return DAG.getMergeValues({Result, Chain}, DL);
     }
   }
 }

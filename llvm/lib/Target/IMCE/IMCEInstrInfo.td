@@ -52,7 +52,7 @@ class UImmAsmOperand<int width, string suffix = "">
     : ImmAsmOperand<"U", width, suffix> {
 }
 
-def uimm6 : Operand<i32>, ImmLeaf<i32, [{return ((Imm > 0) & (Imm < 64));}]> {
+def uimm6 : Operand<i32>, TImmLeaf<i32, [{return ((Imm > 0) & (Imm < 64));}]> {
   let ParserMatchClass = UImmAsmOperand<6>;
   let DecoderMethod = "decodeUImmOperand6";
 }
@@ -72,6 +72,9 @@ let isReturn = 1, isTerminator = 1, isBarrier = 1, AsmString = "RET" in {
 def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>,
                                     SDTCisVT<1, v16i16>,
                                     SDTCisVT<2, i32>]>;
+// def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>,
+//                                     SDTCisVT<1, v16i16>,
+//                                     SDTCisVT<2, i6>]>;
 // def SDT_SEND : SDTypeProfile<1, 3, [SDTCisVT<1, v16i16>,
 //                                     SDTCisVT<2, v16i16>,
 //                                     SDTCisVT<3, i32>]>;

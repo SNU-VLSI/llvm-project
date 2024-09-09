@@ -26,11 +26,9 @@ class RISCVTargetMachine : public LLVMTargetMachine {
   mutable StringMap<std::unique_ptr<RISCVSubtarget>> SubtargetMap;
 
 public:
-  RISCVTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
-                     StringRef FS, const TargetOptions &Options,
-                     std::optional<Reloc::Model> RM,
-                     std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
-                     bool JIT);
+  RISCVTargetMachine(const Target &T, const Triple &TT, StringRef CPU, StringRef FS,
+                     const TargetOptions &Options, std::optional<Reloc::Model> RM,
+                     std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool JIT);
 
   const RISCVSubtarget *getSubtargetImpl(const Function &F) const override;
   // DO NOT IMPLEMENT: There is no such thing as a valid default subtarget,
@@ -40,25 +38,19 @@ public:
 
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
 
-  TargetLoweringObjectFile *getObjFileLowering() const override {
-    return TLOF.get();
-  }
+  TargetLoweringObjectFile *getObjFileLowering() const override { return TLOF.get(); }
 
-  MachineFunctionInfo *
-  createMachineFunctionInfo(BumpPtrAllocator &Allocator, const Function &F,
-                            const TargetSubtargetInfo *STI) const override;
+  MachineFunctionInfo *createMachineFunctionInfo(BumpPtrAllocator &Allocator, const Function &F,
+                                                 const TargetSubtargetInfo *STI) const override;
 
   TargetTransformInfo getTargetTransformInfo(const Function &F) const override;
 
   bool isNoopAddrSpaceCast(unsigned SrcAS, unsigned DstAS) const override;
 
   yaml::MachineFunctionInfo *createDefaultFuncInfoYAML() const override;
-  yaml::MachineFunctionInfo *
-  convertFuncInfoToYAML(const MachineFunction &MF) const override;
-  bool parseMachineFunctionInfo(const yaml::MachineFunctionInfo &,
-                                PerFunctionMIParsingState &PFS,
-                                SMDiagnostic &Error,
-                                SMRange &SourceRange) const override;
+  yaml::MachineFunctionInfo *convertFuncInfoToYAML(const MachineFunction &MF) const override;
+  bool parseMachineFunctionInfo(const yaml::MachineFunctionInfo &, PerFunctionMIParsingState &PFS,
+                                SMDiagnostic &Error, SMRange &SourceRange) const override;
 };
 } // namespace llvm
 
