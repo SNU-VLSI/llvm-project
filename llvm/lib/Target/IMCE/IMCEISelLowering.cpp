@@ -224,9 +224,10 @@ SDValue IMCETargetLowering::LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const 
       SDValue Result = DAG.getNode(
           IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)},
           {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
-      SDValue Chain = Result.getValue(1);
+      // SDValue Chain = Result.getValue(1);
+      // return DAG.getMergeValues({Result, Chain}, DL);
 
-      return DAG.getMergeValues({Result, Chain}, DL);
+      return Result;
     }
   }
 }
