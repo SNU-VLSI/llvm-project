@@ -72,12 +72,6 @@ let isReturn = 1, isTerminator = 1, isBarrier = 1, AsmString = "RET" in {
 def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>,
                                     SDTCisVT<1, v16i16>,
                                     SDTCisVT<2, i32>]>;
-// def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>,
-//                                     SDTCisVT<1, v16i16>,
-//                                     SDTCisVT<2, i6>]>;
-// def SDT_SEND : SDTypeProfile<1, 3, [SDTCisVT<1, v16i16>,
-//                                     SDTCisVT<2, v16i16>,
-//                                     SDTCisVT<3, i32>]>;
 def IMCE_SEND_NODE : SDNode<"IMCEISD::IMCE_SEND", SDT_SEND, [SDNPHasChain]>;
 let fifo_id = 0 in {
   def IMCE_SEND_INST : InstCType<0b11111, (outs), (ins VGPROpnd:$rs1, VGPROpnd:$flag_value, uimm6:$imm2), "send", "$rs1 $flag_value $imm2", [(IMCE_SEND_NODE VGPROpnd:$rs1, VGPROpnd:$flag_value, uimm6:$imm2)]>;

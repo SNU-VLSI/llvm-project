@@ -48,14 +48,14 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   setPrefFunctionAlignment(Align(4));
 
   setOperationAction(ISD::ADD, MVT::v16i16, Legal);
-  setOperationAction(ISD::AND, MVT::v16i16, Legal);
-  setOperationAction(ISD::OR, MVT::v16i16, Legal);
-  setOperationAction(ISD::XOR, MVT::v16i16, Legal);
+  // setOperationAction(ISD::AND, MVT::v16i16, Legal);
+  // setOperationAction(ISD::OR, MVT::v16i16, Legal);
+  // setOperationAction(ISD::XOR, MVT::v16i16, Legal);
 
   setOperationAction(ISD::ADD, MVT::i32, Legal);
-  setOperationAction(ISD::AND, MVT::i32, Legal);
-  setOperationAction(ISD::OR, MVT::i32, Legal);
-  setOperationAction(ISD::XOR, MVT::i32, Legal);
+  // setOperationAction(ISD::AND, MVT::i32, Legal);
+  // setOperationAction(ISD::OR, MVT::i32, Legal);
+  // setOperationAction(ISD::XOR, MVT::i32, Legal);
 
   // setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
   //                    {MVT::v16i16, MVT::i32}, Custom);
@@ -208,8 +208,8 @@ SDValue IMCETargetLowering::LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const 
   default:
     llvm_unreachable("Invalid intrinsic");
   case ISD::INTRINSIC_WO_CHAIN:
-  case ISD::INTRINSIC_VOID:
     llvm_unreachable("Invalid intrinsic");
+  case ISD::INTRINSIC_VOID:
   case ISD::INTRINSIC_W_CHAIN:
     unsigned int IntNo = Op.getConstantOperandVal(1);
     switch (IntNo) {
@@ -221,9 +221,12 @@ SDValue IMCETargetLowering::LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const 
       // EVT vt_list[2] = {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)};
       // SDVTList ResultVTList{vt_list, 2};
       SDLoc DL(Op);
-      SDValue Result = DAG.getNode(
-          IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)},
-          {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
+      // SDValue Result = DAG.getNode(
+      //     IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0), Op.getNode()->getValueType(1)},
+      //     {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
+      SDValue Result =
+          DAG.getNode(IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0)},
+                      {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
       // SDValue Chain = Result.getValue(1);
       // return DAG.getMergeValues({Result, Chain}, DL);
 

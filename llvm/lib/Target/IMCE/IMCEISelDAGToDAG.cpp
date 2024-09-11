@@ -53,10 +53,47 @@ FunctionPass *llvm::createIMCEISelDag(IMCETargetMachine &TM, CodeGenOpt::Level O
 }
 
 void IMCEDAGToDAGISel::Select(SDNode *Node) {
-  // Instruction Selection not handled by the
-  // auto-generated tablegen selection should be handled
-  // here.
+  // If we have a custom node, we have already selected.
+  if (Node->isMachineOpcode()) {
+    LLVM_DEBUG(dbgs() << "== "; Node->dump(CurDAG); dbgs() << "\n");
+    Node->setNodeId(-1);
+    return;
+  }
 
-  // Select the default instruction.
+  // Instruction Selection not handled by the auto-generated tablegen selection
+  // should be handled here.
+  unsigned Opcode = Node->getOpcode();
+  // MVT XLenVT = Subtarget->getXLenVT();
+  SDLoc DL(Node);
+  MVT VT = Node->getSimpleValueType(0);
+
+  // bool HasBitTest = Subtarget->hasStdExtZbs() || Subtarget->hasVendorXTHeadBs();
+
+  switch (Opcode) {
+  case ISD::Constant: {
+    // assert(VT == Subtarget->getXLenVT() && "Unexpected VT");
+    auto *ConstNode = cast<ConstantSDNode>(Node);
+    if (ConstNode->isZero()) {
+      SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::S0, VT);
+      ReplaceNode(Node, New.getNode());
+      return;
+    }
+    int64_t Imm = ConstNode->getSExtValue();
+    // If the upper XLen-16 bits are not used, try to convert this to a simm12
+    // by sign extending bit 15.
+    // if (isUInt<16>(Imm) && isInt<12>(SignExtend64<16>(Imm)) && hasAllHUsers(Node))
+    //   Imm = SignExtend64<16>(Imm);
+    // // If the upper 32-bits are not used try to convert this into a simm32 by
+    // // sign extending bit 32.
+    // if (!isInt<32>(Imm) && isUInt<32>(Imm) && hasAllWUsers(Node))
+    //   Imm = SignExtend64<32>(Imm);
+
+    // SDValue add_node =
+    // ReplaceNode(Node, selectImm(CurDAG, DL, VT, Imm, *Subtarget).getNode());
+    SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::S0, VT);
+    ReplaceNode(Node, New.getNode());
+    return;
+  }
+  }
   SelectCode(Node);
 }
