@@ -40,6 +40,8 @@ BitVector IMCERegisterInfo::getReservedRegs(const MachineFunction &MF) const {
 
   // R31 is the stack pointer.
   Reserved.set(IMCE::S31);
+  markSuperRegs(Reserved, IMCE::S0); // zero
+  markSuperRegs(Reserved, IMCE::V0); // zero
 
   return Reserved;
 }

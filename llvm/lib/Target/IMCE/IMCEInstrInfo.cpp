@@ -63,11 +63,17 @@ void IMCEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::itera
                                 const DebugLoc &DL, MCRegister DestReg, MCRegister SrcReg,
                                 bool KillSrc) const {
 
-  // MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(IMCE::ADD));
+  const TargetRegisterInfo *TRI = STI.getRegisterInfo();
+  if (IMCE::SGPRRegClass.contains(DestReg, SrcReg)) {
+    BuildMI(MBB, I, DL, get(IMCE::IMCE_ADD_INST), DestReg)
+        .addReg(SrcReg, getKillRegState(KillSrc))
+        .addReg(IMCE::S0);
+    return;
+  }
 
-  // if (DestReg)
-  //   MIB.addReg(DestReg, RegState::Define);
-
-  // if (SrcReg)
-  //   MIB.addReg(SrcReg, getKillRegState(KillSrc));
+  if (IMCE::VGPRRegClass.contains(DestReg, SrcReg)) {
+    BuildMI(MBB, I, DL, get(IMCE::IMCE_VADD_INST), DestReg)
+        .addReg(SrcReg, getKillRegState(KillSrc))
+        .addReg(IMCE::V0);
+  }
 }
