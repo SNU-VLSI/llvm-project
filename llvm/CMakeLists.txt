@@ -456,6 +456,15 @@ set(LLVM_CMAKE_DIR ${LLVM_MAIN_SRC_DIR}/cmake/modules)
 set(LLVM_EXAMPLES_BINARY_DIR ${LLVM_BINARY_DIR}/examples)
 set(LLVM_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
+message(STATUS "[DEBUG] bindir environment variable: ${LLVM_TOOLS_BINARY_DIR}")
+message(STATUS "[DEBUG] libdir environment variable: ${LLVM_LIBRARY_DIR}")
+message(STATUS "[DEBUG] src-root environment variable: ${LLVM_MAIN_SRC_DIR}")
+message(STATUS "[DEBUG] incdir environment variable: ${LLVM_MAIN_INCLUDE_DIR}")
+message(STATUS "[DEBUG] prefix environment variable: ${LLVM_BINARY_DIR}")
+message(STATUS "[DEBUG] cmake environment variable: ${LLVM_CMAKE_DIR}")
+message(STATUS "[DEBUG] exbindir environment variable: ${LLVM_EXAMPLES_BINARY_DIR}")
+message(STATUS "[DEBUG] llvm_incdir environment variable: ${LLVM_INCLUDE_DIR}")
+
 # List of all targets to be built by default:
 set(LLVM_ALL_TARGETS
   AArch64
