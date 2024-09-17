@@ -152,11 +152,75 @@ public:
     }
   }
 
+  bool isUImm1() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<1>(CE->getValue());
+    return false;
+  }
+
+  bool isUImm2() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<2>(CE->getValue());
+    return false;
+  }
+
+  bool isUImm3() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<3>(CE->getValue());
+    return false;
+  }
+
+  bool isUImm4() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<4>(CE->getValue());
+    return false;
+  }
+
   bool isUImm6() const {
     if (!isImm())
       return false;
     if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
       return isUInt<6>(CE->getValue());
+    return false;
+  }
+
+  bool isUImm8() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<8>(CE->getValue());
+    return false;
+  }
+
+  bool isUImm14() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<14>(CE->getValue());
+    return false;
+  }
+
+  bool isUImm26() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<26>(CE->getValue());
+    return false;
+  }
+
+  bool isSImm14() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isInt<14>(CE->getValue());
     return false;
   }
 };

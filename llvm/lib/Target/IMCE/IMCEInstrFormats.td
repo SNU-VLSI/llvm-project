@@ -120,9 +120,6 @@ class InstBType<int op, dag outs, dag ins, string asm, string operands, list<dag
 
 class InstXType<int op, dag outs, dag ins, string asm, string operands, list<dag> pattern = []>
    : InstIMCE<outs, ins, asm, operands, pattern> {
-  bits<6> imm2;
-  bits<6> rs1;
-  bits<14> imm;
 
   let Inst{5-0} = op;
 }

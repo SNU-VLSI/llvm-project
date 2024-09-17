@@ -75,12 +75,31 @@ static DecodeStatus decodeSGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64
   return MCDisassembler::Success;
 }
 
-static DecodeStatus decodeUImmOperand6(MCInst &Inst, uint32_t Imm,
+template <unsigned N>
+static DecodeStatus decodeUImmOperand(MCInst &Inst, uint32_t Imm,
                                       int64_t Address,
                                       const MCDisassembler *Decoder) {
+  assert(isUInt<N>(Imm) && "Invalid immediate");
   Inst.addOperand(MCOperand::createImm(Imm));
   return MCDisassembler::Success;
 }
+
+template <unsigned N>
+static DecodeStatus decodeSImmOperand(MCInst &Inst, uint32_t Imm,
+                                      int64_t Address,
+                                      const MCDisassembler *Decoder) {
+  assert(isUInt<N>(Imm) && "Invalid immediate");
+  // Sign-extend the number in the bottom N bits of Imm
+  Inst.addOperand(MCOperand::createImm(SignExtend64<N>(Imm)));
+  return MCDisassembler::Success;
+}
+
+// static DecodeStatus decodeUImmOperand6(MCInst &Inst, uint32_t Imm,
+//                                       int64_t Address,
+//                                       const MCDisassembler *Decoder) {
+//   Inst.addOperand(MCOperand::createImm(Imm));
+//   return MCDisassembler::Success;
+// }
 
 #include "IMCEGenDisassemblerTables.inc"
 

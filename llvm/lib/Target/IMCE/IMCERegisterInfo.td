@@ -133,18 +133,3 @@ def PCREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add PCREG)> {
   let Size = 256;
   let CopyCost = 1;
 }
-
-// ============================================
-// register operand
-// ============================================
-class IMCERegisterOperand<RegisterClass RC> : RegisterOperand<RC> {
-  let DecoderMethod = "decode"#RC#"RegisterClass";
-}
-
-def SGPROpnd : IMCERegisterOperand<SGPR> {
-  let GIZeroRegister = S0;
-}
-
-def VGPROpnd : IMCERegisterOperand<VGPR> {
-  let GIZeroRegister = V0;
-}

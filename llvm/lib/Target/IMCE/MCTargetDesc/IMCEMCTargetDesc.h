@@ -10,6 +10,7 @@
 #define LLVM_LIB_TARGET_IMCE_MCTARGETDESC_IMCEMCTARGETDESC_H
 
 #include "llvm/Support/DataTypes.h"
+#include "IMCEBaseInfo.h" 
 
 #include <memory>
 
@@ -30,6 +31,10 @@ class raw_pwrite_stream;
 class raw_ostream;
 
 MCCodeEmitter *createIMCEMCCodeEmitter(const MCInstrInfo &MCII, MCContext &Ctx);
+MCAsmBackend *createIMCEAsmBackend(const Target &T, const MCSubtargetInfo &STI,
+                                    const MCRegisterInfo &MRI,
+                                    const MCTargetOptions &Options);
+std::unique_ptr<MCObjectTargetWriter> createIMCEELFObjectWriter(uint8_t OSABI, bool Is64Bit);
 } // end namespace llvm
 
 // Defines symbolic names for IMCE registers.

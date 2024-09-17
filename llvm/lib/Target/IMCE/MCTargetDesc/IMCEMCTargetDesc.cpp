@@ -57,21 +57,11 @@ static MCSubtargetInfo *createIMCEMCSubtargetInfo(const Triple &TT, StringRef CP
 }
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeIMCETargetMC() {
-  // Register the MCAsmInfo.
   TargetRegistry::RegisterMCAsmInfo(getTheIMCETarget(), createIMCEMCAsmInfo);
-
-  // Register the MCCodeEmitter.
   TargetRegistry::RegisterMCCodeEmitter(getTheIMCETarget(), createIMCEMCCodeEmitter);
-
-  // Register the MCInstrInfo.
   TargetRegistry::RegisterMCInstrInfo(getTheIMCETarget(), createIMCEMCInstrInfo);
-
-  // Register the MCRegisterInfo.
   TargetRegistry::RegisterMCRegInfo(getTheIMCETarget(), createIMCEMCRegisterInfo);
-
-  // Register the MCSubtargetInfo.
   TargetRegistry::RegisterMCSubtargetInfo(getTheIMCETarget(), createIMCEMCSubtargetInfo);
-
-  // Register the MCInstPrinter.
   TargetRegistry::RegisterMCInstPrinter(getTheIMCETarget(), createIMCEMCInstPrinter);
+  TargetRegistry::RegisterMCAsmBackend(getTheIMCETarget(), createIMCEAsmBackend);
 }

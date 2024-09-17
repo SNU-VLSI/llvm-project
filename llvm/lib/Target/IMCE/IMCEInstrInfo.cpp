@@ -64,12 +64,12 @@ void IMCEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::itera
                                 bool KillSrc) const {
 
   const TargetRegisterInfo *TRI = STI.getRegisterInfo();
-  if (IMCE::SGPRRegClass.contains(DestReg, SrcReg)) {
-    BuildMI(MBB, I, DL, get(IMCE::IMCE_ADD_INST), DestReg)
-        .addReg(SrcReg, getKillRegState(KillSrc))
-        .addReg(IMCE::S0);
-    return;
-  }
+  // if (IMCE::SGPRRegClass.contains(DestReg, SrcReg)) {
+  //   BuildMI(MBB, I, DL, get(IMCE::IMCE_ADD_INST), DestReg)
+  //       .addReg(SrcReg, getKillRegState(KillSrc))
+  //       .addReg(IMCE::S0);
+  //   return;
+  // }
 
   if (IMCE::VGPRRegClass.contains(DestReg, SrcReg)) {
     BuildMI(MBB, I, DL, get(IMCE::IMCE_VADD_INST), DestReg)
