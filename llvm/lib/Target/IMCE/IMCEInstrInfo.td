@@ -60,63 +60,83 @@ class UImmAsmOperand<int width, string suffix = "">
     : ImmAsmOperand<"U", width, suffix> {
 }
 
-def uimm1 : Operand<i32>, TImmLeaf<i32, [{return isUInt<1>(Imm);}]> {
+def ImmZeroAsmOperand : AsmOperandClass {
+  let Name = "ImmZero";
+  let RenderMethod = "addImmOperands";
+  let DiagnosticType = !strconcat("Invalid", Name);
+}
+
+def immzero : Operand<i16>,
+              TImmLeaf<i16, [{return (Imm == 0);}]> {
+  let ParserMatchClass = ImmZeroAsmOperand;
+  let OperandType = "OPERAND_ZERO";
+  let OperandNamespace = "IMCEOp";
+}
+
+def uimm1 : Operand<i16>, TImmLeaf<i16, [{return isUInt<1>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<1>;
   let DecoderMethod = "decodeUImmOperand<1>";
   let OperandType = "OPERAND_UIMM1";
   let OperandNamespace = "IMCEOp";
 }
 
-def uimm2 : Operand<i32>, TImmLeaf<i32, [{return isUInt<2>(Imm);}]> {
+def uimm2 : Operand<i16>, TImmLeaf<i16, [{return isUInt<2>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<2>;
   let DecoderMethod = "decodeUImmOperand<2>";
   let OperandType = "OPERAND_UIMM2";
   let OperandNamespace = "IMCEOp";
 }
 
-def uimm3 : Operand<i32>, TImmLeaf<i32, [{return isUInt<3>(Imm);}]> {
+def uimm3 : Operand<i16>, TImmLeaf<i16, [{return isUInt<3>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<3>;
   let DecoderMethod = "decodeUImmOperand<3>";
   let OperandType = "OPERAND_UIMM3";
   let OperandNamespace = "IMCEOp";
 }
 
-def uimm4 : Operand<i32>, TImmLeaf<i32, [{return isUInt<4>(Imm);}]> {
+def uimm4 : Operand<i16>, TImmLeaf<i16, [{return isUInt<4>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<4>;
   let DecoderMethod = "decodeUImmOperand<4>";
   let OperandType = "OPERAND_UIMM4";
   let OperandNamespace = "IMCEOp";
 }
 
-def uimm6 : Operand<i32>, TImmLeaf<i32, [{return isUInt<6>(Imm);}]> {
+def uimm4_allone : Operand<i16>, TImmLeaf<i16, [{return (imm == 15);}]> {
+  let ParserMatchClass = UImmAsmOperand<4>;
+  let DecoderMethod = "decodeUImmOperand<4>";
+  let OperandType = "OPERAND_UIMM4_ALLONE";
+  let OperandNamespace = "IMCEOp";
+}
+
+def uimm6 : Operand<i16>, TImmLeaf<i16, [{return isUInt<6>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<6>;
   let DecoderMethod = "decodeUImmOperand<6>";
   let OperandType = "OPERAND_UIMM6";
   let OperandNamespace = "IMCEOp";
 }
 
-def uimm8 : Operand<i32>, TImmLeaf<i32, [{return isUInt<8>(Imm);}]> {
+def uimm8 : Operand<i16>, TImmLeaf<i16, [{return isUInt<8>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<8>;
   let DecoderMethod = "decodeUImmOperand<8>";
   let OperandType = "OPERAND_UIMM8";
   let OperandNamespace = "IMCEOp";
 }
 
-def uimm14 : Operand<i32>, TImmLeaf<i32, [{return isUInt<14>(Imm);}]> {
+def uimm14 : Operand<i16>, TImmLeaf<i16, [{return isUInt<14>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<14>;
   let DecoderMethod = "decodeUImmOperand<14>";
   let OperandType = "OPERAND_UIMM14";
   let OperandNamespace = "IMCEOp";
 }
 
-def uimm26 : Operand<i32>, TImmLeaf<i32, [{return isUInt<26>(Imm);}]> {
+def uimm26 : Operand<i16>, TImmLeaf<i16, [{return isUInt<26>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<26>;
   let DecoderMethod = "decodeUImmOperand<26>";
   let OperandType = "OPERAND_UIMM26";
   let OperandNamespace = "IMCEOp";
 }
 
-def simm14 : Operand<i32>, TImmLeaf<i32, [{return isSInt<14>(Imm);}]> {
+def simm14 : Operand<i16>, TImmLeaf<i16, [{return isInt<14>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<14>;
   let DecoderMethod = "decodeSImmOperand<14>";
   let OperandType = "OPERAND_SIMM14";
@@ -148,17 +168,38 @@ let isReturn = 1, isTerminator = 1, isBarrier = 1, AsmString = "RET" in {
 }
 
 // R type
-class RInst<string opname, string operand_names, int opcode, SDPatternOperator dag_op> : 
-  InstRType<opcode, (outs VGPROpnd:$rd), 
-                    (ins VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask), 
-                    opname, operand_names, 
-                    [(set VGPROpnd:$rd, (dag_op VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask))]>;
-// def IMCE_ADD_INST : InstRType<0b00001, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, SGPROpnd:$rs2), "sadd", "$rd $rs1 $rs2", [(set SGPROpnd:$rd, (add SGPROpnd:$rs1, SGPROpnd:$rs2))]>;
-def IMCE_VADD_INST : RInst<"vadd", "$rd $rs1 $rs2", 0b000000, int_IMCE_ADD>;
-def IMCE_VSUB_INST : RInst<"vsub", "$rd $rs1 $rs2", 0b000001, int_IMCE_SUB>;
+// class RInst<string opname, string operand_names, int opcode, SDPatternOperator dag_op> : 
+//   InstRType<opcode, (outs VGPROpnd:$rd), 
+//                     (ins VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask), 
+//                     opname, operand_names, 
+//                     [(set VGPROpnd:$rd, (dag_op VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask))]>;
+class RInst<string opname, string operand_names, int opcode> : 
+  InstRType<opcode, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask), 
+                    opname, operand_names, []>;
+def IMCE_VADD_INST : RInst<"vadd", "$rd $rs1 $rs2 $src_mask", 0b000000>;
+def IMCE_VSUB_INST : RInst<"vsub", "$rd $rs1 $rs2 $src_mask", 0b000001>;
+
+def Pseudo_IMCE_VADD_INST_one_lane : Pseudo<(outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, SGPROpnd:$rs2), []>;
+def Pseudo_IMCE_VADD_INST_all_lane : Pseudo<(outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, VGPROpnd:$rs2), []>;
+
+def : Pat<(add VGPROpnd:$rs1, VGPROpnd:$rs2), (Pseudo_IMCE_VADD_INST_all_lane VGPROpnd:$rs1, VGPROpnd:$rs2)>;
+def : Pat<(add SGPROpnd:$rs1, SGPROpnd:$rs2), (Pseudo_IMCE_VADD_INST_one_lane SGPROpnd:$rs1, SGPROpnd:$rs2)>;
+def : Pat<(int_IMCE_ADD VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask), (IMCE_VADD_INST VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask)>;
+
+// I type
+class IInst<string opname, string operand_names, int opcode> : 
+  InstIType<opcode, (outs VGPROpnd:$rd), 
+                    (ins VGPROpnd:$rs1, simm14:$imm), opname, operand_names, []>;
+def IMCE_VADDI_INST : IInst<"vaddi", "$rd $rs1 $imm", 0b000010>;
+def IMCE_VSUBI_INST : IInst<"vsubi", "$rd $rs1 $imm", 0b000011>;
+
+def Pseudo_IMCE_VADDI_INST_SCALAR : Pseudo<(outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm14:$imm), []>;
+
+def : Pat<(int_IMCE_ADDI VGPROpnd:$rs1, simm14:$imm), (IMCE_VADDI_INST VGPROpnd:$rs1, simm14:$imm)>;
+def : Pat<(add SGPROpnd:$rs1, simm14:$imm), (Pseudo_IMCE_VADDI_INST_SCALAR SGPROpnd:$rs1, simm14:$imm)>;
 
 // J type
-def IMCE_JMP_INST : InstJType<0b00010, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]>;
+def IMCE_JMP_INST : InstJType<0b100000, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]>;
 
 // C type
 // let fifo_id = 0 in {

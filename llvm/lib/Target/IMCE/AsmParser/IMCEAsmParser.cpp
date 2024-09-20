@@ -223,6 +223,14 @@ public:
       return isInt<14>(CE->getValue());
     return false;
   }
+
+  bool isImmZero() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return (CE->getValue() == 0);
+    return false;
+  }
 };
 
 class IMCEAsmParser : public MCTargetAsmParser {

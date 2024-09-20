@@ -32,7 +32,7 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
     : TargetLowering(TM), Subtarget(STI) {
 
   addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
-  addRegisterClass(MVT::i32, &IMCE::SGPRRegClass);
+  addRegisterClass(MVT::i16, &IMCE::SGPRRegClass);
 
   // Compute derived properties from the register
   // classes
@@ -47,20 +47,12 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   setMinFunctionAlignment(Align(4));
   setPrefFunctionAlignment(Align(4));
 
-  setOperationAction(ISD::ADD, MVT::v16i16, Legal);
-  // setOperationAction(ISD::AND, MVT::v16i16, Legal);
-  // setOperationAction(ISD::OR, MVT::v16i16, Legal);
-  // setOperationAction(ISD::XOR, MVT::v16i16, Legal);
-
-  setOperationAction(ISD::ADD, MVT::i32, Legal);
-  // setOperationAction(ISD::AND, MVT::i32, Legal);
-  // setOperationAction(ISD::OR, MVT::i32, Legal);
-  // setOperationAction(ISD::XOR, MVT::i32, Legal);
+  setOperationAction(ISD::ADD, {MVT::v16i16, MVT::i16}, Legal);
 
   // setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
   //                    {MVT::v16i16, MVT::i32}, Custom);
   setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
-                     {MVT::Other, MVT::v16i16, MVT::i32}, Custom);
+                     {MVT::Other, MVT::v16i16, MVT::i16}, Custom);
 }
 
 //===----------------------------------------------------------------------===//
@@ -99,7 +91,7 @@ SDValue IMCETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID 
         RC = &IMCE::VGPRRegClass;
         break;
 
-      case MVT::i32:
+      case MVT::i16:
         RC = &IMCE::SGPRRegClass;
         break;
       }

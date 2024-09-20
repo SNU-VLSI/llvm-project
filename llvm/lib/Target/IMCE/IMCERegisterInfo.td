@@ -89,8 +89,8 @@ foreach I=0-5 in {
 // ==============================================================
 // Register classes
 // ==============================================================
-def SGPR : RegisterClass<"IMCE", [i32], 32, (add (sequence "S%u", 0, 31))> {
-  let Size = 32;
+def SGPR : RegisterClass<"IMCE", [i16], 16, (add (sequence "S%u", 0, 31))> {
+  let Size = 16;
   let CopyCost = 1;
 }
 
