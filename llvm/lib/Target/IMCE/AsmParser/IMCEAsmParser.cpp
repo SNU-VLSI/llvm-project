@@ -216,6 +216,14 @@ public:
     return false;
   }
 
+  bool isSImm6() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isInt<6>(CE->getValue());
+    return false;
+  }
+
   bool isSImm14() const {
     if (!isImm())
       return false;

@@ -33,6 +33,7 @@ enum OperandType : unsigned {
   OPERAND_UIMM8,
   OPERAND_UIMM14,
   OPERAND_UIMM26,
+  OPERAND_SIMM6,
   OPERAND_SIMM14,
 };
 } // namespace IMCEOp
