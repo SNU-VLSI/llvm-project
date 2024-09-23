@@ -52,7 +52,7 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   // setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
   //                    {MVT::v16i16, MVT::i32}, Custom);
   setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
-                     {MVT::Other, MVT::v16i16, MVT::i16}, Custom);
+                     {MVT::Other, MVT::v16i16, MVT::i16, MVT::i32}, Custom);
 }
 
 //===----------------------------------------------------------------------===//
@@ -205,14 +205,21 @@ SDValue IMCETargetLowering::LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const 
   case ISD::INTRINSIC_W_CHAIN:
     unsigned int IntNo = Op.getConstantOperandVal(1);
     switch (IntNo) {
-    default:
-      break;
-    case Intrinsic::IMCE_SEND:
+    default: break;
+    case Intrinsic::IMCE_SEND: {
       SDLoc DL(Op);
       SDValue Result =
           DAG.getNode(IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0)},
                       {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
       return Result;
+    }
+    case Intrinsic::set_loop_iterations: {
+      SDLoc DL(Op);
+      int loop_cnt = Op.getConstantOperandVal(2);
+      SDValue const_loop_cnt = DAG.getConstant(loop_cnt, DL, MVT::i16, true, false);
+      SDValue Result = DAG.getNode(IMCEISD::IMCE_LOOP_SET, DL, {Op.getNode()->getValueType(0)}, {Op.getOperand(0), const_loop_cnt});
+      return Result;
+    }
     }
 
     return SDValue();

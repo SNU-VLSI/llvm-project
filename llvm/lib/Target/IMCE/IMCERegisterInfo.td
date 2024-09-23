@@ -86,6 +86,10 @@ foreach I=0-5 in {
   }
 }
 
+def DWREG : Register<"dwreg"> {
+  let Namespace = "IMCE";
+}
+
 // ==============================================================
 // Register classes
 // ==============================================================
@@ -94,7 +98,7 @@ def SGPR : RegisterClass<"IMCE", [i16], 16, (add (sequence "S%u", 0, 31))> {
   let CopyCost = 1;
 }
 
-def VGPR : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "V%u", 0, 31))> {
+def VGPR : RegisterClass<"IMCE", [v16i16, i16], 256, (add (sequence "V%u", 0, 31))> {
   let Size = 256;
   let CopyCost = 1;
 }
@@ -130,6 +134,11 @@ def CFGREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add CFGREG)> {
 }
 
 def PCREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add PCREG)> {
+  let Size = 256;
+  let CopyCost = 1;
+}
+
+def DWREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add DWREG)> {
   let Size = 256;
   let CopyCost = 1;
 }

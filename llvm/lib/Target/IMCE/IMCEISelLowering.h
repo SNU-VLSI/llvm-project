@@ -38,7 +38,8 @@ enum NodeType : unsigned {
   CALL,
 
   // SEND intrinsic
-  IMCE_SEND
+  IMCE_SEND,
+  IMCE_LOOP_SET
 };
 } // end namespace IMCEISD
 

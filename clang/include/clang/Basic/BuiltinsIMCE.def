@@ -1,0 +1,20 @@
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#if defined(BUILTIN) && !defined(TARGET_BUILTIN)
+#   define TARGET_BUILTIN(ID, TYPE, ATTRS, FEATURE) BUILTIN(ID, TYPE, ATTRS)
+#endif
+
+// Zbb extension
+TARGET_BUILTIN(__builtin_riscv_orc_b_32, "UiUi", "nc", "zbb")
+TARGET_BUILTIN(__builtin_riscv_orc_b_64, "UWiUWi", "nc", "zbb,64bit")
+TARGET_BUILTIN(__builtin_riscv_clz_32, "UiUi", "nc", "zbb|xtheadbb")
+TARGET_BUILTIN(__builtin_riscv_clz_64, "UiUWi", "nc", "zbb|xtheadbb,64bit")
+TARGET_BUILTIN(__builtin_riscv_ctz_32, "UiUi", "nc", "zbb")
+TARGET_BUILTIN(__builtin_riscv_ctz_64, "UiUWi", "nc", "zbb,64bit")
+
+#undef BUILTIN
+#undef TARGET_BUILTIN

@@ -104,12 +104,18 @@ class IMCEPassConfig : public TargetPassConfig {
 public:
   IMCEPassConfig(IMCETargetMachine &TM, PassManagerBase &PM) : TargetPassConfig(TM, PM) {}
 
+  bool addPreISel() override;
   bool addInstSelector() override;
 };
 } // namespace
 
 TargetPassConfig *IMCETargetMachine::createPassConfig(PassManagerBase &PM) {
   return new IMCEPassConfig(*this, PM);
+}
+
+bool IMCEPassConfig::addPreISel() {
+  addPass(createHardwareLoopsLegacyPass());
+  return false;
 }
 
 bool IMCEPassConfig::addInstSelector() {
