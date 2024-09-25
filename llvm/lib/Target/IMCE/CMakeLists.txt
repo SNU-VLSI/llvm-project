@@ -24,6 +24,7 @@ add_llvm_target(IMCECodeGen
   IMCERegisterInfo.cpp
   IMCESubtarget.cpp
   IMCETargetMachine.cpp
+  IMCEIRPasses.cpp
 
   LINK_COMPONENTS
   Analysis

@@ -356,8 +356,8 @@ def : XPat<int_IMCE_NOP , IMCE_NOP_INST>;
 def : XPat<int_IMCE_STOP, IMCE_STOP_INST>;
 
 // J type pattern
-class JPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op jumpOperand:$imm), (inst jumpOperand:$imm)>;
-//def : JPat<int_IMCE_JUMP, IMCE_JMP_INST>;
+// class JPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op jumpOperand:$imm), (inst jumpOperand:$imm)>;
+// def : JPat<int_IMCE_JUMP, IMCE_JMP_INST>;
 def : Pat<(br (bb:$imm)), (IMCE_JMP_INST jumpOperand:$imm)>;
 
 // S type Pattern

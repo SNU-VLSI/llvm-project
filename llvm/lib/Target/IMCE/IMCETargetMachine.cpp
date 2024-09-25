@@ -21,6 +21,7 @@
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/MC/TargetRegistry.h"
+#include "IMCEIRPasses.h"
 
 using namespace llvm;
 
@@ -115,6 +116,7 @@ TargetPassConfig *IMCETargetMachine::createPassConfig(PassManagerBase &PM) {
 
 bool IMCEPassConfig::addPreISel() {
   addPass(createHardwareLoopsLegacyPass());
+  addPass(createPrintFunctionsPass());
   return false;
 }
 

@@ -57,8 +57,10 @@ let TargetPrefix = "IMCE" in {
   def int_IMCE_STOP : Intrinsic<[], []>;
 
   // J type
-  def int_IMCE_JUMP : Intrinsic<[], [llvm_i32_ty], [ImmArg<ArgIndex<0>>]>;
+  // def int_IMCE_JUMP : Intrinsic<[], [llvm_i32_ty], [ImmArg<ArgIndex<0>>]>;
+  // def int_IMCE_JUMP : Intrinsic<[], [llvm_token_ty], [ImmArg<ArgIndex<0>>]>;
   // def int_IMCE_JUMP : Intrinsic<[], [llvm_anyint_ty], [ImmArg<ArgIndex<0>>]>;
+
   
   // S type
   def int_IMCE_SCAN_RW : Intrinsic<[llvm_v16i16_ty], [llvm_v16i16_ty]>;
