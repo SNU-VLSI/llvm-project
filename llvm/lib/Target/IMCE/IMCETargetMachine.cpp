@@ -117,6 +117,8 @@ TargetPassConfig *IMCETargetMachine::createPassConfig(PassManagerBase &PM) {
 bool IMCEPassConfig::addPreISel() {
   addPass(createHardwareLoopsLegacyPass());
   addPass(createPrintFunctionsPass());
+  addPass(createIMCELoopConversionPass());
+  addPass(createPrintFunctionsPass());
   return false;
 }
 

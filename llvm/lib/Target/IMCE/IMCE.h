@@ -28,6 +28,12 @@ FunctionPass *createIMCEISelDag(IMCETargetMachine &TM, CodeGenOpt::Level OptLeve
 
 void initializeIMCEDAGToDAGISelPass(PassRegistry &);
 
+void initializePrintFunctionsPass(PassRegistry &);
+FunctionPass *createPrintFunctionsPass(); 
+
+void initializeIMCELoopConversionPass(PassRegistry &);
+FunctionPass *createIMCELoopConversionPass(); 
+
 // InstructionSelector *
 // createIMCEInstructionSelector(const IMCETargetMachine &, const IMCESubtarget &,
 //                               const IMCERegisterBankInfo &);
