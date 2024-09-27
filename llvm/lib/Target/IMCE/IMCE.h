@@ -29,10 +29,10 @@ FunctionPass *createIMCEISelDag(IMCETargetMachine &TM, CodeGenOpt::Level OptLeve
 void initializeIMCEDAGToDAGISelPass(PassRegistry &);
 
 void initializePrintFunctionsPass(PassRegistry &);
-FunctionPass *createPrintFunctionsPass(); 
+FunctionPass *createPrintFunctionsPass();
 
 void initializeIMCELoopConversionPass(PassRegistry &);
-FunctionPass *createIMCELoopConversionPass(); 
+FunctionPass *createIMCELoopConversionPass();
 
 void initializePrintFunctionsPass(PassRegistry &);
 FunctionPass *createPrintFunctionsPass(); 
@@ -41,7 +41,11 @@ void initializeIMCEPrintMachineFunctionPass(PassRegistry &);
 FunctionPass *createIMCEPrintMachineFunctionPass(); 
 
 // InstructionSelector *
-// createIMCEInstructionSelector(const IMCETargetMachine &, const IMCESubtarget &,
+// createIMCEInstructionSelector(const IMCETargetMachine &, const IMCESubtarget&,
 //                               const IMCERegisterBankInfo &);
+
+void initializeIMCECountedLoopMIRPass(PassRegistry &);
+FunctionPass *createIMCECountedLoopMIRPass();
+
 } // end namespace llvm
 #endif

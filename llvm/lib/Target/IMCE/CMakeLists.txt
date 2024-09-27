@@ -26,6 +26,8 @@ add_llvm_target(IMCECodeGen
   IMCETargetMachine.cpp
   IMCEIRPasses.cpp
   IMCEMIRPasses.cpp
+  IMCECountedLoopMIRPass.cpp
+  IMCECountedLoopOptions.cpp
 
   LINK_COMPONENTS
   Analysis

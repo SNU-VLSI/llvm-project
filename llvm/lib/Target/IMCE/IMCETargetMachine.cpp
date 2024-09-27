@@ -21,7 +21,6 @@
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/MC/TargetRegistry.h"
-#include "IMCEIRPasses.h"
 
 using namespace llvm;
 
@@ -108,6 +107,7 @@ public:
   bool addPreISel() override;
   bool addInstSelector() override;
   void addPreRegAlloc() override;
+  void addPreEmitPass() override;
 };
 } // namespace
 
@@ -131,4 +131,11 @@ bool IMCEPassConfig::addInstSelector() {
 void IMCEPassConfig::addPreRegAlloc() {
   addPass(createIMCEPrintMachineFunctionPass());
   TargetPassConfig::addPreRegAlloc();
+}
+
+void IMCEPassConfig::addPreEmitPass() {
+  addPass(createIMCECountedLoopMIRPass());
+  if (getOptLevel() != CodeGenOpt::None) {
+    addPass(&FinalizeMachineBundlesID);
+  }
 }
