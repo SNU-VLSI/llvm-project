@@ -16,5 +16,6 @@
     "initializer_list": "cpp"
   },
   "C_Cpp.default.compilerPath": "/usr/bin/g++-11",
-  "liveServer.settings.port": 5501
+  "liveServer.settings.port": 5501,
+  "editor.formatOnSave": false
 }
