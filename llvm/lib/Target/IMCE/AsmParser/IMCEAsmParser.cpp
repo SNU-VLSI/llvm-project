@@ -208,6 +208,14 @@ public:
     return false;
   }
 
+  bool isUImm16() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<16>(CE->getValue());
+    return false;
+  }
+
   bool isUImm26() const {
     if (!isImm())
       return false;

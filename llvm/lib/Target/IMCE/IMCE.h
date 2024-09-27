@@ -34,6 +34,12 @@ FunctionPass *createPrintFunctionsPass();
 void initializeIMCELoopConversionPass(PassRegistry &);
 FunctionPass *createIMCELoopConversionPass(); 
 
+void initializePrintFunctionsPass(PassRegistry &);
+FunctionPass *createPrintFunctionsPass(); 
+
+void initializeIMCEPrintMachineFunctionPass(PassRegistry &);
+FunctionPass *createIMCEPrintMachineFunctionPass(); 
+
 // InstructionSelector *
 // createIMCEInstructionSelector(const IMCETargetMachine &, const IMCESubtarget &,
 //                               const IMCERegisterBankInfo &);

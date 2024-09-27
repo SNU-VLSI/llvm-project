@@ -43,7 +43,7 @@ public:
 void IMCEAsmPrinter::emitInstruction(const MachineInstr *MI) {
   MCInst LoweredMI;
   IMCEMCInstLower Lower;
-  Lower.lower(MI, LoweredMI);
+  Lower.lower(MI, LoweredMI, this);
   EmitToStreamer(*OutStreamer, LoweredMI);
 }
 

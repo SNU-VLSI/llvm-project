@@ -15,7 +15,7 @@
 
 using namespace llvm;
 
-MCOperand IMCEMCInstLower::lowerOperand(const MachineOperand &MO) const {
+MCOperand IMCEMCInstLower::lowerOperand(const MachineOperand &MO, const AsmPrinter *Amp) const {
   switch (MO.getType()) {
   case MachineOperand::MO_Register:
     return MCOperand::createReg(MO.getReg());
@@ -23,16 +23,20 @@ MCOperand IMCEMCInstLower::lowerOperand(const MachineOperand &MO) const {
   case MachineOperand::MO_Immediate:
     return MCOperand::createImm(MO.getImm());
 
+  case MachineOperand::MO_MachineBasicBlock:
+    return MCOperand::createExpr(
+        MCSymbolRefExpr::create(MO.getMBB()->getSymbol(), Amp->OutContext));
+
   default:
     llvm_unreachable("Operand type not handled");
   }
 }
 
-void IMCEMCInstLower::lower(const MachineInstr *MI, MCInst &OutMI) const {
+void IMCEMCInstLower::lower(const MachineInstr *MI, MCInst &OutMI, AsmPrinter *Amp) const {
   OutMI.setOpcode(MI->getOpcode());
   for (auto &MO : MI->operands()) {
     // Ignore all implicit register operands.
     if (!MO.isReg() || !MO.isImplicit())
-      OutMI.addOperand(lowerOperand(MO));
+      OutMI.addOperand(lowerOperand(MO, Amp));
   }
 }

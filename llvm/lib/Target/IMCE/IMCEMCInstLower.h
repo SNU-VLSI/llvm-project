@@ -22,10 +22,10 @@ class Mangler;
 class LLVM_LIBRARY_VISIBILITY IMCEMCInstLower {
 public:
   // Lower MachineInstr MI to MCInst OutMI.
-  void lower(const MachineInstr *MI, MCInst &OutMI) const;
+  void lower(const MachineInstr *MI, MCInst &OutMI, AsmPrinter *Amp) const;
 
   // Return an MCOperand for MO.
-  MCOperand lowerOperand(const MachineOperand &MO) const;
+  MCOperand lowerOperand(const MachineOperand &MO, const AsmPrinter *Amp) const;
 };
 } // end namespace llvm
 

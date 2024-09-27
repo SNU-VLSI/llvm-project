@@ -31,8 +31,9 @@ using namespace llvm;
 IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtarget &STI)
     : TargetLowering(TM), Subtarget(STI) {
 
-  addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
   addRegisterClass(MVT::i16, &IMCE::SGPRRegClass);
+  addRegisterClass(MVT::i32, &IMCE::HWLOOP_REG_CLASSRegClass);
+  addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
 
   // Compute derived properties from the register
   // classes
@@ -178,6 +179,12 @@ const char *IMCETargetLowering::getTargetNodeName(unsigned Opcode) const {
     OPCODE(IMCEISD::RET_GLUE);
     OPCODE(IMCEISD::CALL);
     OPCODE(IMCEISD::IMCE_SEND);
+    OPCODE(IMCEISD::IMCE_LOOP_SET);
+    OPCODE(IMCEISD::CLOOP_BEGIN_VALUE);
+    OPCODE(IMCEISD::CLOOP_BEGIN_TERMINATOR);
+    OPCODE(IMCEISD::CLOOP_END_VALUE);
+    OPCODE(IMCEISD::CLOOP_END_BRANCH);
+    OPCODE(IMCEISD::CLOOP_GUARD_BRANCH);
 #undef OPCODE
   default:
     return nullptr;
@@ -189,39 +196,232 @@ SDValue IMCETargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const 
   default:
     report_fatal_error("unimplemented operand");
   case ISD::INTRINSIC_WO_CHAIN:
+    return LowerINTRINSIC_WO_CHAIN(Op, DAG);
   case ISD::INTRINSIC_W_CHAIN:
+    return LowerINTRINSIC_W_CHAIN(Op, DAG);
   case ISD::INTRINSIC_VOID:
-    return LowerINTRINSIC(Op, DAG);
+    return LowerINTRINSIC_VOID(Op, DAG);
   }
 }
 
-SDValue IMCETargetLowering::LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const {
-  switch (Op.getOpcode()) {
+SDValue IMCETargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const {
+  llvm_unreachable("Invalid intrinsic");
+}
+
+SDValue IMCETargetLowering::LowerINTRINSIC_VOID(SDValue Op, SelectionDAG &DAG) const {
+  return LowerINTRINSIC_W_CHAIN(Op, DAG);
+}
+
+SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG) const {
+
+  auto isValidCloopMetadata = [&](SDValue x) {
+    auto metadata = dyn_cast<ConstantSDNode>(x);
+    return metadata && (metadata->getZExtValue() <= UINT16_MAX);
+  };
+
+  SDLoc dl(Op);
+
+  unsigned int IntNo = Op.getConstantOperandVal(1);
+  switch (IntNo) {
   default:
-    llvm_unreachable("Invalid intrinsic");
-  case ISD::INTRINSIC_WO_CHAIN:
-    llvm_unreachable("Invalid intrinsic");
-  case ISD::INTRINSIC_VOID:
-  case ISD::INTRINSIC_W_CHAIN:
-    unsigned int IntNo = Op.getConstantOperandVal(1);
-    switch (IntNo) {
-    default: break;
-    case Intrinsic::IMCE_SEND: {
-      SDLoc DL(Op);
-      SDValue Result =
-          DAG.getNode(IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0)},
-                      {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
-      return Result;
-    }
-    case Intrinsic::set_loop_iterations: {
-      SDLoc DL(Op);
-      int loop_cnt = Op.getConstantOperandVal(2);
-      SDValue const_loop_cnt = DAG.getConstant(loop_cnt, DL, MVT::i16, true, false);
-      SDValue Result = DAG.getNode(IMCEISD::IMCE_LOOP_SET, DL, {Op.getNode()->getValueType(0)}, {Op.getOperand(0), const_loop_cnt});
-      return Result;
-    }
+    break;
+  // case Intrinsic::IMCE_SEND: {
+  //   SDLoc DL(Op);
+  //   SDValue Result =
+  //       DAG.getNode(IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0)},
+  //                   {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
+  //   return Result;
+  // }
+  // case Intrinsic::set_loop_iterations: {
+  //   SDLoc DL(Op);
+  //   int loop_cnt = Op.getConstantOperandVal(2);
+  //   SDValue const_loop_cnt = DAG.getConstant(loop_cnt, DL, MVT::i16, true, false);
+  //   SDValue Result = DAG.getNode(IMCEISD::IMCE_LOOP_SET, DL, {Op.getNode()->getValueType(0)},
+  //                                {Op.getOperand(0), const_loop_cnt});
+  //   return Result;
+  // }
+  case Intrinsic::IMCE_cloop_begin: {
+    assert(Op->getNumOperands() == 4);
+    auto onFailure = [&]() {
+      // Fall back is to delete the intrinsic in situ
+      LLVM_DEBUG(dbgs() << "Replacing cloop begin intrinsic with fallback: "; Op.dump(););
+      assert(Op.getOpcode() == ISD::INTRINSIC_W_CHAIN);
+      DAG.ReplaceAllUsesOfValueWith(Op, Op.getOperand(2));
+      DAG.ReplaceAllUsesOfValueWith(SDValue(Op.getNode(), 1), Op.getOperand(0));
+      return SDValue();
+    };
+
+    // i32 (*imce.cloop.begin)(i32, i32)
+    // This is lowered into two ISD nodes. One is a terminator, the other
+    // represents the potential need to keep an induction variable around.
+    // Should be able to write a more robust version of this using DAG.getRoot
+    // The second argument is metadata, passed along to the back end
+    // The induction variable node is a like for like replacement
+    LLVM_DEBUG(dbgs() << "Lowering imce.cloop.begin: "; Op.dump(); DAG.dump(););
+
+    // First replace the intrinsic call with a node that represents the
+    // induction variable, then insert a terminator as near to the
+    // root of the DAG as possible
+    SDValue root = DAG.getRoot();
+    if (root->getOpcode() == ISD::BR) {
+      SDValue brOp = root->getOperand(0);
+      if (brOp.getOpcode() == ISD::BRCOND) {
+        // hardware loop header should only be inserted in an unconditional BB
+        return onFailure();
+      }
+    } else if (root->getOpcode() == ISD::TokenFactor) {
+      // TokenFactor is OK
+    } else {
+      return onFailure();
     }
 
+    if (!isValidCloopMetadata(Op.getOperand(3))) {
+      return onFailure();
+    }
+
+    // Replace the intrinsic with an ISD node. This will update the CopyToReg
+    // that copies the induction variable out of the basic block
+    SDValue originalChain = Op.getOperand(0);
+    assert(originalChain.getValueType() == MVT::Other);
+
+    SDVTList VTs = DAG.getVTList(MVT::i32, MVT::Other);
+    SDValue beginValue = DAG.getNode(IMCEISD::CLOOP_BEGIN_VALUE, dl, VTs, originalChain,
+                                     Op.getOperand(2), Op.getOperand(3));
+
+    if (root.getOpcode() == ISD::TokenFactor) {
+      SDValue begin_terminator = DAG.getNode(IMCEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other, root,
+                                             beginValue, Op.getOperand(3));
+      DAG.setRoot(begin_terminator);
+    } else {
+      assert(root.getOpcode() == ISD::BR);
+      SDValue begin_terminator = DAG.getNode(IMCEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other,
+                                             root.getOperand(0), beginValue, Op.getOperand(3));
+      DAG.ReplaceAllUsesWith(
+          root, DAG.getNode(ISD::BR, dl, MVT::Other, begin_terminator, root.getOperand(1)));
+    }
+    return beginValue;
+  }
+  case Intrinsic::IMCE_cloop_end: {
+    // Expecting an IR sequence:
+    // %cloop.end = call i32 @llvm.IMCE.cloop.end(i32 %cloop.phi, i32 %meta)
+    // %cloop.end.iv = extractvalue {i32, i32} %cloop.end, 0
+    // %cloop.end.cc = extractvalue {i32, i32} %cloop.end, 1
+    // %cloop.end.cc.trunc = trunc i32 %cloop.end to i1
+    // br i1 %cloop.end.cc.trunc, label %t, label %f
+    assert(Op->getNumOperands() == 4);
+    auto onFailure = [&]() {
+      assert(Op.getOpcode() == ISD::INTRINSIC_W_CHAIN);
+      LLVM_DEBUG(dbgs() << "Replacing cloop end intrinsic with fallback: "; Op.dump(););
+
+      SDValue decr =
+          DAG.getNode(ISD::SUB, dl, MVT::i32, Op.getOperand(2), DAG.getConstant(1, dl, MVT::i32));
+
+      // Replace the uses of the induction variable with the decrement
+      DAG.ReplaceAllUsesOfValueWith(SDValue(Op.getNode(), 0), decr);
+
+      // Replace the uses of condition with a new setcc
+      SDValue nz = DAG.getSetCC(dl, MVT::i32, decr, DAG.getConstant(0, dl, MVT::i32), ISD::SETNE);
+      DAG.ReplaceAllUsesOfValueWith(SDValue(Op.getNode(), 1), nz);
+
+      // Remove the intrinsic from its chain
+      DAG.ReplaceAllUsesOfValueWith(SDValue(Op.getNode(), 2), Op.getOperand(0));
+      return SDValue();
+    };
+
+    auto isCountedLoopEnd = [&](SDValue x) {
+      if (x.getOpcode() == ISD::INTRINSIC_W_CHAIN) {
+        unsigned IntNo = cast<ConstantSDNode>(x.getOperand(1))->getZExtValue();
+        return IntNo == Intrinsic::IMCE_cloop_end;
+      }
+      return false;
+    };
+
+    LLVM_DEBUG(dbgs() << "Lowering IMCE.cloop.end: "; Op.dump(); DAG.dump(););
+
+    // Require this instruction to be in a conditional block. Find the brcond.
+    SDValue brcond = DAG.getRoot();
+    if (brcond.getOpcode() == ISD::BR) {
+      brcond = brcond.getOperand(0);
+    }
+    if (brcond.getOpcode() != ISD::BRCOND) {
+      return onFailure();
+    }
+
+    if (!isValidCloopMetadata(Op.getOperand(3))) {
+      return onFailure();
+    }
+
+    // The brcond condition is likely to be an and with 1 from legalisation.
+    // If so we want to reach through it.
+    SDValue brcondValue = brcond.getOperand(1);
+    if (brcondValue.getOpcode() == ISD::AND) {
+      if (brcondValue.getOperand(1) == DAG.getConstant(1, dl, MVT::i32)) {
+        brcondValue = brcondValue.getOperand(0);
+      }
+    }
+
+    if (!isCountedLoopEnd(brcondValue)) {
+      return onFailure();
+    }
+
+    // Established that we have a conditional branch on the return value
+    // of the counted loop end intrinsic. This is the desired pattern.
+
+    // The intrinsic returns i32 (indvar), i32 (cc), ch
+    // Replace all uses of this by a node that represents the decrement of
+    // the loop counter.
+    SDVTList VTs = DAG.getVTList(MVT::i32, MVT::Other);
+    SDNode *endValue = DAG.getNode(IMCEISD::CLOOP_END_VALUE, dl, VTs, Op.getOperand(0),
+                                   Op.getOperand(2), Op.getOperand(3))
+                           .getNode();
+
+    // Replace indvar and cc with the integer returned by CLOOP_END_VALUE
+    for (unsigned i = 0; i < 2; i++) {
+      DAG.ReplaceAllUsesOfValueWith(SDValue(Op.getNode(), i), SDValue(endValue, 0));
+    }
+
+    // Replace chain
+    DAG.ReplaceAllUsesOfValueWith(SDValue(Op.getNode(), 2), SDValue(endValue, 1));
+
+    // Replace the conditional branch with a specialised version that also
+    // takes the integer returned by CLOOP_END_VALUE
+    SDValue endBranch =
+        DAG.getNode(IMCEISD::CLOOP_END_BRANCH, SDLoc(brcond), MVT::Other, brcond.getOperand(0),
+                    brcond.getOperand(2), SDValue(endValue, 0), Op.getOperand(3));
+
+    // Replace the brcond with a specialised conditional branch
+    DAG.ReplaceAllUsesWith(brcond, endBranch);
     return SDValue();
+  }
+  }
+
+  return SDValue();
+}
+
+void IMCETargetLowering::ReplaceNodeResults(SDNode *N, SmallVectorImpl<SDValue> &Results,
+                                            SelectionDAG &DAG) const {
+  SDLoc DL(N);
+  switch (N->getOpcode()) {
+  default:
+    llvm_unreachable("Don't know how to custom type legalize this operation!");
+  case ISD::Constant:
+    Results.push_back(DAG.getConstant(N->getConstantOperandVal(0), DL, MVT::i16));
+  case ISD::INTRINSIC_W_CHAIN: {
+    unsigned int IntNo = N->getConstantOperandVal(1);
+    switch (IntNo) {
+    default:
+      llvm_unreachable("Don't know how to custom type legalize this intrinsic!");
+    case Intrinsic::IMCE_cloop_begin: {
+      // Results.push_back(DAG.getNode(ISD::TRUNCATE, DL, MVT::i16, SDValue(N, 0)));
+      // Results.push_back(SDValue(N, 1));
+      break;
+    }
+    case Intrinsic::IMCE_cloop_end: {
+      // Results.push_back(DAG.getNode(ISD::TRUNCATE, DL, MVT::i16, SDValue(N, 0)));
+      // Results.push_back(SDValue(N, 1));
+      break;
+    }
+    }
+  }
   }
 }

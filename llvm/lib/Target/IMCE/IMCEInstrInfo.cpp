@@ -90,14 +90,16 @@ void IMCEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::itera
   if (IMCE::SGPRRegClass.contains(DestReg, SrcReg)) {
     BuildMI(MBB, I, DL, get(IMCE::IMCE_VADD_INST), DestReg)
         .addReg(*TRI->superregs(SrcReg).begin(), getKillRegState(KillSrc))
-        .addReg(IMCE::V0);
+        .addReg(IMCE::V0)
+        .addImm(0);
     return;
   }
 
   if (IMCE::VGPRRegClass.contains(DestReg, SrcReg)) {
     BuildMI(MBB, I, DL, get(IMCE::IMCE_VADD_INST), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc))
-        .addReg(IMCE::V0);
+        .addReg(IMCE::V0)
+        .addImm(15);
   }
 
   //TODO : 

@@ -27,11 +27,13 @@ class InstIMCE<dag outs, dag ins, string asm, string operands,
   let DecoderNamespace = "IMCE";
 }
 
-class Pseudo<dag outs, dag ins, list<dag> pattern>
+class Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>
   : InstIMCE<outs, ins, "", "", pattern> {
-  let isCodeGenOnly       = 1;
+  // let isCodeGenOnly       = 1;
+  let isCodeGenOnly       = 0;
   let isPseudo            = 1;
   let hasNoSchedulingInfo = 1;
+  let AsmString           = asmstr;
 }
 
 class InstRType<int op, dag outs, dag ins, string asm, string operands, list<dag> pattern = []>

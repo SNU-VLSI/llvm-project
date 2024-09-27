@@ -107,6 +107,7 @@ public:
 
   bool addPreISel() override;
   bool addInstSelector() override;
+  void addPreRegAlloc() override;
 };
 } // namespace
 
@@ -125,4 +126,9 @@ bool IMCEPassConfig::addPreISel() {
 bool IMCEPassConfig::addInstSelector() {
   addPass(createIMCEISelDag(getTM<IMCETargetMachine>(), getOptLevel()));
   return false;
+}
+
+void IMCEPassConfig::addPreRegAlloc() {
+  addPass(createIMCEPrintMachineFunctionPass());
+  TargetPassConfig::addPreRegAlloc();
 }

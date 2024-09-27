@@ -93,7 +93,7 @@ def DWREG : Register<"dwreg"> {
 // ==============================================================
 // Register classes
 // ==============================================================
-def SGPR : RegisterClass<"IMCE", [i16], 16, (add (sequence "S%u", 0, 31))> {
+def SGPR : RegisterClass<"IMCE", [i16, i32], 16, (add (sequence "S%u", 0, 31))> {
   let Size = 16;
   let CopyCost = 1;
 }
@@ -118,7 +118,7 @@ def BSHR_REG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "BSHR_R
   let CopyCost = 1;
 }
 
-def HWLOOP_REG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "HWLOOP_REG%u", 0, 5))> {
+def HWLOOP_REG_CLASS : RegisterClass<"IMCE", [i16, i32, v16i16], 256, (add (sequence "HWLOOP_REG%u", 0, 5))> {
   let Size = 256;
   let CopyCost = 1;
 }

@@ -17,8 +17,8 @@
 // Selection DAG types.
 
 // These are target-independent nodes, but have target-specific formats.
-def SDT_CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
-def SDT_CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
+def SDT_CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i16>, SDTCisVT<1, i16>]>;
+def SDT_CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i16>, SDTCisVT<1, i16>]>;
 def SDT_Call         : SDTypeProfile<0, -1, [SDTCisPtrTy<0>]>;
 
 // Selection DAG nodes.
@@ -27,6 +27,30 @@ def call             : SDNode<"IMCEISD::CALL", SDT_Call,
                               SDNPVariadic]>;
 def retglue          : SDNode<"IMCEISD::RET_GLUE", SDTNone,
                               [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+
+def SDT_IMCEValue : SDTypeProfile<1, 2, [SDTCisVT<0, i32>,
+                                             SDTCisVT<1, i32>,
+                                             SDTCisVT<2, i32>]>;
+def IMCECloopBeginValue :
+  SDNode<"IMCEISD::CLOOP_BEGIN_VALUE",
+         SDT_IMCEValue,
+         [SDNPHasChain]>;
+def IMCECloopBeginTerminator :
+  SDNode<"IMCEISD::CLOOP_BEGIN_TERMINATOR",
+         SDTypeProfile<0, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>]>,
+         [SDNPHasChain]>;
+def IMCECloopEndValue :
+  SDNode<"IMCEISD::CLOOP_END_VALUE",
+         SDT_IMCEValue,
+         [SDNPHasChain]>;
+def IMCECloopEndBranch :
+  SDNode<"IMCEISD::CLOOP_END_BRANCH",
+         SDTypeProfile<0, 3, [SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
+         [SDNPHasChain]>;
+def IMCECloopGuardBranch :
+  SDNode<"IMCEISD::CLOOP_GUARD_BRANCH",
+         SDTypeProfile<0, 3, [SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
+         [SDNPHasChain]>;
 
 // ===================================================
 // operands
@@ -137,6 +161,20 @@ def uimm14 : Operand<i16>, TImmLeaf<i16, [{return isUInt<14>(Imm);}]> {
   let OperandNamespace = "IMCEOp";
 }
 
+def utimm16 : Operand<i32>, TImmLeaf<i32, [{return isUInt<16>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<16>;
+  let DecoderMethod = "decodeUImmOperand<16>";
+  let OperandType = "OPERAND_UIMM16";
+  let OperandNamespace = "IMCEOp";
+}
+
+def uimm16 : Operand<i32>, ImmLeaf<i32, [{return isUInt<16>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<16>;
+  let DecoderMethod = "decodeUImmOperand<16>";
+  let OperandType = "OPERAND_UIMM16";
+  let OperandNamespace = "IMCEOp";
+}
+
 def uimm26 : Operand<i16>, TImmLeaf<i16, [{return isUInt<26>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<26>;
   let DecoderMethod = "decodeUImmOperand<26>";
@@ -171,7 +209,7 @@ def jumpOperand : Operand<OtherVT> {
 // ========================================
 // SDNodes
 // ========================================
-// def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>, SDTCisVT<1, v16i16>, SDTCisVT<2, i32>]>;
+// def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>, SDTCisVT<1, v16i16>, SDTCisVT<2, i16>]>;
 // def IMCE_SEND_NODE : SDNode<"IMCEISD::IMCE_SEND", SDT_SEND, [SDNPHasChain]>;
 // def IMCE_LOOP_SET : SDNode<"IMCEISD::IMCE_LOOP_SET", SDTypeProfile<0, 1>, [SDNPHasChain]>
 
@@ -180,7 +218,85 @@ def jumpOperand : Operand<OtherVT> {
 // ========================================
 // pseudo instructions
 let isReturn = 1, isTerminator = 1, isBarrier = 1, AsmString = "RET" in {
-  def IMCE_RET_INST : Pseudo<(outs), (ins), [(retglue)]>;
+  def IMCE_RET_INST : Pseudo<(outs), (ins), "#REGGLUE#", [(retglue)]>;
+}
+
+class RegConstraint<string C> {
+  string Constraints = C;
+}
+
+let mayLoad = 0, mayStore = 0 in {
+// The loop value nodes can't be terminators because a copytoreg is needed
+// between their location and the terminators
+// Metadata limit of imm16zi could be increased by implementing imm32
+  let hasSideEffects = 0, isAsCheapAsAMove = 1 in {
+    // def CLOOP_BEGIN_VALUE : Pseudo<(outs HWLOOPREGOpnd:$op0),
+    //                            (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
+    //                            "# CLOOP_BEGIN_VALUE $op0, $op1, $meta",
+    //                            []>,RegConstraint<"$op0 = $op1">;
+    def CLOOP_BEGIN_VALUE : Pseudo<(outs HWLOOPREGOpnd:$op0),
+                               (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
+                               "# CLOOP_BEGIN_VALUE $op0, $op1, $meta",
+                               []>,RegConstraint<"$op0 = $op1">;
+
+    def CLOOP_END_VALUE : Pseudo<(outs HWLOOPREGOpnd:$op0),
+                             (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
+                             "# CLOOP_END_VALUE $op0, $op1, $meta",
+                             []>,RegConstraint<"$op0 = $op1">;
+    // def CLOOP_END_VALUE : Pseudo<(outs MR:$op0),
+    //                          (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
+    //                          "# CLOOP_END_VALUE $op0, $op1, $meta",
+    //                          []>,RegConstraint<"$op0 = $op1">;
+  }
+
+  // def CLOOP_BEGIN_TERMINATOR : Pseudo<(outs),
+  //                                     (ins HWLOOPREGOpnd:$op0, uimm16:$meta),
+  //                                     "# CLOOP_BEGIN_TERMINATOR $op0, $meta",
+  //                                     []> {
+  //   let isTerminator = 1;
+  //   let hasSideEffects = 0;
+  // }
+  def CLOOP_BEGIN_TERMINATOR : Pseudo<(outs),
+                                      (ins HWLOOPREGOpnd:$op0, uimm16:$meta),
+                                      "# CLOOP_BEGIN_TERMINATOR $op0, $meta",
+                                      []> {
+    let isTerminator = 1;
+    let hasSideEffects = 0;
+  }
+
+  // def CLOOP_END_BRANCH : Pseudo<(outs),
+  //                           (ins HWLOOPREGOpnd:$op0, jumpOperand:$op1, uimm16:$meta),
+  //                           "# CLOOP_END_BRANCH $op0, $op1, $meta",
+  //                            []> {
+  //   let isBranch = 1;
+  //   let isTerminator = 1;
+  //   let hasSideEffects = 1;
+  // }
+  def CLOOP_END_BRANCH : Pseudo<(outs),
+                            (ins HWLOOPREGOpnd:$op0, jumpOperand:$op1, uimm16:$meta),
+                            "# CLOOP_END_BRANCH $op0, $op1, $meta",
+                             []> {
+    let isBranch = 1;
+    let isTerminator = 1;
+    let hasSideEffects = 1;
+  }
+
+  // def CLOOP_GUARD_BRANCH : Pseudo<(outs),
+  //                           (ins HWLOOPREGOpnd:$op0, jumpOperand:$op1, uimm16:$meta),
+  //                           "# CLOOP_GUARD_BRANCH $op0, $op1, $meta",
+  //                            []> {
+  //   let isBranch = 1;
+  //   let isTerminator = 1;
+  //   let hasSideEffects = 1;
+  // }
+  def CLOOP_GUARD_BRANCH : Pseudo<(outs),
+                            (ins HWLOOPREGOpnd:$op0, jumpOperand:$op1, uimm16:$meta),
+                            "# CLOOP_GUARD_BRANCH $op0, $op1, $meta",
+                             []> {
+    let isBranch = 1;
+    let isTerminator = 1;
+    let hasSideEffects = 1;
+  }
 }
 
 // R type
@@ -363,3 +479,15 @@ def : Pat<(br (bb:$imm)), (IMCE_JMP_INST jumpOperand:$imm)>;
 // S type Pattern
 class SPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1), (inst VGPROpnd:$rs1)>;
 def : SPat<int_IMCE_SCAN_RW, IMCE_SCAN_RW_INST>;
+
+def i32MR : PatLeaf<(i32 HWLOOPREGOpnd:$R)>;
+def : Pat<(i32 (IMCECloopBeginValue i32MR:$op0, uimm16:$meta)),
+          (i32 (CLOOP_BEGIN_VALUE i32MR:$op0, uimm16:$meta))>;
+def : Pat<(i32 (IMCECloopEndValue i32MR:$op0, uimm16:$meta)),
+          (i32 (CLOOP_END_VALUE i32MR:$op0, uimm16:$meta))>;
+def : Pat<(IMCECloopBeginTerminator i32MR:$op0, uimm16:$meta),
+          (CLOOP_BEGIN_TERMINATOR i32MR:$op0, uimm16:$meta)>;
+def : Pat<(IMCECloopEndBranch bb:$op0, i32MR:$op1, uimm16:$meta),
+          (CLOOP_END_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;
+def : Pat<(IMCECloopGuardBranch bb:$op0, i32MR:$op1, uimm16:$meta),
+          (CLOOP_GUARD_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;

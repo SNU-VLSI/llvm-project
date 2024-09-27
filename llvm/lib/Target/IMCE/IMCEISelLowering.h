@@ -39,7 +39,14 @@ enum NodeType : unsigned {
 
   // SEND intrinsic
   IMCE_SEND,
-  IMCE_LOOP_SET
+  IMCE_LOOP_SET,
+
+  // Hardware loops
+  CLOOP_BEGIN_VALUE,
+  CLOOP_BEGIN_TERMINATOR,
+  CLOOP_END_VALUE,
+  CLOOP_END_BRANCH,
+  CLOOP_GUARD_BRANCH,
 };
 } // end namespace IMCEISD
 
@@ -67,7 +74,10 @@ public:
 
   SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
 
-  SDValue LowerINTRINSIC(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerINTRINSIC_VOID(SDValue Op, SelectionDAG &DAG) const;
+  void ReplaceNodeResults(SDNode *N, SmallVectorImpl<SDValue> &Results, SelectionDAG &DAG) const;
 };
 
 } // end namespace llvm
