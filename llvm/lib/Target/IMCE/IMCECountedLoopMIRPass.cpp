@@ -42,9 +42,8 @@
 #include "IMCE.h"
 // #include "IMCECoissueUtil.h"
 #include "IMCECountedLoopOptions.h"
-// #include "IMCESubtarget.h"
-// #include "IMCETargetInstr.h"
-// #include "MCTargetDesc/IMCEMCInstrInfo.h"
+#include "IMCESubtarget.h"
+#include "MCTargetDesc/IMCEMCTargetDesc.h"
 
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineDominators.h"
@@ -335,18 +334,18 @@ bool eliminatePseudos(MachineBasicBlock *BB, const TargetInstrInfo &TII) {
       ++BBI;
       break;
     }
-    case IMCE::CLOOP_BEGIN_VALUE: {
+    case IMCEISD::CLOOP_BEGIN_VALUE: {
       assert(BBI->getOperand(0).getReg() == BBI->getOperand(1).getReg());
       BBI = BB->erase(BBI);
       changed = true;
       break;
     }
-    case IMCE::CLOOP_BEGIN_TERMINATOR: {
+    case IMCEISD::CLOOP_BEGIN_TERMINATOR: {
       BBI = BB->erase(BBI);
       changed = true;
       break;
     }
-    case IMCE::CLOOP_END_VALUE: {
+    case IMCEISD::CLOOP_END_VALUE: {
       unsigned r = BBI->getOperand(0).getReg();
       assert(r == BBI->getOperand(1).getReg());
       assert(0 && "CLOOP_END_VALUE should have been eliminated by now");
@@ -361,7 +360,7 @@ bool eliminatePseudos(MachineBasicBlock *BB, const TargetInstrInfo &TII) {
       changed = true;
       break;
     }
-    case IMCE::CLOOP_END_BRANCH: {
+    case IMCEISD::CLOOP_END_BRANCH: {
       assert(0 && "CLOOP_END_BRANCH should have been eliminated by now");
       // BuildMI(*BB, BBI, dl, TII.get(IMCE::BRNZ))
       //     .add(BBI->getOperand(0))
@@ -371,7 +370,7 @@ bool eliminatePseudos(MachineBasicBlock *BB, const TargetInstrInfo &TII) {
       changed = true;
       break;
     }
-    case IMCE::CLOOP_GUARD_BRANCH: {
+    case IMCEISD::CLOOP_GUARD_BRANCH: {
       assert(0 && "CLOOP_GUARD_BRANCH should have been eliminated by now");
       // BuildMI(*BB, BBI, dl, TII.get(IMCE::BRZ))
       //     .add(BBI->getOperand(0))
@@ -432,15 +431,15 @@ bool containsPseudos(MachineBasicBlock *BB, std::vector<unsigned> Pseudos,
     switch (opcode) {
     default:
       return 0;
-    case IMCE::CLOOP_BEGIN_VALUE:
+    case IMCEISD::CLOOP_BEGIN_VALUE:
       return PseudoType::BEGIN_VAL;
-    case IMCE::CLOOP_BEGIN_TERMINATOR:
+    case IMCEISD::CLOOP_BEGIN_TERMINATOR:
       return PseudoType::BEGIN_TERM;
-    case IMCE::CLOOP_END_VALUE:
+    case IMCEISD::CLOOP_END_VALUE:
       return PseudoType::END_VAL;
-    case IMCE::CLOOP_END_BRANCH:
+    case IMCEISD::CLOOP_END_BRANCH:
       return PseudoType::END_BR;
-    case IMCE::CLOOP_GUARD_BRANCH:
+    case IMCEISD::CLOOP_GUARD_BRANCH:
       return PseudoType::GUARD_BR;
     }
   };
@@ -480,7 +479,7 @@ void findLoopGuardPseudos(MachineBasicBlock *header,
     MachineBasicBlock *PredBB = *BBI;
     MachineBasicBlock::instr_iterator Inst;
     if ((Inst = findBySearchingFromTerminator(
-             PredBB, IMCE::CLOOP_GUARD_BRANCH)) != PredBB->instr_end()) {
+             PredBB, IMCEISD::CLOOP_GUARD_BRANCH)) != PredBB->instr_end()) {
       loopGuards.push_back(&*Inst);
     }
   }
@@ -491,7 +490,7 @@ Error canLowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body) {
   // arrange for the correct register to be live on entry
 
   auto bodyEndBranch = body->getFirstInstrTerminator();
-  assert(bodyEndBranch->getOpcode() == IMCE::CLOOP_END_BRANCH);
+  assert(bodyEndBranch->getOpcode() == IMCEISD::CLOOP_END_BRANCH);
   const unsigned reg = bodyEndBranch->getOperand(0).getReg();
 
   // Instructions inserted between CLOOP_END_VALUE and CLOOP_END_BRANCH
@@ -501,7 +500,7 @@ Error canLowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body) {
   // instructions can be inserted by phi elimination for instance.
 
   auto MI = bodyEndBranch;
-  for (--MI; MI->getOpcode() != IMCE::CLOOP_END_VALUE; --MI) {
+  for (--MI; MI->getOpcode() != IMCEISD::CLOOP_END_VALUE; --MI) {
     for (auto &MO : MI->operands()) {
       if (MO.isReg() && MO.getReg() == reg) {
         std::string OrStr;
@@ -528,10 +527,10 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
   assert(!bool(canLowerToBNE(header, body)));
 
   auto headerBeginValue =
-      findBySearchingFromTerminator(header, IMCE::CLOOP_BEGIN_VALUE);
+      findBySearchingFromTerminator(header, IMCEISD::CLOOP_BEGIN_VALUE);
   auto headerBeginTerminator = header->getFirstInstrTerminator();
   auto bodyEndValue =
-      findBySearchingFromTerminator(body, IMCE::CLOOP_END_VALUE);
+      findBySearchingFromTerminator(body, IMCEISD::CLOOP_END_VALUE);
   auto bodyEndBranch = body->getFirstInstrTerminator();
 
   Register reg = headerBeginValue->getOperand(0).getReg();
@@ -552,21 +551,21 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
 
   // VINN: get the immediate value from instruction prior to headerBeginValue.
   unsigned opcode = InstrBeforeCLoopBegin->getOpcode();
-  int64_t hw_loop_cnt;
-  if (opcode == IMCE::SETZI) {
-    assert(InstrBeforeCLoopBegin->getOperand(0).isReg() &&
-           InstrBeforeCLoopBegin->getOperand(0).getReg() == reg);
-    hw_loop_cnt = InstrBeforeCLoopBegin->getOperand(1).getImm();
-  } else if (opcode == IMCE::ADD_SI || opcode == IMCE::ADD_ZI) {
-    assert(InstrBeforeCLoopBegin->getOperand(0).isReg() &&
-           InstrBeforeCLoopBegin->getOperand(0).getReg() == reg);
-    assert(InstrBeforeCLoopBegin->getOperand(1).isReg() &&
-           InstrBeforeCLoopBegin->getOperand(1).getReg() == 0);
-    hw_loop_cnt = InstrBeforeCLoopBegin->getOperand(2).getImm();
-  } else {
-    assert(0 &&
-           "Opcode before CLOOP_BEGIN_VALUE should be SETZI/ADD_SI/ADD_ZI");
-  }
+  int64_t hw_loop_cnt = 100;
+  // if (opcode == IMCE::SETZI) {
+  //   assert(InstrBeforeCLoopBegin->getOperand(0).isReg() &&
+  //          InstrBeforeCLoopBegin->getOperand(0).getReg() == reg);
+  //   hw_loop_cnt = InstrBeforeCLoopBegin->getOperand(1).getImm();
+  // } else if (opcode == IMCE::ADD_SI || opcode == IMCE::ADD_ZI) {
+  //   assert(InstrBeforeCLoopBegin->getOperand(0).isReg() &&
+  //          InstrBeforeCLoopBegin->getOperand(0).getReg() == reg);
+  //   assert(InstrBeforeCLoopBegin->getOperand(1).isReg() &&
+  //          InstrBeforeCLoopBegin->getOperand(1).getReg() == 0);
+  //   hw_loop_cnt = InstrBeforeCLoopBegin->getOperand(2).getImm();
+  // } else {
+  //   assert(0 &&
+  //          "Opcode before CLOOP_BEGIN_VALUE should be SETZI/ADD_SI/ADD_ZI");
+  // }
   assert(hw_loop_cnt != 0);
 
   headerBeginValue->eraseFromParent();
@@ -574,7 +573,7 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
   bodyEndValue->eraseFromParent();
 
   // VINN: get the immediate value from instruction prior to headerBeginValue?
-  BuildMI(*body, bodyEndBranch, dl, TII.get(IMCE::BNE),
+  BuildMI(*body, bodyEndBranch, dl, TII.get(IMCE::IMCE_BNE_INST),
           bodyEndBranch->getOperand(0).getReg()) // $rs2 == $rs1
       .add(bodyEndBranch->getOperand(1))         // branch target (bb)
       .add(bodyEndBranch->getOperand(0))         // $rs1
@@ -586,16 +585,16 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
 // MBB).
 MachineBasicBlock *findMatchingEndVal(MachineInstr *BeginTerm,
                                       const MachineDominatorTree *MDT) {
-  assert(BeginTerm && BeginTerm->getOpcode() == IMCE::CLOOP_BEGIN_TERMINATOR &&
+  assert(BeginTerm && BeginTerm->getOpcode() == IMCEISD::CLOOP_BEGIN_TERMINATOR &&
          "Arg can only be a cloop begin terminator");
   assert(MDT && "MachineDominatorTree must be populated");
 
   MachineDomTreeNode *BeginValDN = MDT->getNode(BeginTerm->getParent());
   for (; BeginValDN; BeginValDN = BeginValDN->getIDom()) {
-    if (!containsPseudos(BeginValDN->getBlock(), {IMCE::CLOOP_BEGIN_VALUE}))
+    if (!containsPseudos(BeginValDN->getBlock(), {IMCEISD::CLOOP_BEGIN_VALUE}))
       continue;
     auto BeginValI = findBySearchingFromTerminator(BeginValDN->getBlock(),
-                                                   IMCE::CLOOP_BEGIN_VALUE);
+                                                   IMCEISD::CLOOP_BEGIN_VALUE);
     // Confirm the def register in begin_val is the same as the use register of
     // begin_term.
     if (BeginValI->getOperand(0).getReg() ==
@@ -632,7 +631,7 @@ bool IMCECountedLoopMIR::cleanPrologs(MachineBasicBlock *Preheader,
 void IMCECountedLoopMIR::gatherPreheaders(MachineLoop &L,
                                           MachineBasicBlock *ParentPreheader) {
   MachineBasicBlock *Preheader = L.getLoopPreheader();
-  if (!containsPseudos(Preheader, {IMCE::CLOOP_BEGIN_TERMINATOR})) {
+  if (!containsPseudos(Preheader, {IMCEISD::CLOOP_BEGIN_TERMINATOR})) {
     Preheader = nullptr;
     if (L.getLoopPredecessor()) {
       MachineDomTreeNode *DomTreePreheader =
@@ -640,7 +639,7 @@ void IMCECountedLoopMIR::gatherPreheaders(MachineLoop &L,
       while (DomTreePreheader &&
              DomTreePreheader->getBlock() != ParentPreheader &&
              !containsPseudos(DomTreePreheader->getBlock(),
-                              {IMCE::CLOOP_BEGIN_TERMINATOR})) {
+                              {IMCEISD::CLOOP_BEGIN_TERMINATOR})) {
         DomTreePreheader = DomTreePreheader->getIDom();
       }
       Preheader =
@@ -664,7 +663,7 @@ void IMCECountedLoopMIR::gatherPreheaders(MachineLoop &L,
 MachineBasicBlock *IMCECountedLoopMIR::getPreheader(MachineLoop &L,
                                                     bool &isPipelined) {
   MachineBasicBlock *preheader = L.getLoopPreheader();
-  if (!containsPseudos(preheader, {IMCE::CLOOP_BEGIN_TERMINATOR}))
+  if (!containsPseudos(preheader, {IMCEISD::CLOOP_BEGIN_TERMINATOR}))
     isPipelined = true;
 
   if (PreheaderMap.find(&L) == PreheaderMap.end())
@@ -691,7 +690,7 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
   L.getLoopLatches(Latches);
   unsigned numFoundBranchPseudos = 0;
   for (MachineBasicBlock *MBB : Latches) {
-    if (containsPseudos(MBB, {IMCE::CLOOP_END_BRANCH})) {
+    if (containsPseudos(MBB, {IMCEISD::CLOOP_END_BRANCH})) {
       EndBranchBB = MBB;
       numFoundBranchPseudos++;
     }
@@ -722,7 +721,7 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
   if (!EndBranchBB) {
     EndBranchBB = L.getHeader();
     if (!containsPseudos(EndBranchBB,
-                         {IMCE::CLOOP_END_VALUE, IMCE::CLOOP_END_BRANCH})) {
+                         {IMCEISD::CLOOP_END_VALUE, IMCEISD::CLOOP_END_BRANCH})) {
       changed |= eliminateLoopGuardPseudo(loopGuards, *TII);
       changed |= eliminatePseudos(Preheader, *TII);
       changed |= eliminatePseudos(EndBranchBB, *TII);
@@ -738,16 +737,16 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
   }
 
   auto bodyEndValue =
-      findBySearchingFromTerminator(EndBranchBB, IMCE::CLOOP_END_VALUE);
+      findBySearchingFromTerminator(EndBranchBB, IMCEISD::CLOOP_END_VALUE);
 
   if (!containsPseudos(
-          Preheader, {IMCE::CLOOP_BEGIN_TERMINATOR, IMCE::CLOOP_BEGIN_VALUE}) ||
+          Preheader, {IMCEISD::CLOOP_BEGIN_TERMINATOR, IMCEISD::CLOOP_BEGIN_VALUE}) ||
       Preheader->getFirstInstrTerminator() == Preheader->instr_end()) {
     // Some pass(es) may have split BEGIN_VALUE and BEGIN_TERMINATOR so find the
     // associated BEGIN_VALUE if we know BEGIN_TERMINATOR in Preheader and
     // delete the BEGIN_VALUE.
     auto BeginTerm =
-        findBySearchingFromTerminator(Preheader, IMCE::CLOOP_BEGIN_TERMINATOR);
+        findBySearchingFromTerminator(Preheader, IMCEISD::CLOOP_BEGIN_TERMINATOR);
     if (BeginTerm != Preheader->instr_end())
       changed |= eliminatePseudos(findMatchingEndVal(&*BeginTerm, MDT), *TII);
     changed |= eliminateLoopGuardPseudo(loopGuards, *TII);
@@ -760,15 +759,15 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
          "Preheader should dominate all parts of the loop.");
 
   auto headerBeginValue =
-      findBySearchingFromTerminator(Preheader, IMCE::CLOOP_BEGIN_VALUE);
+      findBySearchingFromTerminator(Preheader, IMCEISD::CLOOP_BEGIN_VALUE);
   if (headerBeginValue == Preheader->instr_end() ||
       bodyEndValue == EndBranchBB->instr_end()) {
     report_fatal_error("Malformed MIR. Missing pseudo for counted loop");
   }
 
   auto cloopValueRegistersMatch = [](MachineBasicBlock::instr_iterator i) {
-    assert(i->getOpcode() == IMCE::CLOOP_BEGIN_VALUE ||
-           i->getOpcode() == IMCE::CLOOP_END_VALUE);
+    assert(i->getOpcode() == IMCEISD::CLOOP_BEGIN_VALUE ||
+           i->getOpcode() == IMCEISD::CLOOP_END_VALUE);
     return i->getOperand(0).getReg() == i->getOperand(1).getReg();
   };
 
