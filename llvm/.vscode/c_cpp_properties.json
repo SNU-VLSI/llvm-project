@@ -1,0 +1,19 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/include/**",
+        "${workspaceFolder}/lib/Target/**",
+        "${workspaceFolder}/../builddir/lib/Target/**",
+        "${workspaceFolder}/../builddir/include/**"
+      ],
+      "defines": [],
+      "cStandard": "c17",
+      "cppStandard": "gnu++17",
+      "intelliSenseMode": "linux-gcc-x64",
+      "defines": []
+    }
+  ],
+  "version": 4
+}

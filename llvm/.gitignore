@@ -49,7 +49,7 @@ runtimes/*
 # Sphinx build tree, if building in-source dir.
 docs/_build
 # VS2017 and VSCode config files.
-.vscode
+# .vscode
 .vs
 
 #==============================================================================#
