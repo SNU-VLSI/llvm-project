@@ -108,6 +108,7 @@ public:
   bool addInstSelector() override;
   void addPreRegAlloc() override;
   void addPreEmitPass() override;
+  void addMachineLateOptimization() override;
 };
 } // namespace
 
@@ -138,4 +139,10 @@ void IMCEPassConfig::addPreEmitPass() {
   if (getOptLevel() != CodeGenOpt::None) {
     addPass(&FinalizeMachineBundlesID);
   }
+  addPass(createIMCEPrintMachineFunctionPass());
+}
+
+void IMCEPassConfig::addMachineLateOptimization() {
+  addPass(createIMCEPrintMachineFunctionPass());
+  TargetPassConfig::addMachineLateOptimization();
 }

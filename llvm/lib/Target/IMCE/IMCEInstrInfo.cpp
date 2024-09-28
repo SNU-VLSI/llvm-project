@@ -94,13 +94,17 @@ void IMCEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::itera
   //       .addImm(0);
   //   return;
   if(IMCE::VGPRRegClass.contains(DestReg, SrcReg)) {
-    BuildMI(MBB, I, DL, get(IMCE::IMCE_VADD_INST), DestReg)
+    BuildMI(MBB, I, DL, get(IMCE::IMCE_VADDI_INST), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc))
-        .addReg(IMCE::V0)
-        .addImm(15);
+        .addImm(0);
   } else {
-    errs() << "Warning : Cannot copy " << TRI->getName(DestReg) << " to " << TRI->getName(SrcReg) << "\n";
-    errs() << "Warning : No Action For Copy " << TRI->getName(DestReg) << " to " << TRI->getName(SrcReg) << "\n";
+    // errs() << "Warning : Cannot copy " << TRI->getName(DestReg) << " to " << TRI->getName(SrcReg) << "\n";
+    // errs() << "Warning : No Action For Copy " << TRI->getName(DestReg) << " to " << TRI->getName(SrcReg) << "\n";
+    errs() << "Warning : copy between different regclass" << TRI->getName(DestReg) << " to " << TRI->getName(SrcReg) << "\n";
+    // errs() << "Warning : No Action For Copy " << TRI->getName(DestReg) << " to " << TRI->getName(SrcReg) << "\n";
+    BuildMI(MBB, I, DL, get(IMCE::IMCE_VADDI_INST), DestReg)
+        .addReg(SrcReg, getKillRegState(KillSrc))
+        .addImm(0);
   }
 
   //TODO : 
