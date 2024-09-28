@@ -47,10 +47,10 @@ def IMCECloopEndBranch :
   SDNode<"IMCEISD::CLOOP_END_BRANCH",
          SDTypeProfile<0, 3, [SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
          [SDNPHasChain]>;
-def IMCECloopGuardBranch :
-  SDNode<"IMCEISD::CLOOP_GUARD_BRANCH",
-         SDTypeProfile<0, 3, [SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
-         [SDNPHasChain]>;
+// def IMCECloopGuardBranch :
+//   SDNode<"IMCEISD::CLOOP_GUARD_BRANCH",
+//          SDTypeProfile<0, 3, [SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
+//          [SDNPHasChain]>;
 
 // ===================================================
 // operands
@@ -61,9 +61,9 @@ class IMCERegisterOperand<RegisterClass RC> : RegisterOperand<RC> {
   let DecoderMethod = "decode"#RC#"RegisterClass";
 }
 
-def SGPROpnd : IMCERegisterOperand<SGPR> {
-  let GIZeroRegister = S0;
-}
+// def SGPROpnd : IMCERegisterOperand<SGPR> {
+//   let GIZeroRegister = S0;
+// }
 
 def VGPROpnd : IMCERegisterOperand<VGPR> {
   let GIZeroRegister = V0;
@@ -234,10 +234,14 @@ let mayLoad = 0, mayStore = 0 in {
     //                            (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
     //                            "# CLOOP_BEGIN_VALUE $op0, $op1, $meta",
     //                            []>,RegConstraint<"$op0 = $op1">;
+    // def CLOOP_BEGIN_VALUE : Pseudo<(outs HWLOOPREGOpnd:$op0),
+    //                            (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
+    //                            "# CLOOP_BEGIN_VALUE $op0, $op1, $meta",
+    //                            []>,RegConstraint<"$op0 = $op1">;
     def CLOOP_BEGIN_VALUE : Pseudo<(outs HWLOOPREGOpnd:$op0),
-                               (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
+                               (ins utimm16:$op1, uimm16:$meta),
                                "# CLOOP_BEGIN_VALUE $op0, $op1, $meta",
-                               []>,RegConstraint<"$op0 = $op1">;
+                               []>;
 
     def CLOOP_END_VALUE : Pseudo<(outs HWLOOPREGOpnd:$op0),
                              (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
@@ -289,14 +293,14 @@ let mayLoad = 0, mayStore = 0 in {
   //   let isTerminator = 1;
   //   let hasSideEffects = 1;
   // }
-  def CLOOP_GUARD_BRANCH : Pseudo<(outs),
-                            (ins HWLOOPREGOpnd:$op0, jumpOperand:$op1, uimm16:$meta),
-                            "# CLOOP_GUARD_BRANCH $op0, $op1, $meta",
-                             []> {
-    let isBranch = 1;
-    let isTerminator = 1;
-    let hasSideEffects = 1;
-  }
+  // def CLOOP_GUARD_BRANCH : Pseudo<(outs),
+  //                           (ins HWLOOPREGOpnd:$op0, jumpOperand:$op1, uimm16:$meta),
+  //                           "# CLOOP_GUARD_BRANCH $op0, $op1, $meta",
+  //                            []> {
+  //   let isBranch = 1;
+  //   let isTerminator = 1;
+  //   let hasSideEffects = 1;
+  // }
 }
 
 // R type
@@ -419,7 +423,8 @@ def : RPat<int_IMCE_MULTH, IMCE_VMULTH_INST>;
 // def : Pat<(add VGPROpnd:$rs1, VGPROpnd:$rs2), (Pseudo_IMCE_VADD_INST_all_lane VGPROpnd:$rs1, VGPROpnd:$rs2)>;
 // def : Pat<(add SGPROpnd:$rs1, SGPROpnd:$rs2), (Pseudo_IMCE_VADD_INST_one_lane SGPROpnd:$rs1, SGPROpnd:$rs2)>;
 def : Pat<(add (v16i16 VGPROpnd:$rs1), (v16i16 VGPROpnd:$rs2)), (IMCE_VADD_INST (v16i16 VGPROpnd:$rs1), (v16i16 VGPROpnd:$rs2), 15)>;
-def : Pat<(add (i16 SGPROpnd:$rs1), (i16 SGPROpnd:$rs2)), (IMCE_VADD_INST (i16 VGPROpnd:$rs1), (i16 VGPROpnd:$rs2), 0)>;
+def : Pat<(add (i16 VGPROpnd:$rs1), (i16 VGPROpnd:$rs2)), (IMCE_VADD_INST (i16 VGPROpnd:$rs1), (i16 VGPROpnd:$rs2), 0)>;
+// def : Pat<(add (i16 SGPROpnd:$rs1), (i16 SGPROpnd:$rs2)), (IMCE_VADD_INST (i16 VGPROpnd:$rs1), (i16 VGPROpnd:$rs2), 0)>;
 
 // I type pattern
 class IPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1, simm14:$imm), (inst VGPROpnd:$rs1, simm14:$imm)>;
@@ -481,13 +486,15 @@ class SPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPRO
 def : SPat<int_IMCE_SCAN_RW, IMCE_SCAN_RW_INST>;
 
 def i32MR : PatLeaf<(i32 HWLOOPREGOpnd:$R)>;
-def : Pat<(i32 (IMCECloopBeginValue i32MR:$op0, uimm16:$meta)),
-          (i32 (CLOOP_BEGIN_VALUE i32MR:$op0, uimm16:$meta))>;
+// def : Pat<(i32 (IMCECloopBeginValue i32MR:$op0, uimm16:$meta)),
+//           (i32 (CLOOP_BEGIN_VALUE i32MR:$op0, uimm16:$meta))>;
+def : Pat<(i32 (IMCECloopBeginValue utimm16:$op0, uimm16:$meta)),
+          (i32 (CLOOP_BEGIN_VALUE utimm16:$op0, uimm16:$meta))>;
 def : Pat<(i32 (IMCECloopEndValue i32MR:$op0, uimm16:$meta)),
           (i32 (CLOOP_END_VALUE i32MR:$op0, uimm16:$meta))>;
 def : Pat<(IMCECloopBeginTerminator i32MR:$op0, uimm16:$meta),
           (CLOOP_BEGIN_TERMINATOR i32MR:$op0, uimm16:$meta)>;
 def : Pat<(IMCECloopEndBranch bb:$op0, i32MR:$op1, uimm16:$meta),
           (CLOOP_END_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;
-def : Pat<(IMCECloopGuardBranch bb:$op0, i32MR:$op1, uimm16:$meta),
-          (CLOOP_GUARD_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;
+// def : Pat<(IMCECloopGuardBranch bb:$op0, i32MR:$op1, uimm16:$meta),
+//           (CLOOP_GUARD_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;

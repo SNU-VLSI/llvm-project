@@ -29,7 +29,7 @@ using namespace llvm;
 #define GET_REGINFO_TARGET_DESC
 #include "IMCEGenRegisterInfo.inc"
 
-IMCERegisterInfo::IMCERegisterInfo() : IMCEGenRegisterInfo(IMCE::S1) {}
+IMCERegisterInfo::IMCERegisterInfo() : IMCEGenRegisterInfo(IMCE::V1) {}
 
 const MCPhysReg *IMCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   return CSR_IMCE_SaveList;
@@ -39,8 +39,8 @@ BitVector IMCERegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
 
   // R31 is the stack pointer.
-  Reserved.set(IMCE::S31);
-  markSuperRegs(Reserved, IMCE::S0); // zero
+  Reserved.set(IMCE::V31);
+  // markSuperRegs(Reserved, IMCE::S0); // zero
   markSuperRegs(Reserved, IMCE::V0); // zero
 
   return Reserved;
@@ -51,4 +51,4 @@ bool IMCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI, int S
   return false;
 }
 
-Register IMCERegisterInfo::getFrameRegister(const MachineFunction &MF) const { return IMCE::S30; }
+Register IMCERegisterInfo::getFrameRegister(const MachineFunction &MF) const { return IMCE::V30; }

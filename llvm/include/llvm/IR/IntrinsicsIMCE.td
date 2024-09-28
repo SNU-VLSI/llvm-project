@@ -75,9 +75,9 @@ let TargetPrefix = "IMCE" in {
               [llvm_i32_ty, llvm_i32_ty],
               [IntrHasSideEffects, IntrNoDuplicate]>;
 
-  def int_IMCE_cloop_guard :
-    Intrinsic<[llvm_i32_ty],
-              [llvm_i32_ty, llvm_i32_ty],
-              [IntrHasSideEffects, IntrNoDuplicate]>;
+  // def int_IMCE_cloop_guard :
+  //   Intrinsic<[llvm_i32_ty],
+  //             [llvm_i32_ty, llvm_i32_ty],
+  //             [IntrHasSideEffects, IntrNoDuplicate]>;
   
 }

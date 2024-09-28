@@ -31,8 +31,8 @@ using namespace llvm;
 IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtarget &STI)
     : TargetLowering(TM), Subtarget(STI) {
 
-  addRegisterClass(MVT::i16, &IMCE::SGPRRegClass);
-  addRegisterClass(MVT::i32, &IMCE::HWLOOP_REG_CLASSRegClass);
+  addRegisterClass(MVT::i16, &IMCE::VGPRRegClass);
+  addRegisterClass(MVT::i32, &IMCE::VGPRRegClass);
   addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
 
   // Compute derived properties from the register
@@ -40,7 +40,7 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   computeRegisterProperties(Subtarget.getRegisterInfo());
 
   // Set up special registers.
-  setStackPointerRegisterToSaveRestore(IMCE::S31);
+  setStackPointerRegisterToSaveRestore(IMCE::V31);
 
   // How we extend i1 boolean values.
   setBooleanContents(ZeroOrOneBooleanContent);
@@ -54,6 +54,8 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   //                    {MVT::v16i16, MVT::i32}, Custom);
   setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
                      {MVT::Other, MVT::v16i16, MVT::i16, MVT::i32}, Custom);
+
+  //TODO : ISD::Constant for i32
 }
 
 //===----------------------------------------------------------------------===//
@@ -85,15 +87,15 @@ SDValue IMCETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID 
       const TargetRegisterClass *RC;
       switch (LocVT.getSimpleVT().SimpleTy) {
       default:
-        // Integers smaller than i64 should be promoted
-        // to i32.
         llvm_unreachable("Unexpected argument type");
       case MVT::v16i16:
         RC = &IMCE::VGPRRegClass;
         break;
-
       case MVT::i16:
-        RC = &IMCE::SGPRRegClass;
+        RC = &IMCE::VGPRRegClass;
+        break;
+      case MVT::i32:
+        RC = &IMCE::VGPRRegClass;
         break;
       }
 
@@ -285,8 +287,12 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
     assert(originalChain.getValueType() == MVT::Other);
 
     SDVTList VTs = DAG.getVTList(MVT::i32, MVT::Other);
+    // SDValue beginValue = DAG.getNode(IMCEISD::CLOOP_BEGIN_VALUE, dl, VTs, originalChain,
+    //                                  Op.getOperand(2), Op.getOperand(3));
+    int count_val = cast<ConstantSDNode>(Op.getOperand(2))->getZExtValue();
+    MVT count_val_type = Op.getOperand(2).getValueType().getSimpleVT();
     SDValue beginValue = DAG.getNode(IMCEISD::CLOOP_BEGIN_VALUE, dl, VTs, originalChain,
-                                     Op.getOperand(2), Op.getOperand(3));
+                                     DAG.getConstant(count_val, dl, count_val_type, true), Op.getOperand(3));
 
     if (root.getOpcode() == ISD::TokenFactor) {
       SDValue begin_terminator = DAG.getNode(IMCEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other, root,
@@ -406,6 +412,7 @@ void IMCETargetLowering::ReplaceNodeResults(SDNode *N, SmallVectorImpl<SDValue> 
     llvm_unreachable("Don't know how to custom type legalize this operation!");
   case ISD::Constant:
     Results.push_back(DAG.getConstant(N->getConstantOperandVal(0), DL, MVT::i16));
+    break;
   case ISD::INTRINSIC_W_CHAIN: {
     unsigned int IntNo = N->getConstantOperandVal(1);
     switch (IntNo) {

@@ -9,21 +9,22 @@
 // ==================================================
 // Registers
 // ==================================================
-def sub_32     : SubRegIndex<32>;
+// def sub_32     : SubRegIndex<32>;
+
+// foreach I = 0-31 in {
+//   let isConstant = !eq(I, 0) in
+//     def S#I : Register<"s"#I> {
+//       let Namespace = "IMCE";
+//       let HWEncoding{15-6} = 0;
+//       let HWEncoding{5-0} = I;
+//     }
+// }
 
 foreach I = 0-31 in {
   let isConstant = !eq(I, 0) in
-    def S#I : Register<"s"#I> {
-      let Namespace = "IMCE";
-      let HWEncoding{15-6} = 0;
-      let HWEncoding{5-0} = I;
-    }
-}
-
-foreach I = 0-31 in {
-  let isConstant = !eq(I, 0) in
-    def V#I : RegisterWithSubRegs<"v"#I, [!cast<Register>("S"#I)]> {
-      let SubRegIndices = [sub_32];
+    // def V#I : RegisterWithSubRegs<"v"#I, [!cast<Register>("S"#I)]> {
+    def V#I : Register<"v"#I> {
+      // let SubRegIndices = [sub_32];
       let Namespace = "IMCE";
       let HWEncoding{15-6} = 0;
       let HWEncoding{5-0} = I;
@@ -93,12 +94,12 @@ def DWREG : Register<"dwreg"> {
 // ==============================================================
 // Register classes
 // ==============================================================
-def SGPR : RegisterClass<"IMCE", [i16, i32], 16, (add (sequence "S%u", 0, 31))> {
-  let Size = 16;
-  let CopyCost = 1;
-}
+// def SGPR : RegisterClass<"IMCE", [i16, i32], 16, (add (sequence "S%u", 0, 31))> {
+//   let Size = 16;
+//   let CopyCost = 1;
+// }
 
-def VGPR : RegisterClass<"IMCE", [v16i16, i16], 256, (add (sequence "V%u", 0, 31))> {
+def VGPR : RegisterClass<"IMCE", [v16i16, i16, i32], 256, (add (sequence "V%u", 0, 31))> {
   let Size = 256;
   let CopyCost = 1;
 }

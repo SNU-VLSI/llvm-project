@@ -70,13 +70,13 @@ void IMCEDAGToDAGISel::Select(SDNode *Node) {
   case ISD::Constant: {
     auto *ConstNode = cast<ConstantSDNode>(Node);
     if (ConstNode->isZero()) {
-      SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::S0, VT);
+      SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::V0, VT);
       ReplaceNode(Node, New.getNode());
       return;
     } else {
       int64_t Imm = ConstNode->getSExtValue();
       if(isInt<14>(Imm)) {
-        SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::S0, VT);
+        SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::V0, VT);
         SDValue Add = SDValue(CurDAG->getMachineNode(IMCE::IMCE_VADDI_INST, DL, VT, {New, CurDAG->getTargetConstant(Imm, DL, VT)}), 0);
         ReplaceNode(Node, Add.getNode());
         return;

@@ -43,7 +43,7 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     return false;
   case IMCE::IMCE_RET_INST: {
     MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_JMP_INST))
-                                  .addReg(IMCE::S1, RegState::Undef);
+                                  .addReg(IMCE::V1, RegState::Undef);
 
     // Retain any imp-use flags.
     for (auto &MO : MI.operands()) {
@@ -87,19 +87,20 @@ void IMCEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::itera
                                 bool KillSrc) const {
 
   const TargetRegisterInfo *TRI = STI.getRegisterInfo();
-  if (IMCE::SGPRRegClass.contains(DestReg, SrcReg)) {
-    BuildMI(MBB, I, DL, get(IMCE::IMCE_VADD_INST), DestReg)
-        .addReg(*TRI->superregs(SrcReg).begin(), getKillRegState(KillSrc))
-        .addReg(IMCE::V0)
-        .addImm(0);
-    return;
-  }
-
-  if (IMCE::VGPRRegClass.contains(DestReg, SrcReg)) {
+  // if (IMCE::SGPRRegClass.contains(DestReg, SrcReg)) {
+  //   BuildMI(MBB, I, DL, get(IMCE::IMCE_VADD_INST), DestReg)
+  //       .addReg(*TRI->superregs(SrcReg).begin(), getKillRegState(KillSrc))
+  //       .addReg(IMCE::V0)
+  //       .addImm(0);
+  //   return;
+  if(IMCE::VGPRRegClass.contains(DestReg, SrcReg)) {
     BuildMI(MBB, I, DL, get(IMCE::IMCE_VADD_INST), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc))
         .addReg(IMCE::V0)
         .addImm(15);
+  } else {
+    errs() << "Warning : Cannot copy " << TRI->getName(DestReg) << " to " << TRI->getName(SrcReg) << "\n";
+    errs() << "Warning : No Action For Copy " << TRI->getName(DestReg) << " to " << TRI->getName(SrcReg) << "\n";
   }
 
   //TODO : 

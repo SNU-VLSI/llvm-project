@@ -41,7 +41,7 @@
       "args": [
         "../test_ll/test_imce_binst.ll",
         "--march=IMCE",
-        "-debug-only=isel",
+        "-debug",
         "-force-hardware-loops",
         "-force-nested-hardware-loop"
       ],

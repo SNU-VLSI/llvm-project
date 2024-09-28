@@ -14,7 +14,8 @@
 // IMCE 32-bit ELF C Calling convention.
 def CC_IMCE : CallingConv<[
   CCIfType<[i8, i16], CCPromoteToType<i16>>,
-  CCIfType<[i16], CCAssignToReg<[S2, S3, S4, S5, S6, S7, S8, S9]>>,
+  CCIfType<[i16], CCAssignToReg<[V2, V3, V4, V5, V6, V7, V8, V9]>>,
+  CCIfType<[i32], CCAssignToReg<[V2, V3, V4, V5, V6, V7, V8, V9]>>,
   CCIfType<[v16i16], CCAssignToReg<[V2, V3, V4, V5, V6, V7, V8, V9]>>,
   CCAssignToStack<4, 4>
 ]>;
@@ -22,9 +23,11 @@ def CC_IMCE : CallingConv<[
 // IMCE 32-bit ELF C return-value convention.
 def RetCC_IMCE : CallingConv<[
   // 32-bit values are returned in R2.
-  CCIfType<[i16], CCAssignToReg<[S2]>>,
+  CCIfType<[i16], CCAssignToReg<[V2]>>,
+  CCIfType<[i32], CCAssignToReg<[V2]>>,
   CCIfType<[v16i16], CCAssignToReg<[V2]>>,
 ]>;
 
 // IMCE 32-bit ELF C callee saved registers.
-def CSR_IMCE : CalleeSavedRegs<(add V1, V30, (sequence "V%d", 25, 14), S1, S30, (sequence "S%d", 25, 14))>;
+// def CSR_IMCE : CalleeSavedRegs<(add V1, V30, (sequence "V%d", 25, 14), S1, S30, (sequence "S%d", 25, 14))>;
+def CSR_IMCE : CalleeSavedRegs<(add V1, V30, (sequence "V%d", 25, 14))>;
