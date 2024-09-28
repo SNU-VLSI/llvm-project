@@ -1,8 +1,0 @@
-{
-  "files.associations": {
-    "*.sv": "systemverilog",
-    "*.inc": "cpp",
-    "*.def": "cpp"
-  },
-  "C_Cpp.default.compilerPath": "/usr/bin/g++-11"
-}
