@@ -132,6 +132,8 @@ bool IMCEPassConfig::addInstSelector() {
 void IMCEPassConfig::addPreRegAlloc() {
   addPass(createIMCEPrintMachineFunctionPass());
   TargetPassConfig::addPreRegAlloc();
+  // addPass(&MachineCopyPropagationID);
+  // addPass(createIMCEPrintMachineFunctionPass());
 }
 
 void IMCEPassConfig::addPreEmitPass() {

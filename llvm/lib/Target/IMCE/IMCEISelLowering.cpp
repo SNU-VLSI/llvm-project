@@ -32,7 +32,8 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
     : TargetLowering(TM), Subtarget(STI) {
 
   addRegisterClass(MVT::i16, &IMCE::VGPRRegClass);
-  addRegisterClass(MVT::i32, &IMCE::VGPRRegClass);
+  // addRegisterClass(MVT::i32, &IMCE::VGPRRegClass);
+  addRegisterClass(MVT::i32, &IMCE::HWLOOP_REG_CLASSRegClass);
   addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
 
   // Compute derived properties from the register

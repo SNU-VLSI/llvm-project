@@ -1412,6 +1412,12 @@ bool FPPassManager::runOnFunction(Function &F) {
   const StringRef Name = F.getName();
   llvm::TimeTraceScope FunctionScope("OptFunction", Name);
 
+  errs() << "Pass List:" << "\n";
+  for(unsigned Index=0; Index<getNumContainedPasses(); ++Index) {
+    FunctionPass *FP = getContainedPass(Index);
+    errs() << std::string(FP->getPassName()) << "\n";
+  }
+
   for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
     FunctionPass *FP = getContainedPass(Index);
     bool LocalChanged = false;
