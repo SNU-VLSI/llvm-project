@@ -145,4 +145,5 @@ void IMCEPassConfig::addPreEmitPass() {
 void IMCEPassConfig::addMachineLateOptimization() {
   addPass(createIMCEPrintMachineFunctionPass());
   TargetPassConfig::addMachineLateOptimization();
+  addPass(createIMCEPrintMachineFunctionPass());
 }

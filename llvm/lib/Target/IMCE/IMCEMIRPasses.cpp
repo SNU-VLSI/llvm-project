@@ -18,6 +18,7 @@ namespace {
   class IMCEPrintMachineFunction: public MachineFunctionPass {
     public:
       static char ID;
+      static unsigned int count;
       explicit IMCEPrintMachineFunction() : MachineFunctionPass(ID) {
         initializeIMCEPrintMachineFunctionPass(*PassRegistry::getPassRegistry());
       }
@@ -25,6 +26,7 @@ namespace {
   };
 }
 char IMCEPrintMachineFunction::ID = 0;
+unsigned int IMCEPrintMachineFunction::count = 0;
 INITIALIZE_PASS_BEGIN(IMCEPrintMachineFunction, PMF_DEBUG_TYPE, PMF_PASS_NAME, false, false)
 INITIALIZE_PASS_END(IMCEPrintMachineFunction, PMF_DEBUG_TYPE, PMF_PASS_NAME, false, false)
 FunctionPass *llvm::createIMCEPrintMachineFunctionPass() {
@@ -32,7 +34,9 @@ FunctionPass *llvm::createIMCEPrintMachineFunctionPass() {
 }
 
 bool IMCEPrintMachineFunction::runOnMachineFunction(MachineFunction &MF) {
-  errs() << "Machine Function: " << MF.getName() << "\n";
+  errs() << "===================================================" << "\n";
+  errs() << "Machine Function: " << MF.getName() << " " << "iteration " << count << "\n";
+  errs() << "===================================================" << "\n";
   MF.dump();
   return false;
 }
