@@ -371,28 +371,7 @@ bool eliminatePseudos(MachineBasicBlock *BB, const TargetInstrInfo &TII) {
       changed = true;
       break;
     }
-    case IMCE::CLOOP_GUARD_BRANCH: {
-      assert(0 && "CLOOP_GUARD_BRANCH should have been eliminated by now");
-      // BuildMI(*BB, BBI, dl, TII.get(IMCE::BRZ))
-      //     .add(BBI->getOperand(0))
-      //     .add(BBI->getOperand(1))
-      //     .addImm(0 /* coissue */);
-      BBI = BB->erase(BBI);
-      changed = true;
-      break;
     }
-    }
-  }
-  return changed;
-}
-
-/// Lower CLOOP_GUARD_BRANCH into a fallback brz instruction.
-bool eliminateLoopGuardPseudo(SmallVectorImpl<MachineInstr *> &loopGuards,
-                              const TargetInstrInfo &TII) {
-  bool changed = false;
-  for (auto loopGuard : loopGuards) {
-    if (eliminatePseudos(loopGuard->getParent(), TII))
-      changed = true;
   }
   return changed;
 }
@@ -440,8 +419,6 @@ bool containsPseudos(MachineBasicBlock *BB, std::vector<unsigned> Pseudos,
       return PseudoType::END_VAL;
     case IMCE::CLOOP_END_BRANCH:
       return PseudoType::END_BR;
-    case IMCE::CLOOP_GUARD_BRANCH:
-      return PseudoType::GUARD_BR;
     }
   };
 
@@ -474,16 +451,6 @@ void findLoopGuardPseudos(MachineBasicBlock *header,
   if (!header)
     return;
 
-  // Search header's predecessors BB for loop guard pseudo.
-  for (auto BBI = header->pred_begin(), BBE = header->pred_end(); BBI != BBE;
-       ++BBI) {
-    MachineBasicBlock *PredBB = *BBI;
-    MachineBasicBlock::instr_iterator Inst;
-    if ((Inst = findBySearchingFromTerminator(
-             PredBB, IMCE::CLOOP_GUARD_BRANCH)) != PredBB->instr_end()) {
-      loopGuards.push_back(&*Inst);
-    }
-  }
 }
 
 Error canLowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body) {
@@ -502,18 +469,18 @@ Error canLowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body) {
 
   auto MI = bodyEndBranch;
   for (--MI; MI->getOpcode() != IMCE::CLOOP_END_VALUE; --MI) {
-    for (auto &MO : MI->operands()) {
-      if (MO.isReg() && MO.getReg() == reg) {
-        std::string OrStr;
-        raw_string_ostream OrStrStream(OrStr);
-        MI->print(OrStrStream, /*IsStandalone=*/true, /*SkipOpers=*/false,
-                  /*SkipDebugLoc=*/false, /*AddNewLine=*/false);
-        return createStringError(
-            std::errc::operation_not_permitted,
-            ("BNE register referred to between decrement and branch by\n" +
-             OrStrStream.str())
-                .c_str());
-      }
+    // VINN: we fix so that it only checks if the HWLOOP register is used in the operand 0
+    auto &MO = MI->getOperand(0);
+    if (MO.isReg() && MO.getReg() == reg) {
+      std::string OrStr;
+      raw_string_ostream OrStrStream(OrStr);
+      MI->print(OrStrStream, /*IsStandalone=*/true, /*SkipOpers=*/false,
+                /*SkipDebugLoc=*/false, /*AddNewLine=*/false);
+      return createStringError(
+          std::errc::operation_not_permitted,
+          ("BNE register referred to between decrement and branch by\n" +
+            OrStrStream.str())
+              .c_str());
     }
     assert(MI != body->instr_begin() && "loop does not have CLOOP_END_VALUE");
   }
@@ -535,7 +502,7 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
   auto bodyEndBranch = body->getFirstInstrTerminator();
 
   Register reg = headerBeginValue->getOperand(0).getReg();
-  MachineInstr *InstrBeforeCLoopBegin = headerBeginValue->getPrevNode();
+  int64_t hw_loop_cnt = headerBeginValue->getOperand(1).getImm();
 
   // Check for instruction preceding CLOOP_BEGIN_VALUE that modifies the
   // induction counter and fold the decrement into it.
@@ -551,8 +518,6 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
   //       .addImm(0 /*coissue*/);
 
   // VINN: get the immediate value from instruction prior to headerBeginValue.
-  unsigned opcode = InstrBeforeCLoopBegin->getOpcode();
-  int64_t hw_loop_cnt = 100;
   // if (opcode == IMCE::SETZI) {
   //   assert(InstrBeforeCLoopBegin->getOperand(0).isReg() &&
   //          InstrBeforeCLoopBegin->getOperand(0).getReg() == reg);
@@ -709,7 +674,6 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
   // loop, bail out.
   if (numFoundBranchPseudos > 1) {
     // Bail out.
-    changed |= eliminateLoopGuardPseudo(loopGuards, *TII);
     for (MachineBasicBlock *MBB : Latches) {
       changed |= eliminatePseudos(MBB, *TII);
     }
@@ -723,7 +687,6 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
     EndBranchBB = L.getHeader();
     if (!containsPseudos(EndBranchBB,
                          {IMCE::CLOOP_END_VALUE, IMCE::CLOOP_END_BRANCH})) {
-      changed |= eliminateLoopGuardPseudo(loopGuards, *TII);
       changed |= eliminatePseudos(Preheader, *TII);
       changed |= eliminatePseudos(EndBranchBB, *TII);
       return changed;
@@ -732,7 +695,6 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
 
   // If preheader doesn't exists, bail out.
   if (!Preheader) {
-    changed |= eliminateLoopGuardPseudo(loopGuards, *TII);
     changed |= eliminatePseudos(EndBranchBB, *TII);
     return changed;
   }
@@ -750,7 +712,6 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
         findBySearchingFromTerminator(Preheader, IMCE::CLOOP_BEGIN_TERMINATOR);
     if (BeginTerm != Preheader->instr_end())
       changed |= eliminatePseudos(findMatchingEndVal(&*BeginTerm, MDT), *TII);
-    changed |= eliminateLoopGuardPseudo(loopGuards, *TII);
     changed |= eliminatePseudos(Preheader, *TII);
     changed |= eliminatePseudos(EndBranchBB, *TII);
     return changed;
@@ -767,9 +728,13 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
   }
 
   auto cloopValueRegistersMatch = [](MachineBasicBlock::instr_iterator i) {
+    // VINN: changed function for CLOOP_BEGIN_VALUE as it receives Immediate as operand 1
     assert(i->getOpcode() == IMCE::CLOOP_BEGIN_VALUE ||
            i->getOpcode() == IMCE::CLOOP_END_VALUE);
-    return i->getOperand(0).getReg() == i->getOperand(1).getReg();
+    if (i->getOpcode() == IMCE::CLOOP_BEGIN_VALUE)
+      return i->getOperand(1).isImm();
+    else
+      return i->getOperand(0).getReg() == i->getOperand(1).getReg();
   };
 
   if (!cloopValueRegistersMatch(headerBeginValue) ||
@@ -782,7 +747,6 @@ bool IMCECountedLoopMIR::traverseLoop(MachineLoop &L) {
 
   // TODO: Maybe we can remove the guard for BNE case if we know the trip
   // count.
-  changed |= eliminateLoopGuardPseudo(loopGuards, *TII);
 
   if (Error BNELoweringError = canLowerToBNE(Preheader, EndBranchBB)) {
     LLVM_DEBUG(dbgs() << "Cannot use BNE: " << BNELoweringError << "\n";);
