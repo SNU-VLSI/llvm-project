@@ -44,7 +44,7 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
   setStackPointerRegisterToSaveRestore(IMCE::V31);
 
   // How we extend i1 boolean values.
-  setBooleanContents(ZeroOrOneBooleanContent);
+  setBooleanContents(UndefinedBooleanContent);
 
   setMinFunctionAlignment(Align(4));
   setPrefFunctionAlignment(Align(4));

@@ -42,8 +42,8 @@ std::string computeDataLayout(const Triple &TT, StringRef CPU, StringRef FS) {
   // Data mangling.
   Ret += DataLayout::getManglingComponent(TT);
 
-  // Pointers are 32 bit.
-  Ret += "-p:32:32:32";
+  // Pointers are 16 bit.
+  Ret += "-p:16:16:16";
 
   // All scalar types are naturally aligned.
   Ret += "-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64";
@@ -55,8 +55,8 @@ std::string computeDataLayout(const Triple &TT, StringRef CPU, StringRef FS) {
   // above.
   Ret += "-a:8:16";
 
-  // Integer registers are 32bits.
-  Ret += "-n32";
+  // Integer registers are 16bits.
+  Ret += "-n16";
 
   return Ret;
 }
