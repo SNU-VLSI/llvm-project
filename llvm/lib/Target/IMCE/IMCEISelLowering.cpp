@@ -33,7 +33,7 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
 
   addRegisterClass(MVT::i16, &IMCE::VGPRRegClass);
   // addRegisterClass(MVT::i32, &IMCE::VGPRRegClass);
-  addRegisterClass(MVT::i32, &IMCE::HWLOOP_REG_CLASSRegClass);
+  // addRegisterClass(MVT::i32, &IMCE::HWLOOP_REG_CLASSRegClass);
   addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
 
   // Compute derived properties from the register
@@ -254,7 +254,7 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
       return SDValue();
     };
 
-    // i32 (*imce.cloop.begin)(i32, i32)
+    // i16 (*imce.cloop.begin)(i16, i16)
     // This is lowered into two ISD nodes. One is a terminator, the other
     // represents the potential need to keep an induction variable around.
     // Should be able to write a more robust version of this using DAG.getRoot
@@ -287,7 +287,7 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
     SDValue originalChain = Op.getOperand(0);
     assert(originalChain.getValueType() == MVT::Other);
 
-    SDVTList VTs = DAG.getVTList(MVT::i32, MVT::Other);
+    SDVTList VTs = DAG.getVTList(MVT::i16, MVT::Other);
     // SDValue beginValue = DAG.getNode(IMCEISD::CLOOP_BEGIN_VALUE, dl, VTs, originalChain,
     //                                  Op.getOperand(2), Op.getOperand(3));
     int count_val = cast<ConstantSDNode>(Op.getOperand(2))->getZExtValue();
@@ -310,10 +310,10 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
   }
   case Intrinsic::IMCE_cloop_end: {
     // Expecting an IR sequence:
-    // %cloop.end = call i32 @llvm.IMCE.cloop.end(i32 %cloop.phi, i32 %meta)
-    // %cloop.end.iv = extractvalue {i32, i32} %cloop.end, 0
-    // %cloop.end.cc = extractvalue {i32, i32} %cloop.end, 1
-    // %cloop.end.cc.trunc = trunc i32 %cloop.end to i1
+    // %cloop.end = call i16 @llvm.IMCE.cloop.end(i16 %cloop.phi, i16 %meta)
+    // %cloop.end.iv = extractvalue {i16, i16} %cloop.end, 0
+    // %cloop.end.cc = extractvalue {i16, i16} %cloop.end, 1
+    // %cloop.end.cc.trunc = trunc i16 %cloop.end to i1
     // br i1 %cloop.end.cc.trunc, label %t, label %f
     assert(Op->getNumOperands() == 4);
     auto onFailure = [&]() {
@@ -374,10 +374,10 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
     // Established that we have a conditional branch on the return value
     // of the counted loop end intrinsic. This is the desired pattern.
 
-    // The intrinsic returns i32 (indvar), i32 (cc), ch
+    // The intrinsic returns i16 (indvar), i16 (cc), ch
     // Replace all uses of this by a node that represents the decrement of
     // the loop counter.
-    SDVTList VTs = DAG.getVTList(MVT::i32, MVT::Other);
+    SDVTList VTs = DAG.getVTList(MVT::i16, MVT::Other);
     SDNode *endValue = DAG.getNode(IMCEISD::CLOOP_END_VALUE, dl, VTs, Op.getOperand(0),
                                    Op.getOperand(2), Op.getOperand(3))
                            .getNode();

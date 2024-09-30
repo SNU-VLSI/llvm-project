@@ -28,28 +28,25 @@ def call             : SDNode<"IMCEISD::CALL", SDT_Call,
 def retglue          : SDNode<"IMCEISD::RET_GLUE", SDTNone,
                               [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
-def SDT_IMCEValue : SDTypeProfile<1, 2, [SDTCisVT<0, i32>,
-                                             SDTCisVT<1, i32>,
-                                             SDTCisVT<2, i32>]>;
 def IMCECloopBeginValue :
   SDNode<"IMCEISD::CLOOP_BEGIN_VALUE",
-         SDT_IMCEValue,
+         SDTypeProfile<1, 2, [SDTCisVT<0, i16>, SDTCisVT<1, i16>, SDTCisVT<2, i16>]>,
          [SDNPHasChain]>;
 def IMCECloopBeginTerminator :
   SDNode<"IMCEISD::CLOOP_BEGIN_TERMINATOR",
-         SDTypeProfile<0, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>]>,
+         SDTypeProfile<0, 2, [SDTCisVT<0, i16>, SDTCisVT<1, i16>]>,
          [SDNPHasChain]>;
 def IMCECloopEndValue :
   SDNode<"IMCEISD::CLOOP_END_VALUE",
-         SDT_IMCEValue,
+         SDTypeProfile<1, 2, [SDTCisVT<0, i16>, SDTCisVT<1, i16>]>,
          [SDNPHasChain]>;
 def IMCECloopEndBranch :
   SDNode<"IMCEISD::CLOOP_END_BRANCH",
-         SDTypeProfile<0, 3, [SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
+         SDTypeProfile<0, 3, [SDTCisVT<1, i16>, SDTCisVT<2, i16>]>,
          [SDNPHasChain]>;
 // def IMCECloopGuardBranch :
 //   SDNode<"IMCEISD::CLOOP_GUARD_BRANCH",
-//          SDTypeProfile<0, 3, [SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
+//          SDTypeProfile<0, 3, [SDTCisVT<1, i16>, SDTCisVT<2, i16>]>,
 //          [SDNPHasChain]>;
 
 // ===================================================
@@ -166,14 +163,14 @@ def uimm14 : Operand<i16>, TImmLeaf<i16, [{return isUInt<14>(Imm);}]> {
   let OperandNamespace = "IMCEOp";
 }
 
-def utimm16 : Operand<i32>, TImmLeaf<i32, [{return isUInt<16>(Imm);}]> {
+def utimm16 : Operand<i16>, TImmLeaf<i16, [{return isUInt<16>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<16>;
   let DecoderMethod = "decodeUImmOperand<16>";
   let OperandType = "OPERAND_UIMM16";
   let OperandNamespace = "IMCEOp";
 }
 
-def uimm16 : Operand<i32>, ImmLeaf<i32, [{return isUInt<16>(Imm);}]> {
+def uimm16 : Operand<i16>, ImmLeaf<i16, [{return isUInt<16>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<16>;
   let DecoderMethod = "decodeUImmOperand<16>";
   let OperandType = "OPERAND_UIMM16";
@@ -343,7 +340,7 @@ let mayLoad=0, mayStore=0 in {
   def IMCE_VMULTLI_INST : IInst<"vmultli", 0b101010>;
   def IMCE_VMULTHI_INST : IInst<"vmulthi", 0b101011>;
 }
-  
+
 // A type
 class AInst<string opname, int opcode> : InstAType<opcode, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, uimm3:$shift_amt, uimm1:$dwresult_valid, uimm4:$src_mask, uimm2:$bshr_sel), opname, "$rd $rs1 $shift_amt $dwresult_valid $src_mask $bshr_sel", []>;
 def IMCE_DWCONV_INST : AInst<"dwconv", 0b001100> {
@@ -416,7 +413,7 @@ def IMCE_STOP_INST : XInst<"stop", 0b111111>;
 // J type
 // def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]> {
 def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumpOperand:$imm), "jmp", "$imm", []> {
-  let isTerminator=1; 
+  let isTerminator=1;
 }
 
 // S type
@@ -465,8 +462,8 @@ class APat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPRO
 def : APat<int_IMCE_DWCONV, IMCE_DWCONV_INST>;
 
 // B type pattern
-class BPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op simm6:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm), (inst simm6:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm)>;
-def : BPat<int_IMCE_BNE, IMCE_BNE_INST>;
+// class BPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op simm6:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm), (inst simm6:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm)>;
+// def : BPat<int_IMCE_BNE, IMCE_BNE_INST>;
 
 // C type pattern
 class CPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (inst uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
@@ -513,16 +510,16 @@ def : Pat<(br (bb:$imm)), (IMCE_JMP_INST jumpOperand:$imm)>;
 class SPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1), (inst VGPROpnd:$rs1)>;
 def : SPat<int_IMCE_SCAN_RW, IMCE_SCAN_RW_INST>;
 
-def i32MR : PatLeaf<(i32 HWLOOPREGOpnd:$R)>;
-// def : Pat<(i32 (IMCECloopBeginValue i32MR:$op0, uimm16:$meta)),
-//           (i32 (CLOOP_BEGIN_VALUE i32MR:$op0, uimm16:$meta))>;
-def : Pat<(i32 (IMCECloopBeginValue utimm16:$op0, uimm16:$meta)),
-          (i32 (CLOOP_BEGIN_VALUE utimm16:$op0, uimm16:$meta))>;
-def : Pat<(i32 (IMCECloopEndValue i32MR:$op0, uimm16:$meta)),
-          (i32 (CLOOP_END_VALUE i32MR:$op0, uimm16:$meta))>;
-def : Pat<(IMCECloopBeginTerminator i32MR:$op0, uimm16:$meta),
-          (CLOOP_BEGIN_TERMINATOR i32MR:$op0, uimm16:$meta)>;
-def : Pat<(IMCECloopEndBranch bb:$op0, i32MR:$op1, uimm16:$meta),
-          (CLOOP_END_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;
-// def : Pat<(IMCECloopGuardBranch bb:$op0, i32MR:$op1, uimm16:$meta),
-//           (CLOOP_GUARD_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;
+def i16MR : PatLeaf<(i16 HWLOOPREGOpnd:$R)>;
+// def : Pat<(i16 (IMCECloopBeginValue i16MR:$op0, uimm16:$meta)),
+//           (i16 (CLOOP_BEGIN_VALUE i16MR:$op0, uimm16:$meta))>;
+def : Pat<(i16 (IMCECloopBeginValue utimm16:$op0, uimm16:$meta)),
+          (i16 (CLOOP_BEGIN_VALUE utimm16:$op0, uimm16:$meta))>;
+def : Pat<(i16 (IMCECloopEndValue i16MR:$op0, uimm16:$meta)),
+          (i16 (CLOOP_END_VALUE i16MR:$op0, uimm16:$meta))>;
+def : Pat<(IMCECloopBeginTerminator i16MR:$op0, uimm16:$meta),
+          (CLOOP_BEGIN_TERMINATOR i16MR:$op0, uimm16:$meta)>;
+def : Pat<(IMCECloopEndBranch bb:$op0, i16MR:$op1, uimm16:$meta),
+          (CLOOP_END_BRANCH i16MR:$op1, bb:$op0, uimm16:$meta)>;
+// def : Pat<(IMCECloopGuardBranch bb:$op0, i16MR:$op1, uimm16:$meta),
+//           (CLOOP_GUARD_BRANCH i16MR:$op1, bb:$op0, uimm16:$meta)>;
