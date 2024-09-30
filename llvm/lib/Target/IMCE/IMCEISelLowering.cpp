@@ -208,11 +208,11 @@ SDValue IMCETargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const 
 }
 
 SDValue IMCETargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const {
-  llvm_unreachable("Invalid intrinsic");
+  return SDValue();
 }
 
 SDValue IMCETargetLowering::LowerINTRINSIC_VOID(SDValue Op, SelectionDAG &DAG) const {
-  return LowerINTRINSIC_W_CHAIN(Op, DAG);
+  return SDValue();
 }
 
 SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG) const {

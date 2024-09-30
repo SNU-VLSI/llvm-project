@@ -1,0 +1,10 @@
+../sh/run_imce_llc.sh ../test_ll/test_imce_ainst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_jinst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_sinst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_binst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_pinst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_xinst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_cinst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_qinst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_iinst.ll
+../sh/run_imce_llc.sh ../test_ll/test_imce_rinst.ll

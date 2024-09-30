@@ -338,8 +338,6 @@ let mayLoad=0, mayStore=0 in {
   def IMCE_VMULTLI_INST : IInst<"vmultli", 0b101010>;
   def IMCE_VMULTHI_INST : IInst<"vmulthi", 0b101011>;
 }
-// def Pseudo_IMCE_VADDI_INST_SCALAR : Pseudo<(outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm14:$imm), []>;
-// def : Pat<(add SGPROpnd:$rs1, simm14:$imm), (Pseudo_IMCE_VADDI_INST_SCALAR SGPROpnd:$rs1, simm14:$imm)>;
   
 // A type
 class AInst<string opname, int opcode> : InstAType<opcode, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, uimm3:$shift_amt, uimm1:$dwresult_valid, uimm4:$src_mask, uimm2:$bshr_sel), opname, "$rd $rs1 $shift_amt $dwresult_valid $src_mask $bshr_sel", []>;
