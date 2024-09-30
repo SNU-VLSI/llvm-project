@@ -52,6 +52,18 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     }
     break;
   }
+  case IMCE::IMCE_ADDQ_INST_LANE0: {
+    MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_ADDQ_INST))
+                                  .addReg(IMCE::QSUBREG00, RegState::ImplicitDefine)
+                                  .addReg(IMCE::QSUBREG10, RegState::ImplicitDefine)
+                                  .addReg(IMCE::QSUBREG20, RegState::ImplicitDefine)
+                                  .addReg(IMCE::QSUBREG30, RegState::ImplicitDefine)
+                                  .addReg(MI.getOperand(4).getReg())
+                                  .addReg(MI.getOperand(5).getReg())
+                                  .addImm(MI.getOperand(6).getImm())
+                                  .addImm(0);
+    break;
+  }
   // case IMCE::Pseudo_IMCE_VADD_INST_one_lane : {
   //   MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_VADD_INST))
   //                                 .add(MI.getOperand(0))

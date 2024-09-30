@@ -9,7 +9,24 @@
 // ==================================================
 // Registers
 // ==================================================
-// def sub_32     : SubRegIndex<32>;
+def sub_32     : SubRegIndex<32>;
+
+def sub_16_0  : SubRegIndex<16, 0>;
+def sub_16_1  : SubRegIndex<16, 1>;
+def sub_16_2  : SubRegIndex<16, 2>;
+def sub_16_3  : SubRegIndex<16, 3>;
+def sub_16_4  : SubRegIndex<16, 4>;
+def sub_16_5  : SubRegIndex<16, 5>;
+def sub_16_6  : SubRegIndex<16, 6>;
+def sub_16_7  : SubRegIndex<16, 7>;
+def sub_16_8  : SubRegIndex<16, 8>;
+def sub_16_9  : SubRegIndex<16, 9>;
+def sub_16_10 : SubRegIndex<16, 10>;
+def sub_16_11 : SubRegIndex<16, 11>;
+def sub_16_12 : SubRegIndex<16, 12>;
+def sub_16_13 : SubRegIndex<16, 13>;
+def sub_16_14 : SubRegIndex<16, 14>;
+def sub_16_15 : SubRegIndex<16, 15>;
 
 // foreach I = 0-31 in {
 //   let isConstant = !eq(I, 0) in
@@ -36,6 +53,16 @@ foreach I = 0-3 in {
     let Namespace = "IMCE";
     let HWEncoding{15-6} = 0;
     let HWEncoding{5-0} = !add(I,32);
+  }
+}
+
+foreach I = 0-3 in {
+  foreach J = 0-15 in {
+    def QSUBREG#I#J : Register<"qsubreg"#I#J> {
+      let Namespace = "IMCE";
+      let HWEncoding{15-6} = 0;
+      let HWEncoding{5-0} = !add(I,32);
+    }
   }
 }
 
@@ -107,6 +134,20 @@ def VGPR : RegisterClass<"IMCE", [v16i16, i16, i32], 256, (add (sequence "V%u", 
 def CREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "CREG%u", 0, 3))> {
   let Size = 256;
   let CopyCost = 1;
+}
+
+def QSUBREG_CLASS : RegisterClass<"IMCE", [i16], 16, (add (sequence "QSUBREG0%u", 0, 15), (sequence "QSUBREG1%u", 0, 15), (sequence "QSUBREG2%u", 0, 15), (sequence "QSUBREG3%u", 0, 15))> {
+  let Size = 16;
+  let CopyCost = 1;
+}
+
+foreach I = 0-3 in {
+  foreach J = 0-15 in {
+    def QSUBREG_CLASS#I#J : RegisterClass<"IMCE", [i16], 16, (add !cast<Register>("QSUBREG"#I#J))> {
+      let Size = 16;
+      let CopyCost = 1;
+    }
+  }
 }
 
 def QREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "QREG%u", 0, 3))> {
