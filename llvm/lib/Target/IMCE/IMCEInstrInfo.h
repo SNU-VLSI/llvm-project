@@ -40,6 +40,7 @@ public:
 
   void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator I, const DebugLoc &DL,
                    MCRegister DestReg, MCRegister SrcReg, bool KillSrc) const override;
+  bool expandQInst(MachineBasicBlock &MBB, MachineInstr &MI, unsigned int Pop, unsigned int Op) const;
 };
 
 } // end namespace llvm

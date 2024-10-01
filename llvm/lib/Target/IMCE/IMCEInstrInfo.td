@@ -68,6 +68,10 @@ def VGPROpnd : IMCERegisterOperand<VGPR> {
 
 def CREGOpnd : IMCERegisterOperand<CREG_CLASS>;
 def QREGOpnd : IMCERegisterOperand<QREG_CLASS>;
+def QREG0Opnd : IMCERegisterOperand<QREG0_CLASS>;
+def QREG1Opnd : IMCERegisterOperand<QREG1_CLASS>;
+def QREG2Opnd : IMCERegisterOperand<QREG2_CLASS>;
+def QREG3Opnd : IMCERegisterOperand<QREG3_CLASS>;
 def BSHRREGOpnd : IMCERegisterOperand<BSHR_REG_CLASS>;
 def HWLOOPREGOpnd : IMCERegisterOperand<HWLOOP_REG_CLASS>;
 def MREGOpnd : IMCERegisterOperand<MINMAXREG_CLASS>;
@@ -400,6 +404,73 @@ def IMCE_MULTLQ_INST   : QInst<"multlq", 0b011010>;
 def IMCE_MULTHQ_INST   : QInst<"multhq", 0b011011>;
 def IMCE_NU_QUANT_INST : QInst<"nu_quant", 0b011100>;
 def IMCE_MM_QUANT_INST : QInst<"mm_quant", 0b011101>;
+
+// class qreg_build_op_frag<int i, int j> : PatFrags<(ops),
+//                                          [(i16 immzero),
+//                                           (i16 !cast<IMCERegisterOperand>("QSUBREGOperand" # i # j))]>;
+// foreach I=0-3 in {
+//   foreach J=0-15 in {
+//     def qreg_op # I # J : qreg_build_op_frag<I, J>;
+//   }
+// }
+
+foreach I=0-3 in {
+  def QREG # I # _BUILD_INST : Pseudo<(outs !cast<IMCERegisterOperand>("QREG" # I # "Opnd"):$rd),
+                                      (ins !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 0):$rs0,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 1):$rs1,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 2):$rs2,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 3):$rs3,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 4):$rs4,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 5):$rs5,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 6):$rs6,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 7):$rs7,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 8):$rs8,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 9):$rs9,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 10):$rs10,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 11):$rs11,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 12):$rs12,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 13):$rs13,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 14):$rs14,
+                                           !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 15):$rs15
+                                      ),
+                                      "#QREG" # I # "_BUILD_INST",
+                                      []>;
+}
+
+foreach I=0-3 in {
+  def : Pat<(build_vector !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 0):$rs0, 
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 1):$rs1,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 2):$rs2,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 3):$rs3,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 4):$rs4,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 5):$rs5,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 6):$rs6,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 7):$rs7,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 8):$rs8,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 9):$rs9,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 10):$rs10,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 11):$rs11,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 12):$rs12,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 13):$rs13,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 14):$rs14,
+                          !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 15):$rs15),
+            (!cast<Pseudo>("QREG" # I # "_BUILD_INST") !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 0):$rs0,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 1):$rs1,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 2):$rs2,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 3):$rs3,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 4):$rs4,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 5):$rs5,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 6):$rs6,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 7):$rs7,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 8):$rs8,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 9):$rs9,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 10):$rs10,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 11):$rs11,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 12):$rs12,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 13):$rs13,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 14):$rs14,
+                              !cast<IMCERegisterOperand>("QSUBREGOperand" # I # 15):$rs15)>;
+}
 
 // X type
 class XInst<string opname, int opcode> : InstXType<opcode, (outs), (ins), opname, "", []>;

@@ -155,6 +155,26 @@ def QREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "QREG%u", 0
   let CopyCost = 1;
 }
 
+def QREG0_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add QREG0)> {
+  let Size = 256;
+  let CopyCost = 1;
+}
+
+def QREG1_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add QREG1)> {
+  let Size = 256;
+  let CopyCost = 1;
+}
+
+def QREG2_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add QREG2)> {
+  let Size = 256;
+  let CopyCost = 1;
+}
+
+def QREG3_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add QREG3)> {
+  let Size = 256;
+  let CopyCost = 1;
+}
+
 def BSHR_REG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "BSHR_REG%u", 0, 3))> {
   let Size = 256;
   let CopyCost = 1;
