@@ -92,16 +92,16 @@ public:
   StringRef getPassName() const override { return PASS_NAME; }
 
   void getAnalysisUsage(AnalysisUsage &AU) const override {
-    AU.addRequired<MachineDominatorTree>();
-    AU.addRequired<MachineLoopInfo>();
+    AU.addRequired<MachineDominatorTreeWrapperPass>();
+    AU.addRequired<MachineLoopInfoWrapperPass>();
     MachineFunctionPass::getAnalysisUsage(AU);
   }
 };
 } // namespace
 char IMCECountedLoopMIR::ID = 0;
 INITIALIZE_PASS_BEGIN(IMCECountedLoopMIR, DEBUG_TYPE, PASS_NAME, false, false)
-INITIALIZE_PASS_DEPENDENCY(MachineDominatorTree)
-INITIALIZE_PASS_DEPENDENCY(MachineLoopInfo)
+INITIALIZE_PASS_DEPENDENCY(MachineDominatorTreeWrapperPass)
+INITIALIZE_PASS_DEPENDENCY(MachineLoopInfoWrapperPass)
 INITIALIZE_PASS_END(IMCECountedLoopMIR, DEBUG_TYPE, PASS_NAME, false, false)
 FunctionPass *llvm::createIMCECountedLoopMIRPass() {
   return new IMCECountedLoopMIR();
@@ -783,8 +783,8 @@ bool IMCECountedLoopMIR::runOnMachineFunction(MachineFunction &mf) {
 
   bool changed = false;
   PreheaderMap.clear();
-  MDT = &getAnalysis<MachineDominatorTree>();
-  MLI = &getAnalysis<MachineLoopInfo>();
+  MDT = &getAnalysis<MachineDominatorTreeWrapperPass>().getDomTree();
+  MLI = &getAnalysis<MachineLoopInfoWrapperPass>().getLI();
 
   // Cache the "original" preheaders if found.
   for (auto &L : *MLI)

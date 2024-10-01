@@ -26,14 +26,23 @@ using namespace llvm;
 #define DEBUG_TYPE "IMCE-isel"
 #define PASS_NAME "IMCE DAG->DAG Pattern Instruction Selection"
 
+class IMCEDAGToDAGISelLegacy : public SelectionDAGISelLegacy {
+public:
+  static char ID;
+  explicit IMCEDAGToDAGISelLegacy(IMCETargetMachine &TargetMachine,
+                                  CodeGenOptLevel OptLevel);
+};
+
+char IMCEDAGToDAGISelLegacy::ID = 0;
+
 namespace {
 
 class IMCEDAGToDAGISel : public SelectionDAGISel {
 public:
   static char ID;
 
-  IMCEDAGToDAGISel(IMCETargetMachine &TM, CodeGenOpt::Level OptLevel)
-      : SelectionDAGISel(ID, TM, OptLevel) {}
+  IMCEDAGToDAGISel(IMCETargetMachine &TM, CodeGenOptLevel OptLevel)
+      : SelectionDAGISel(TM, OptLevel) {}
 
   // Override SelectionDAGISel.
   void Select(SDNode *Node) override;
@@ -48,8 +57,16 @@ char IMCEDAGToDAGISel::ID = 0;
 
 INITIALIZE_PASS(IMCEDAGToDAGISel, DEBUG_TYPE, PASS_NAME, false, false)
 
-FunctionPass *llvm::createIMCEISelDag(IMCETargetMachine &TM, CodeGenOpt::Level OptLevel) {
-  return new IMCEDAGToDAGISel(TM, OptLevel);
+IMCEDAGToDAGISelLegacy::IMCEDAGToDAGISelLegacy(IMCETargetMachine &TM,
+                                                 CodeGenOptLevel OptLevel)
+    : SelectionDAGISelLegacy(
+          ID, std::make_unique<IMCEDAGToDAGISel>(TM, OptLevel)) {}
+
+INITIALIZE_PASS(IMCEDAGToDAGISelLegacy, DEBUG_TYPE, PASS_NAME, false, false)
+
+
+FunctionPass *llvm::createIMCEISelDag(IMCETargetMachine &TM, CodeGenOptLevel OptLevel) {
+  return new IMCEDAGToDAGISelLegacy(TM, OptLevel);
 }
 
 void IMCEDAGToDAGISel::Select(SDNode *Node) {

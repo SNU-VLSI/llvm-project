@@ -83,9 +83,9 @@ public:
 
   bool isReg() const override { return Kind == OpKind_Reg; }
 
-  unsigned getReg() const override {
+  MCRegister getReg() const override {
     assert(isReg() && "Invalid type access!");
-    return RegNo;
+    return MCRegister(RegNo);
   }
 
   bool isImm() const override { return Kind == OpKind_Imm; }
@@ -128,7 +128,7 @@ public:
   // of operand to an instruction.
   void addRegOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands");
-    Inst.addOperand(MCOperand::createReg(getReg()));
+    Inst.addOperand(MCOperand::createReg(getReg().id()));
   }
 
   void addImmOperands(MCInst &Inst, unsigned N) const {
@@ -260,7 +260,7 @@ class IMCEAsmParser : public MCTargetAsmParser {
   bool ParseInstruction(ParseInstructionInfo &Info, StringRef Name, SMLoc NameLoc,
                         OperandVector &Operands) override;
   bool parseRegister(MCRegister &RegNo, SMLoc &StartLoc, SMLoc &EndLoc) override;
-  OperandMatchResultTy tryParseRegister(MCRegister &RegNo, SMLoc &StartLoc, SMLoc &EndLoc) override;
+  ParseStatus tryParseRegister(MCRegister &RegNo, SMLoc &StartLoc, SMLoc &EndLoc) override;
 
   bool parseRegister(MCRegister &RegNo, SMLoc &StartLoc, SMLoc &EndLoc, bool RestoreOnFailure);
   bool parseOperand(OperandVector &Operands, StringRef Mnemonic);
@@ -375,17 +375,17 @@ bool IMCEAsmParser::parseRegister(MCRegister &RegNo, SMLoc &StartLoc, SMLoc &End
                        /*RestoreOnFailure=*/false);
 }
 
-OperandMatchResultTy IMCEAsmParser::tryParseRegister(MCRegister &RegNo, SMLoc &StartLoc,
-                                                     SMLoc &EndLoc) {
+ParseStatus IMCEAsmParser::tryParseRegister(MCRegister &RegNo, SMLoc &StartLoc,
+                                            SMLoc &EndLoc) {
   bool Result = parseRegister(RegNo, StartLoc, EndLoc,
                               /*RestoreOnFailure=*/true);
   bool PendingErrors = getParser().hasPendingError();
   getParser().clearPendingErrors();
   if (PendingErrors)
-    return MatchOperand_ParseFail;
+    return ParseStatus::Failure;
   if (Result)
-    return MatchOperand_NoMatch;
-  return MatchOperand_Success;
+    return ParseStatus::NoMatch;
+  return ParseStatus::Success;
 }
 
 bool IMCEAsmParser::MatchAndEmitInstruction(SMLoc IdLoc, unsigned &Opcode, OperandVector &Operands,

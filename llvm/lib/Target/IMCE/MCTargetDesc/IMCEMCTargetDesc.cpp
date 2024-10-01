@@ -63,5 +63,5 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeIMCETargetMC() {
   TargetRegistry::RegisterMCRegInfo(getTheIMCETarget(), createIMCEMCRegisterInfo);
   TargetRegistry::RegisterMCSubtargetInfo(getTheIMCETarget(), createIMCEMCSubtargetInfo);
   TargetRegistry::RegisterMCInstPrinter(getTheIMCETarget(), createIMCEMCInstPrinter);
-  TargetRegistry::RegisterMCAsmBackend(getTheIMCETarget(), createIMCEAsmBackend);
+  // TargetRegistry::RegisterMCAsmBackend(getTheIMCETarget(), createIMCEAsmBackend);
 }

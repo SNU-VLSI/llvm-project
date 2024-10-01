@@ -65,7 +65,7 @@ std::string computeDataLayout(const Triple &TT, StringRef CPU, StringRef FS) {
 /// Create an IMCE architecture model.
 IMCETargetMachine::IMCETargetMachine(const Target &T, const Triple &TT, StringRef CPU, StringRef FS,
                                      const TargetOptions &Options, std::optional<Reloc::Model> RM,
-                                     std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL,
+                                     std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
                                      bool JIT)
     : LLVMTargetMachine(T, computeDataLayout(TT, CPU, FS), TT, CPU, FS, Options,
                         !RM ? Reloc::Static : *RM, getEffectiveCodeModel(CM, CodeModel::Medium),
@@ -138,7 +138,7 @@ void IMCEPassConfig::addPreRegAlloc() {
 
 void IMCEPassConfig::addPreEmitPass() {
   addPass(createIMCECountedLoopMIRPass());
-  if (getOptLevel() != CodeGenOpt::None) {
+  if (getOptLevel() != CodeGenOptLevel::None) {
     addPass(&FinalizeMachineBundlesID);
   }
   addPass(createIMCEPrintMachineFunctionPass());

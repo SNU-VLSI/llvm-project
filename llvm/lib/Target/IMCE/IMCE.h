@@ -24,9 +24,10 @@ class FunctionPass;
 class InstructionSelector;
 class PassRegistry;
 
-FunctionPass *createIMCEISelDag(IMCETargetMachine &TM, CodeGenOpt::Level OptLevel);
+FunctionPass *createIMCEISelDag(IMCETargetMachine &TM, CodeGenOptLevel OptLevel);
 
 void initializeIMCEDAGToDAGISelPass(PassRegistry &);
+void initializeIMCEDAGToDAGISelLegacyPass(PassRegistry &);
 
 void initializePrintFunctionsPass(PassRegistry &);
 FunctionPass *createPrintFunctionsPass();
