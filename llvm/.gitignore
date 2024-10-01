@@ -10,6 +10,8 @@
 # Nested build directory.
 #==============================================================================#
 /build
+/build*
+/clang_test
 
 #==============================================================================#
 # Explicit files to ignore (only matches one).
@@ -47,7 +49,8 @@ runtimes/*
 # Sphinx build tree, if building in-source dir.
 docs/_build
 # VS2017 and VSCode config files.
-.vscode
+.vscode/*
+!.vscode/settings.json
 .vs
 
 #==============================================================================#
