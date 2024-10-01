@@ -321,6 +321,7 @@ enum {
   EM_VE = 251,            // NEC SX-Aurora VE
   EM_CSKY = 252,          // C-SKY 32-bit processor
   EM_LOONGARCH = 258,     // LoongArch
+  EM_IMCE = 259,          // IMCE
 };
 
 // Object file classes.
@@ -1017,6 +1018,16 @@ enum : unsigned {
 enum {
 #include "ELFRelocs/Xtensa.def"
 };
+
+enum : unsigned {
+  EF_IMCE_NABI = 0x80000000,  // Not ABI compliant
+  EF_IMCE_M88110 = 0x00000004 // File uses 88110-specific features
+};
+
+enum {
+#include "ELFRelocs/IMCE.def"
+};
+
 
 #undef ELF_RELOC
 

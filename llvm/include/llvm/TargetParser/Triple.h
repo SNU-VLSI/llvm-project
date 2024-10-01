@@ -107,6 +107,7 @@ public:
     renderscript32, // 32-bit RenderScript
     renderscript64, // 64-bit RenderScript
     ve,             // NEC SX-Aurora Vector Engine
+    IMCE,
     LastArchType = ve
   };
   enum SubArchType {
@@ -1045,6 +1046,9 @@ public:
   bool isBPF() const {
     return getArch() == Triple::bpfel || getArch() == Triple::bpfeb;
   }
+
+  /// Tests whether the target is IMCE.
+  bool isIMCE() const { return getArch() == Triple::IMCE; }
 
   /// Tests whether the target supports comdat
   bool supportsCOMDAT() const {
