@@ -67,6 +67,9 @@ def VGPROpnd : IMCERegisterOperand<VGPR> {
 }
 
 def CREGOpnd : IMCERegisterOperand<CREG_CLASS>;
+foreach I = 0-3 in {
+  def CREG # I # Opnd : IMCERegisterOperand<!cast<RegisterClass>("CREG"#I#"_CLASS")>;
+}
 def QREGOpnd : IMCERegisterOperand<QREG_CLASS>;
 def QREG0Opnd : IMCERegisterOperand<QREG0_CLASS>;
 def QREG1Opnd : IMCERegisterOperand<QREG1_CLASS>;
@@ -514,11 +517,13 @@ foreach I=0-3 in {
 }
 
 // X type
+
 class XInst<string opname, int opcode> : InstXType<opcode, (outs), (ins), opname, "", []>;
-def IMCE_STEP_INST : XInst<"step", 0b111101> {
+def IMCE_STEP_INST : InstIMCE<(outs CREG0Opnd:$rd0, CREG1Opnd:$rd1, CREG2Opnd:$rd2, CREG3Opnd:$rd3), (ins), "step", "", []> {
+  let Inst{5-0} = 0b111101;
   let Uses = [BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3];
-  let Defs = [CREG0, CREG1, CREG2, CREG3];
 }
+
 def IMCE_NOP_INST  : XInst<"nop" , 0b111110>;
 def IMCE_STOP_INST : XInst<"stop", 0b111111>;
 

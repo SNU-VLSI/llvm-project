@@ -135,6 +135,12 @@ def CREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "CREG%u", 0
   let Size = 256;
   let CopyCost = 1;
 }
+foreach I=0-3 in {
+  def CREG # I # _CLASS : RegisterClass<"IMCE", [v16i16], 256, (add !cast<Register>("CREG"#I))> {
+    let Size = 256;
+    let CopyCost = 1;
+  }
+}
 
 def QSUBREG_CLASS : RegisterClass<"IMCE", [i16], 16, (add (sequence "QSUBREG0%u", 0, 15), (sequence "QSUBREG1%u", 0, 15), (sequence "QSUBREG2%u", 0, 15), (sequence "QSUBREG3%u", 0, 15))> {
   let Size = 16;

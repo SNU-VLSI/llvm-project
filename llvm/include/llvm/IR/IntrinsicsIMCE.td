@@ -52,7 +52,7 @@ let TargetPrefix = "IMCE" in {
   def int_IMCE_MM_QUANT : Intrinsic<[llvm_i16_ty, llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
 
   // X type
-  def int_IMCE_STEP : Intrinsic<[], []>;
+  def int_IMCE_STEP : Intrinsic<[llvm_v16i16_ty, llvm_v16i16_ty, llvm_v16i16_ty, llvm_v16i16_ty], []>;
   def int_IMCE_NOP  : Intrinsic<[], []>;
   def int_IMCE_STOP : Intrinsic<[], []>;
 
