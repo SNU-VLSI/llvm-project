@@ -534,7 +534,10 @@ def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumpOperand:$imm), "jmp", "
 }
 
 // S type
-def IMCE_SCAN_RW_INST : InstSType<0b101100, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1), "scan_rw", "$rd $rs1", []>;
+def IMCE_SCAN_RW_INST : InstSType<0b101100, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1), "scan_rw", "$rd $rs1", []> {
+  let Uses = [SCANREG0, SCANREG1];
+  let Defs = [SCANREG0, SCANREG1];
+}
 
 // ================================================
 // Patterns

@@ -118,6 +118,14 @@ def DWREG : Register<"dwreg"> {
   let Namespace = "IMCE";
 }
 
+def SCANREG0 : Register<"scanreg0"> {
+  let Namespace = "IMCE";
+}
+
+def SCANREG1 : Register<"scanreg1"> {
+  let Namespace = "IMCE";
+}
+
 // ==============================================================
 // Register classes
 // ==============================================================
@@ -207,6 +215,16 @@ def PCREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add PCREG)> {
 }
 
 def DWREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add DWREG)> {
+  let Size = 256;
+  let CopyCost = 1;
+}
+
+def SCANREG0_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add SCANREG0)> {
+  let Size = 256;
+  let CopyCost = 1;
+}
+
+def SCANREG1_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add SCANREG1)> {
   let Size = 256;
   let CopyCost = 1;
 }
