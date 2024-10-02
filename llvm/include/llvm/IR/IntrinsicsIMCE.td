@@ -35,9 +35,9 @@ let TargetPrefix = "IMCE" in {
 
   // C type
   def int_IMCE_SEND     : Intrinsic<[], [llvm_i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>, IntrHasSideEffects]>;
-  def int_IMCE_RECV     : Intrinsic<[], [llvm_i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>, IntrHasSideEffects]>;
-  def int_IMCE_SET_FLAG : Intrinsic<[], [llvm_i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>, IntrHasSideEffects]>;
-  def int_IMCE_STANDBY  : Intrinsic<[], [llvm_i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>, IntrHasSideEffects]>;
+  def int_IMCE_RECV     : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
+  def int_IMCE_SETFLAG  : Intrinsic<[], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
+  def int_IMCE_STANDBY  : Intrinsic<[], [llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<1>>, IntrHasSideEffects]>;
 
   // P type
   def int_IMCE_MAXPOOL : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>]>;

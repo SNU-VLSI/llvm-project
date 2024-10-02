@@ -366,10 +366,50 @@ def IMCE_BNE_INST : BInst<"bne", 0b111000> {
 // C type
 class CInst<string opname, int opcode> : InstCType<opcode, (outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), opname, "$imm2 $rs1 $fifo_id, $flag_value", []>;
 let hasSideEffects=1 in {
-  def IMCE_SEND_INST     : CInst<"send"    ,0b110010>;
-  def IMCE_RECV_INST     : CInst<"recv"    ,0b110011>;
-  def IMCE_SET_FLAG_INST : CInst<"set_flag",0b110100>;
-  def IMCE_STANDBY_INST  : CInst<"standby" ,0b110101>;
+  def IMCE_SEND_INST : InstIMCE<(outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), "send", "$imm2 $rs1 $fifo_id, $flag_value", []> {
+    bits<6> imm2;
+    bits<6> rs1;
+    bits<6> fifo_id;
+    bits<8> flag_value;
+
+    let Inst{5-0} = 0b110010;
+    let Inst{11-6} = imm2;
+    let Inst{17-12} = rs1;
+    let Inst{23-18} = fifo_id;
+    let Inst{31-24} = flag_value;
+  }
+
+  def IMCE_RECV_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
+    bits<6> rd;
+    bits<6> fifo_id;
+
+    let Inst{5-0} = 0b110010;
+    let Inst{11-6} = rd;
+    let Inst{17-12} = 0;
+    let Inst{23-18} = fifo_id;
+    let Inst{31-24} = 0;
+  }
+
+  def IMCE_SET_FLAG_INST : InstIMCE<(outs), (ins uimm8:$flag_value), "set_flag", "$flag_value", []> {
+    bits<8> flag_value;
+
+    let Inst{5-0} = 0b110100;
+    let Inst{11-6} = 0;
+    let Inst{17-12} = 0;
+    let Inst{23-18} = 0;
+    let Inst{31-24} = flag_value;
+  }
+
+  def IMCE_STANDBY_INST  : InstIMCE<(outs), (ins uimm6:$reg_id, uimm8:$flag_value), "standby", "$reg_id $flag_value", []> {
+    bits<8> flag_value;
+    bits<6> reg_id;
+
+    let Inst{5-0} = 0b110100;
+    let Inst{11-6} = reg_id;
+    let Inst{17-12} = 0;
+    let Inst{23-18} = 0;
+    let Inst{31-24} = flag_value;
+  }
 }
 
 // P type
@@ -538,11 +578,11 @@ def : APat<int_IMCE_DWCONV, IMCE_DWCONV_INST>;
 // def : BPat<int_IMCE_BNE, IMCE_BNE_INST>;
 
 // C type pattern
-class CPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (inst uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
-def : CPat<int_IMCE_SEND    , IMCE_SEND_INST>;
-def : CPat<int_IMCE_RECV    , IMCE_RECV_INST>;
-def : CPat<int_IMCE_SET_FLAG, IMCE_SET_FLAG_INST>;
-def : CPat<int_IMCE_STANDBY , IMCE_STANDBY_INST>;
+// class CPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (inst uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
+def : Pat<(int_IMCE_SEND uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (IMCE_SEND_INST uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
+def : Pat<(int_IMCE_RECV uimm6:$fifo_id), (IMCE_RECV_INST uimm6:$fifo_id)>;
+def : Pat<(int_IMCE_SETFLAG uimm8:$flag_value), (IMCE_SET_FLAG_INST uimm8:$flag_value)>;
+def : Pat<(int_IMCE_STANDBY uimm6:$reg_id, uimm8:$flag_value), (IMCE_STANDBY_INST uimm6:$reg_id, uimm8:$flag_value)>;
 
 // P type Pattern
 class PPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm1:$ksel, uimm4:$src_mask, uimm2:$bshr_sel), (inst uimm1:$ksel, uimm4:$src_mask, uimm2:$bshr_sel)>;
