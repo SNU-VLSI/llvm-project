@@ -55,7 +55,7 @@ def IMCECloopEndBranch :
 
 // register operand
 class IMCERegisterOperand<RegisterClass RC> : RegisterOperand<RC> {
-  let DecoderMethod = "decode"#RC#"RegisterClass";
+  // let DecoderMethod = "decode"#RC#"RegisterClass";
 }
 
 // def SGPROpnd : IMCERegisterOperand<SGPR> {

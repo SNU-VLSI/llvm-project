@@ -75,6 +75,16 @@ static DecodeStatus decodeSGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64
   return MCDisassembler::Success;
 }
 
+static DecodeStatus decodeRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
+                                        const void *Decoder) {
+  // if (RegNo > 31)
+  //   return MCDisassembler::Fail;
+
+  // unsigned Register = GPRDecoderTable[RegNo];
+  Inst.addOperand(MCOperand::createReg(0));
+  return MCDisassembler::Success;
+}
+
 template <unsigned N>
 static DecodeStatus decodeUImmOperand(MCInst &Inst, uint32_t Imm,
                                       int64_t Address,

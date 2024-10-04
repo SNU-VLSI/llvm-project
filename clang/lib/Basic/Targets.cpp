@@ -41,6 +41,7 @@
 #include "Targets/WebAssembly.h"
 #include "Targets/X86.h"
 #include "Targets/XCore.h"
+#include "Targets/IMCE.h"
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/DiagnosticFrontend.h"
 #include "llvm/ADT/StringExtras.h"
@@ -752,6 +753,9 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
     default:
         return std::make_unique<LoongArch64TargetInfo>(Triple, Opts);
     }
+  case llvm::Triple::IMCE: {
+    return std::make_unique<IMCETargetInfo>(Triple, Opts);
+  }
   }
 }
 } // namespace targets
