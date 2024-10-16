@@ -531,6 +531,7 @@ def IMCE_STOP_INST : XInst<"stop", 0b111111>;
 // def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]> {
 def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumpOperand:$imm), "jmp", "$imm", []> {
   let isTerminator=1;
+  let isBarrier=1;
 }
 
 // S type
@@ -576,6 +577,8 @@ def : IPat<int_IMCE_MAXI  , IMCE_VMAXI_INST>;
 def : IPat<int_IMCE_MINI  , IMCE_VMINI_INST>;
 def : IPat<int_IMCE_MULTLI, IMCE_VMULTLI_INST>;
 def : IPat<int_IMCE_MULTHI, IMCE_VMULTHI_INST>;
+def : Pat<(v16i16 (build_vector (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0))),
+          (v16i16 (IMCE_VADDI_INST (i16 V0), (i16 0)))>;
 
 // A type pattern
 class APat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1, uimm3:$shift_amt, uimm1:$dwresult_valid, uimm4:$src_mask, uimm2:$bshr_sel), (inst VGPROpnd:$rs1, uimm3:$shift_amt, uimm1:$dwresult_valid, uimm4:$src_mask, uimm2:$bshr_sel)>;
