@@ -22092,13 +22092,181 @@ Value *CodeGenFunction::EmitIMCEBuiltinExpr(unsigned BuiltinID,
   llvm::SmallVector<llvm::Type *, 2> IntrinsicTypes;
   Intrinsic::ID ID = Intrinsic::not_intrinsic;
 
+  for(int i=0; i<E->getNumArgs(); i++) {
+    Ops.push_back(EmitScalarExpr(E->getArg(i)));
+  }
 
   switch (BuiltinID) {
   case IMCE::BI__builtin_IMCE_ADD: {
     ID = Intrinsic::IMCE_ADD;
-    Ops.push_back(EmitScalarExpr(E->getArg(0)));
-    Ops.push_back(EmitScalarExpr(E->getArg(1)));
-    Ops.push_back(EmitScalarExpr(E->getArg(2)));
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SUB: {
+    ID = Intrinsic::IMCE_SUB;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_AND: {
+    ID = Intrinsic::IMCE_AND;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_OR: {
+    ID = Intrinsic::IMCE_OR;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_XOR: {
+    ID = Intrinsic::IMCE_XOR;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SRL: {
+    ID = Intrinsic::IMCE_SRL;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SLL: {
+    ID = Intrinsic::IMCE_SLL;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SRA: {
+    ID = Intrinsic::IMCE_SRA;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MAX: {
+    ID = Intrinsic::IMCE_MAX;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MIN: {
+    ID = Intrinsic::IMCE_MIN;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MULTL: {
+    ID = Intrinsic::IMCE_MULTL;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MULTH: {
+    ID = Intrinsic::IMCE_MULTH;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_ADDI: {
+    ID = Intrinsic::IMCE_ADDI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SUBI: {
+    ID = Intrinsic::IMCE_SUBI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_ANDI: {
+    ID = Intrinsic::IMCE_ANDI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_ORI: {
+    ID = Intrinsic::IMCE_ORI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_XORI: {
+    ID = Intrinsic::IMCE_XORI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SRLI: {
+    ID = Intrinsic::IMCE_SRLI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SLLI: {
+    ID = Intrinsic::IMCE_SLLI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SRAI: {
+    ID = Intrinsic::IMCE_SRAI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MAXI: {
+    ID = Intrinsic::IMCE_MAXI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MINI: {
+    ID = Intrinsic::IMCE_MINI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MULTLI: {
+    ID = Intrinsic::IMCE_MULTLI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MULTHI: {
+    ID = Intrinsic::IMCE_MULTHI;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_DWCONV: {
+    ID = Intrinsic::IMCE_DWCONV;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SEND: {
+    ID = Intrinsic::IMCE_SEND;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_RECV: {
+    ID = Intrinsic::IMCE_RECV;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SETFLAG: {
+    ID = Intrinsic::IMCE_SETFLAG;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_STANDBY: {
+    ID = Intrinsic::IMCE_STANDBY;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MAXPOOL: {
+    ID = Intrinsic::IMCE_MAXPOOL;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_AVGPOOL: {
+    ID = Intrinsic::IMCE_AVGPOOL;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_ADDQ: {
+    ID = Intrinsic::IMCE_ADDQ;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SUBQ: {
+    ID = Intrinsic::IMCE_SUBQ;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MULTLQ: {
+    ID = Intrinsic::IMCE_MULTLQ;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MULTHQ: {
+    ID = Intrinsic::IMCE_MULTHQ;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_NU_QUANT: {
+    ID = Intrinsic::IMCE_NU_QUANT;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_MM_QUANT: {
+    ID = Intrinsic::IMCE_MM_QUANT;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_STEP: {
+    ID = Intrinsic::IMCE_STEP;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_NOP: {
+    ID = Intrinsic::IMCE_NOP;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_STOP: {
+    ID = Intrinsic::IMCE_STOP;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_SCAN_RW: {
+    ID = Intrinsic::IMCE_SCAN_RW;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_cloop_begin: {
+    ID = Intrinsic::IMCE_cloop_begin;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_cloop_end: {
+    ID = Intrinsic::IMCE_cloop_end;
     break;
   }
   }

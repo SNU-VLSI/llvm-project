@@ -10,5 +10,55 @@
 
 // Zbb extension
 TARGET_BUILTIN(__builtin_IMCE_ADD, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SUB, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_AND, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_OR, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_XOR, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SRL, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SLL, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SRA, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MAX, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MIN, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MULTL, "E16sE16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MULTH, "E16sE16sE16ss", "", "")
+
+TARGET_BUILTIN(__builtin_IMCE_ADDI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SUBI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_ANDI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_ORI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_XORI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SRLI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SLLI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SRAI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MAXI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MINI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MULTLI, "E16sE16ss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MULTHI, "E16sE16ss", "", "")
+
+TARGET_BUILTIN(__builtin_IMCE_DWCONV, "E16sE16sssss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SEND, "vsE16sss", "", "") 
+TARGET_BUILTIN(__builtin_IMCE_RECV, "E16ss", "", "") 
+TARGET_BUILTIN(__builtin_IMCE_SETFLAG, "vs", "", "") 
+TARGET_BUILTIN(__builtin_IMCE_STANDBY, "vss", "", "") 
+
+TARGET_BUILTIN(__builtin_IMCE_MAXPOOL, "E16ssss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_AVGPOOL, "E16ssss", "", "")
+
+TARGET_BUILTIN(__builtin_IMCE_ADDQ, "ssssE16sE16sss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_SUBQ, "ssssE16sE16sss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MULTLQ, "ssssE16sE16sss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MULTHQ, "ssssE16sE16sss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_NU_QUANT, "ssssE16sE16sss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_MM_QUANT, "ssssE16sE16sss", "", "")
+
+TARGET_BUILTIN(__builtin_IMCE_STEP, "E16sE16sE16sE16sv", "", "")
+TARGET_BUILTIN(__builtin_IMCE_NOP, "vv", "", "")
+TARGET_BUILTIN(__builtin_IMCE_STOP, "vv", "", "")
+
+TARGET_BUILTIN(__builtin_IMCE_SCAN_RW, "E16sE16s", "", "")
+
+TARGET_BUILTIN(__builtin_IMCE_cloop_begin, "sss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_cloop_end, "ssss", "", "")
+
 #undef BUILTIN
 #undef TARGET_BUILTIN
