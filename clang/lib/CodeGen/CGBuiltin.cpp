@@ -55,6 +55,7 @@
 #include "llvm/IR/IntrinsicsVE.h"
 #include "llvm/IR/IntrinsicsWebAssembly.h"
 #include "llvm/IR/IntrinsicsX86.h"
+#include "llvm/IR/IntrinsicsIMCE.h"
 #include "llvm/IR/MDBuilder.h"
 #include "llvm/IR/MatrixBuilder.h"
 #include "llvm/IR/MemoryModelRelaxationAnnotations.h"
@@ -6318,6 +6319,8 @@ static Value *EmitTargetArchBuiltinExpr(CodeGenFunction *CGF,
     if (CGF->getTarget().getTriple().getOS() != llvm::Triple::OSType::AMDHSA)
       return nullptr;
     return CGF->EmitAMDGPUBuiltinExpr(BuiltinID, E);
+  case llvm::Triple::IMCE:
+    return CGF->EmitIMCEBuiltinExpr(BuiltinID, E, ReturnValue);
   default:
     return nullptr;
   }
@@ -22078,6 +22081,29 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
 
   assert(ID != Intrinsic::not_intrinsic);
 
+  llvm::Function *F = CGM.getIntrinsic(ID, IntrinsicTypes);
+  return Builder.CreateCall(F, Ops, "");
+}
+
+Value *CodeGenFunction::EmitIMCEBuiltinExpr(unsigned BuiltinID,
+                                             const CallExpr *E,
+                                             ReturnValueSlot ReturnValue) {
+  SmallVector<Value *, 4> Ops;
+  llvm::SmallVector<llvm::Type *, 2> IntrinsicTypes;
+  Intrinsic::ID ID = Intrinsic::not_intrinsic;
+
+
+  switch (BuiltinID) {
+  case IMCE::BI__builtin_IMCE_ADD: {
+    ID = Intrinsic::IMCE_ADD;
+    Ops.push_back(EmitScalarExpr(E->getArg(0)));
+    Ops.push_back(EmitScalarExpr(E->getArg(1)));
+    Ops.push_back(EmitScalarExpr(E->getArg(2)));
+    break;
+  }
+  }
+
+  assert(ID != Intrinsic::not_intrinsic);
   llvm::Function *F = CGM.getIntrinsic(ID, IntrinsicTypes);
   return Builder.CreateCall(F, Ops, "");
 }

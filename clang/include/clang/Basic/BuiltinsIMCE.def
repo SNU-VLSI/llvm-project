@@ -9,12 +9,6 @@
 #endif
 
 // Zbb extension
-TARGET_BUILTIN(__builtin_imce_orc_b_32, "UiUi", "nc", "zbb")
-TARGET_BUILTIN(__builtin_imce_orc_b_64, "UWiUWi", "nc", "zbb,64bit")
-TARGET_BUILTIN(__builtin_imce_clz_32, "UiUi", "nc", "zbb|xtheadbb")
-TARGET_BUILTIN(__builtin_imce_clz_64, "UiUWi", "nc", "zbb|xtheadbb,64bit")
-TARGET_BUILTIN(__builtin_imce_ctz_32, "UiUi", "nc", "zbb")
-TARGET_BUILTIN(__builtin_imce_ctz_64, "UiUWi", "nc", "zbb,64bit")
-
+TARGET_BUILTIN(__builtin_IMCE_ADD, "E16sE16sE16ss", "", "")
 #undef BUILTIN
 #undef TARGET_BUILTIN
