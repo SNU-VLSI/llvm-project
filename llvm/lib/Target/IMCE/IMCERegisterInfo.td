@@ -206,7 +206,7 @@ def BSHR_REG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "BSHR_R
 }
 
 def HWLOOP_REG_CLASS : RegisterClass<"IMCE", [i32], 256, (add (sequence "HWLOOP_REG%u", 0, 5))> {
-  let Size = 16;
+  let Size = 32;
   let CopyCost = 1;
   let DecoderMethod = "decodeRegisterClass";
 }

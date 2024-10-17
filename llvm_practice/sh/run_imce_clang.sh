@@ -7,4 +7,4 @@ clang -O1 --target=IMCE -S -emit-llvm $1 -I../test_cpp -o output/$filename_no_ex
 llc --march=IMCE output/$filename_no_ext.ll -o ./output/$filename_no_ext.s \
   -force-hardware-loops \
   -force-nested-hardware-loop \
-  -debug-only=isel
+  -debug

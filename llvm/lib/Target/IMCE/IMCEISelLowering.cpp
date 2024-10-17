@@ -95,7 +95,7 @@ SDValue IMCETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID 
         RC = &IMCE::VGPRRegClass;
         break;
       case MVT::i32:
-        RC = &IMCE::VGPRRegClass;
+        RC = &IMCE::HWLOOP_REG_CLASSRegClass;
         break;
       }
 
@@ -168,6 +168,8 @@ SDValue IMCETargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
 
 SDValue IMCETargetLowering::LowerCall(CallLoweringInfo &CLI,
                                       SmallVectorImpl<SDValue> &InVals) const {
+  SelectionDAG &DAG = CLI.DAG;
+  DAG.dump();
   llvm_unreachable("IMCE - LowerCall - Not Implemented");
   // TODO: Implement LowerCall. emit intrinsic
 }
