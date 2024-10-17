@@ -66,13 +66,13 @@ let TargetPrefix = "IMCE" in {
   def int_IMCE_SCAN_RW : Intrinsic<[llvm_v16i16_ty], [llvm_v16i16_ty]>;
 
   def int_IMCE_cloop_begin :
-    Intrinsic<[llvm_i16_ty],
-              [llvm_i16_ty, llvm_i16_ty],
+    Intrinsic<[llvm_i32_ty],
+              [llvm_i32_ty, llvm_i32_ty],
               [IntrHasSideEffects, IntrNoDuplicate]>;
 
   def int_IMCE_cloop_end :
-    Intrinsic<[llvm_i16_ty, llvm_i16_ty],
-              [llvm_i16_ty, llvm_i16_ty],
+    Intrinsic<[llvm_i32_ty, llvm_i32_ty],
+              [llvm_i32_ty, llvm_i32_ty],
               [IntrHasSideEffects, IntrNoDuplicate]>;
 
   // def int_IMCE_cloop_guard :

@@ -42,21 +42,14 @@ std::string computeDataLayout(const Triple &TT, StringRef CPU, StringRef FS) {
   // Data mangling.
   Ret += DataLayout::getManglingComponent(TT);
 
-  // Pointers are 16 bit.
-  Ret += "-p:16:16:16";
+  // Pointers are 32 bit. (Although we don't have pointers in IMCE)
+  Ret += "-p:32:32";
 
-  // All scalar types are naturally aligned.
-  Ret += "-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64";
+  // scalar type i16 is 16 bit aligned.
+  Ret += "-i16:16:16";
 
-  // Floats and doubles are also naturally aligned.
-  Ret += "-f32:32:32-f64:64:64";
-
-  // We prefer 16 bits of aligned for all globals; see
-  // above.
-  Ret += "-a:8:16";
-
-  // Integer registers are 16bits.
-  Ret += "-n16";
+  // vector types are 256 bit.
+  Ret += "-v256:256:256";
 
   return Ret;
 }

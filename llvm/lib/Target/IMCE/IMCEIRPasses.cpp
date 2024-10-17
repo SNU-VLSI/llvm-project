@@ -95,23 +95,17 @@ FunctionPass *llvm::createIMCELoopConversionPass() {
 
 Value *IMCELoopConversion::processIterIntr(BasicBlock *BB,
                                                IntrinsicInst *II, md Metadata) {
-  auto I16Ty = Type::getInt16Ty(*ctx);
-  // auto I32Ty = Type::getInt32Ty(*ctx);
-  // auto I64Ty = Type::getInt64Ty(*ctx);
-  auto metadata = ConstantInt::get(I16Ty, static_cast<uint16_t>(Metadata));
+  auto I32Ty = Type::getInt32Ty(*ctx);
+  auto metadata = ConstantInt::get(I32Ty, static_cast<uint16_t>(Metadata));
 
   IRBuilder<> SLIIBuilder(II);
   Value *counter = II->getOperand(0);
-  // bool isi64TC = counter->getType()->getIntegerBitWidth() == 64;
-  Value *zextTruncCounter = SLIIBuilder.CreateZExtOrTrunc(counter, I16Ty);
+  Value *zextTruncCounter = SLIIBuilder.CreateZExtOrTrunc(counter, I32Ty);
   Function *func =
       Intrinsic::getDeclaration(M, Intrinsic::IMCE_cloop_begin);
   CallInst *cloopBeginCall =
       SLIIBuilder.CreateCall(func, {zextTruncCounter, metadata}, "cloop.begin");
   Value *cloopBegin = cloopBeginCall;
-  // Value *cloopBegin = isi64TC
-  //                         ? SLIIBuilder.CreateZExtOrTrunc(cloopBeginCall, I64Ty)
-  //                         : cloopBeginCall;
   return cast<Value>(cloopBegin);
 }
 
@@ -156,11 +150,10 @@ Instruction *findHwLoopIntrinsic(BasicBlock *BB, Intrinsic::ID IID) {
 
 void IMCELoopConversion::processSetIntr(BasicBlock *Preheader,
                                             IntrinsicInst *II) {
-  // auto I32Ty = Type::getInt32Ty(*ctx);
-  auto I16Ty = Type::getInt16Ty(*ctx);
+  auto I32Ty = Type::getInt32Ty(*ctx);
   Value *counter = processIterIntr(Preheader, II, md::tripCountOKForRpt);
   auto metadata =
-      ConstantInt::get(I16Ty, static_cast<uint16_t>(md::tripCountOKForRpt));
+      ConstantInt::get(I32Ty, static_cast<uint16_t>(md::tripCountOKForRpt));
   II->eraseFromParent();
 
   // The preheader successor will be the loop's header.
@@ -190,7 +183,7 @@ void IMCELoopConversion::processSetIntr(BasicBlock *Preheader,
 
   // Replace loop_decrement intrinsic w/ Colossus equivalent.
   IRBuilder<> DecBuilder(LoopDecInstr);
-  Value *zextTruncPhi = DecBuilder.CreateZExtOrTrunc(loopPhi, I16Ty);
+  Value *zextTruncPhi = DecBuilder.CreateZExtOrTrunc(loopPhi, I32Ty);
   CallInst *cloopEnd = DecBuilder.CreateCall(
       Intrinsic::getDeclaration(M, Intrinsic::IMCE_cloop_end),
       {zextTruncPhi, metadata}, "cloop.end");
@@ -201,12 +194,6 @@ void IMCELoopConversion::processSetIntr(BasicBlock *Preheader,
 
   Value *truncCC =
       DecBuilder.CreateTrunc(cc, Type::getInt1Ty(*ctx), "cloop.end.cc.trunc");
-
-  // If counter is 64b, make indVar 64b as well so phi gets arguments of the
-  // same type.
-  // auto I64Ty = Type::getInt64Ty(*ctx);
-  // bool isi64TC = counter->getType()->getIntegerBitWidth() == 64;
-  // indVar = isi64TC ? DecBuilder.CreateZExtOrTrunc(indVar, I64Ty) : indVar;
 
   LoopDecInstr->replaceAllUsesWith(truncCC);
   loopPhi->addIncoming(indVar, Latch);
