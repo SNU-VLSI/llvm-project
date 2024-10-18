@@ -152,7 +152,7 @@ class InstSType<int op, dag outs, dag ins, string asm, string operands, list<dag
    : InstIMCE<outs, ins, asm, operands, pattern> {
   bits<6> rd;
   bits<6> rs1;
-  
+
   let Inst{5-0} = op;
   let Inst{11-6} = rd;
   let Inst{17-12} = rs1;

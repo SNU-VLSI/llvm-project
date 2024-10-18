@@ -10,7 +10,7 @@
 #define LLVM_LIB_TARGET_IMCE_MCTARGETDESC_IMCEMCTARGETDESC_H
 
 #include "llvm/Support/DataTypes.h"
-#include "IMCEBaseInfo.h" 
+#include "IMCEBaseInfo.h"
 
 #include <memory>
 

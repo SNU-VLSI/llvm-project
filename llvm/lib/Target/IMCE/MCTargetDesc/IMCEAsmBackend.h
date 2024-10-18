@@ -31,22 +31,29 @@ class IMCEAsmBackend : public MCAsmBackend {
 public:
   IMCEAsmBackend(const MCSubtargetInfo &STI, uint8_t OSABI, bool Is64Bit,
                   const MCTargetOptions &Options)
-      : MCAsmBackend(support::little, IMCE::fixup_imce_relax), STI(STI),
+      : MCAsmBackend(llvm::endianness::little), STI(STI),
         OSABI(OSABI), Is64Bit(Is64Bit), TargetOptions(Options) {}
   ~IMCEAsmBackend() override = default;
 
   const MCTargetOptions &getTargetOptions() const { return TargetOptions; }
   std::unique_ptr<MCObjectTargetWriter> createObjectTargetWriter() const override;
   unsigned getNumFixupKinds() const override { return IMCE::NumTargetFixupKinds; }
+
+  const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
+
   void applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
                   const MCValue &Target, MutableArrayRef<char> Data,
                   uint64_t Value, bool IsResolved,
                   const MCSubtargetInfo *STI) const override;
-  bool fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value,
-                            const MCRelaxableFragment *DF,
-                            const MCAsmLayout &Layout) const override {
-    llvm_unreachable("Handled by fixupNeedsRelaxationAdvanced");
-  }
+
+  bool mayNeedRelaxation(const MCInst &Inst,
+                         const MCSubtargetInfo &STI) const override;
+
+  bool fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value) const override;
+
+  void relaxInstruction(MCInst &Inst,
+                        const MCSubtargetInfo &STI) const override;
+
   bool writeNopData(raw_ostream &OS, uint64_t Count,
                     const MCSubtargetInfo *STI) const override;
 };

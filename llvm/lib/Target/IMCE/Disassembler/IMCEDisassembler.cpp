@@ -15,6 +15,7 @@
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/MathExtras.h"
+#include "llvm/Support/Endian.h"
 #include <cassert>
 #include <cstdint>
 
@@ -123,15 +124,10 @@ DecodeStatus IMCEDisassembler::getInstruction(MCInst &MI, uint64_t &Size, ArrayR
   Size = 4;
 
   // Construct the instruction.
-  uint32_t Inst = 0;
-  for (uint32_t I = 0; I < Size; ++I)
-    Inst = (Inst << 8) | Bytes[I];
+  uint32_t insn = support::endian::read32le(Bytes.data());
 
-  if (decodeInstruction(DecoderTableIMCE32, MI, Inst, Address, this, STI) !=
+  if (decodeInstruction(DecoderTableIMCE32, MI, insn, Address, this, STI) !=
       MCDisassembler::Success) {
-    //    if (STI.getFeatureBits()[IMCE::Proc88110])
-    //      return decodeInstruction(DecoderTableMC8811032, MI, Inst, Address, this,
-    //                               STI);
     return MCDisassembler::Fail;
   }
   return MCDisassembler::Success;
