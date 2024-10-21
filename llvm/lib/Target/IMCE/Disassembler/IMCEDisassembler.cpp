@@ -124,7 +124,7 @@ DecodeStatus IMCEDisassembler::getInstruction(MCInst &MI, uint64_t &Size, ArrayR
   Size = 4;
 
   // Construct the instruction.
-  uint32_t insn = support::endian::read32le(Bytes.data());
+  uint32_t insn = support::endian::read32be(Bytes.data());
 
   if (decodeInstruction(DecoderTableIMCE32, MI, insn, Address, this, STI) !=
       MCDisassembler::Success) {

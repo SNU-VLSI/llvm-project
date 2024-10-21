@@ -36,8 +36,8 @@ namespace {
 std::string computeDataLayout(const Triple &TT, StringRef CPU, StringRef FS) {
   std::string Ret;
 
-  // little endian.
-  Ret += "e";
+  // big endian.
+  Ret += "E";
 
   // Data mangling.
   Ret += DataLayout::getManglingComponent(TT);
