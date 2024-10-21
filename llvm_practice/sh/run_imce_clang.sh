@@ -8,3 +8,11 @@ llc --march=IMCE output/$filename_no_ext.ll -o ./output/$filename_no_ext.s \
   -force-hardware-loops \
   -force-nested-hardware-loop \
   -debug
+
+llc --march=IMCE output/$filename_no_ext.ll -o ./output/$filename_no_ext.o \
+  -force-hardware-loops \
+  -force-nested-hardware-loop \
+  -filetype=obj \
+  -debug
+
+llvm-objdump -d --triple=IMCE output/$filename_no_ext.o > output/$filename_no_ext.dump
