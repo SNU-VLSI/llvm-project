@@ -50,56 +50,18 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeIMCEDisassembler() {
   TargetRegistry::RegisterMCDisassembler(getTheIMCETarget(), createIMCEDisassembler);
 }
 
-static unsigned getReg(const MCDisassembler *D, unsigned RC, unsigned RegNo) {
-  const MCRegisterInfo *RegInfo = D->getContext().getRegisterInfo();
-  return *(RegInfo->getRegClass(RC).begin() + RegNo);
-}
 
-static DecodeStatus decodeVGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
+// #define GET_REGINFO_MC_DESC
+// #include "IMCEGenRegisterInfo.inc"
+
+static DecodeStatus decodeRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
                                             const MCDisassembler *Decoder) {
-  if (RegNo > 31)
-    return MCDisassembler::Fail;
 
-  unsigned Register = getReg(Decoder, IMCE::VGPRRegClassID, RegNo);
-  Inst.addOperand(MCOperand::createReg(Register));
-  return MCDisassembler::Success;
-}
-
-static DecodeStatus decodeHWLRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
-                                            const MCDisassembler *Decoder) {
-  // Ensure that RegNo falls within the range of hardware loop registers.
-  if (RegNo < 48 || RegNo > 54)
-    return MCDisassembler::Fail;
-  else
-    RegNo -= 48;
-
-  unsigned Register = getReg(Decoder, IMCE::HWLRRegClassID, RegNo);
-  Inst.addOperand(MCOperand::createReg(Register));
-  return MCDisassembler::Success;
-}
-
-static DecodeStatus decodeQRegsRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
-                                            const MCDisassembler *Decoder) {
-  // Ensure that RegNo falls within the range of quantization registers.
-  if (RegNo < 36 || RegNo > 40)
-    return MCDisassembler::Fail;
-  else
-    RegNo -= 36;
-
-  unsigned Register = getReg(Decoder, IMCE::QRegsRegClassID, RegNo);
-  Inst.addOperand(MCOperand::createReg(Register));
-  return MCDisassembler::Success;
-}
-
-static DecodeStatus decodeCRegsRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
-                                            const MCDisassembler *Decoder) {
-  // Ensure that RegNo falls within the range of compute registers.
-  if (RegNo < 32 || RegNo > 36)
-    return MCDisassembler::Fail;
-  else
-    RegNo -= 32;
-
-  unsigned Register = getReg(Decoder, IMCE::CRegsRegClassID, RegNo);
+  const MCRegisterInfo *RI = Decoder->getContext().getRegisterInfo();
+  unsigned Register = 0;
+  while (RegNo != RI->getEncodingValue(Register)) {
+    Register++;
+  }
   Inst.addOperand(MCOperand::createReg(Register));
   return MCDisassembler::Success;
 }

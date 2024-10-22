@@ -21,13 +21,7 @@ foreach I = 0-31 in {
 
 foreach I = 0-3 in {
   def CREG#I : IMCEReg<!add(I, 32), "creg"#I>;
-}
-
-foreach I = 0-3 in {
   def QREG#I : IMCEReg<!add(I, 36), "qreg"#I>;
-}
-
-foreach I=0-3 in {
   def BSHR#I : IMCEReg<!add(I, 40), "bshr"#I>;
 }
 
