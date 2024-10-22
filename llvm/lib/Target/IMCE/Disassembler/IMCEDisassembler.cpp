@@ -11,6 +11,8 @@
 #include "TargetInfo/IMCETargetInfo.h"
 #include "llvm/MC/MCDecoderOps.h"
 #include "llvm/MC/MCDisassembler/MCDisassembler.h"
+#include "llvm/MC/MCContext.h"
+#include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/TargetRegistry.h"
@@ -48,63 +50,18 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeIMCEDisassembler() {
   TargetRegistry::RegisterMCDisassembler(getTheIMCETarget(), createIMCEDisassembler);
 }
 
-static const uint16_t GPRDecoderTable[] = {
-    IMCE::V0,  IMCE::V1,  IMCE::V2,  IMCE::V3,  IMCE::V4,  IMCE::V5,  IMCE::V6,  IMCE::V7,
-    IMCE::V8,  IMCE::V9,  IMCE::V10, IMCE::V11, IMCE::V12, IMCE::V13, IMCE::V14, IMCE::V15,
 
-    IMCE::V16, IMCE::V17, IMCE::V18, IMCE::V19, IMCE::V20, IMCE::V21, IMCE::V22, IMCE::V23,
-    IMCE::V24, IMCE::V25, IMCE::V26, IMCE::V27, IMCE::V28, IMCE::V29, IMCE::V30, IMCE::V31,
-};
+// #define GET_REGINFO_MC_DESC
+// #include "IMCEGenRegisterInfo.inc"
 
-static const uint16_t HWLRDecoderTable[] = {
-    IMCE::HWLOOP_REG0, IMCE::HWLOOP_REG1, IMCE::HWLOOP_REG2,
-    IMCE::HWLOOP_REG3, IMCE::HWLOOP_REG4, IMCE::HWLOOP_REG5,
-};
+static DecodeStatus decodeRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
+                                            const MCDisassembler *Decoder) {
 
-static const uint16_t QRegsDecoderTable[] = {
-    IMCE::QREG0, IMCE::QREG1, IMCE::QREG2, IMCE::QREG3,
-};
-
-static const uint16_t CRegsDecoderTable[] = {
-    IMCE::CREG0, IMCE::CREG1, IMCE::CREG2, IMCE::CREG3,
-};
-
-static DecodeStatus decodeVGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
-                                            const void *Decoder) {
-  if (RegNo > 31)
-    return MCDisassembler::Fail;
-
-  unsigned Register = GPRDecoderTable[RegNo];
-  Inst.addOperand(MCOperand::createReg(Register));
-  return MCDisassembler::Success;
-}
-
-static DecodeStatus decodeHWLRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
-                                            const void *Decoder) {
-  if (RegNo > 5)
-    return MCDisassembler::Fail;
-
-  unsigned Register = HWLRDecoderTable[RegNo];
-  Inst.addOperand(MCOperand::createReg(Register));
-  return MCDisassembler::Success;
-}
-
-static DecodeStatus decodeQRegsRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
-                                            const void *Decoder) {
-  if (RegNo > 3)
-    return MCDisassembler::Fail;
-
-  unsigned Register = QRegsDecoderTable[RegNo];
-  Inst.addOperand(MCOperand::createReg(Register));
-  return MCDisassembler::Success;
-}
-
-static DecodeStatus decodeCRegsRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
-                                            const void *Decoder) {
-  if (RegNo > 3)
-    return MCDisassembler::Fail;
-
-  unsigned Register = CRegsDecoderTable[RegNo];
+  const MCRegisterInfo *RI = Decoder->getContext().getRegisterInfo();
+  unsigned Register = 0;
+  while (RegNo != RI->getEncodingValue(Register)) {
+    Register++;
+  }
   Inst.addOperand(MCOperand::createReg(Register));
   return MCDisassembler::Success;
 }
@@ -127,13 +84,6 @@ static DecodeStatus decodeSImmOperand(MCInst &Inst, uint32_t Imm,
   Inst.addOperand(MCOperand::createImm(SignExtend64<N>(Imm)));
   return MCDisassembler::Success;
 }
-
-// static DecodeStatus decodeUImmOperand6(MCInst &Inst, uint32_t Imm,
-//                                       int64_t Address,
-//                                       const MCDisassembler *Decoder) {
-//   Inst.addOperand(MCOperand::createImm(Imm));
-//   return MCDisassembler::Success;
-// }
 
 #include "IMCEGenDisassemblerTables.inc"
 

@@ -51,7 +51,7 @@ def IMCECloopEndBranch :
 
 // register operand
 class IMCERegisterOperand<RegisterClass RC> : RegisterOperand<RC> {
-  let DecoderMethod = "decode"#RC#"RegisterClass";
+  let DecoderMethod = "decodeRegisterClass";
 }
 
 def VGPROpnd : IMCERegisterOperand<VGPR> {
@@ -274,7 +274,7 @@ class AInst<string opname, int opcode> : InstAType<opcode, (outs VGPROpnd:$rd), 
 def IMCE_DWCONV_INST : AInst<"dwconv", 0b001100> {
   let mayLoad=0;
   let mayStore=0;
-  let Uses = [DWREG, BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3];
+  let Uses = [DWREG, BSHR0, BSHR1, BSHR2, BSHR3];
   let Defs = [DWREG];
   let hasSideEffects = 1;
 }
@@ -345,7 +345,7 @@ def IMCE_LOAD_LB : Pseudo<(outs), (ins uimm6:$fifo_id), "# LOAD_LB $fifo_id", []
 
 // P type
 class PInst<string opname, int opcode> : InstPType<opcode, (outs VGPROpnd:$rd), (ins uimm1:$ksel, uimm4:$src_mask, uimm2:$bshr_sel), opname, "$rd $ksel $src_mask $bshr_sel", []>;
-let Uses = [BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3] in {
+let Uses = [BSHR0, BSHR1, BSHR2, BSHR3] in {
   def IMCE_MAXPOOL_INST : PInst<"maxpool", 0b001101>;
   def IMCE_AVGPOOL_INST : PInst<"avgpool", 0b001110>;
 }
@@ -374,7 +374,7 @@ class XInst<string opname, int opcode> : InstXType<opcode, (outs), (ins), opname
 // }
 def IMCE_STEP_INST : InstIMCE<(outs), (ins), "step", "", []> {
   let Inst{5-0} = 0b111101;
-  let Uses = [BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3];
+  let Uses = [BSHR0, BSHR1, BSHR2, BSHR3];
   let Defs = [CREG0, CREG1, CREG2, CREG3];
 }
 
