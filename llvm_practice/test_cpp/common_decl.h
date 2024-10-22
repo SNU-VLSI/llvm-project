@@ -29,7 +29,7 @@ short16 __builtin_IMCE_MULTL(short16, short16, short);
 short16 __builtin_IMCE_MULTH(short16, short16, short);
 
 // I inst
-short16 __builtin_IMCE_ADDI(short16, short);
+// short16 __builtin_IMCE_ADDI(short16, short);
 short16 __builtin_IMCE_SUBI(short16, short);
 short16 __builtin_IMCE_ANDI(short16, short);
 short16 __builtin_IMCE_ORI(short16, short);

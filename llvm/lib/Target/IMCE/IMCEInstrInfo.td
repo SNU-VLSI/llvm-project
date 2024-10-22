@@ -339,26 +339,33 @@ let hasSideEffects=1 in {
     let Inst{31-24} = 0;
   }
 
-  def IMCE_SET_FLAG_INST : InstIMCE<(outs), (ins uimm8:$flag_value), "set_flag", "$flag_value", []> {
-    bits<8> flag_value;
+  def IMCE_SET_FLAG_INST : InstIMCE<(outs), (ins VGPROpnd:$rs1), "set_flag", "$rs1", []> {
+    bits<6> rs1;
 
     let Inst{5-0} = 0b110100;
     let Inst{11-6} = 0;
     let Inst{17-12} = 0;
     let Inst{23-18} = 0;
-    let Inst{31-24} = flag_value;
+    let Inst{29-24} = rs1;
+    let Inst{31-30} = 0;
   }
 
-  def IMCE_STANDBY_INST  : InstIMCE<(outs), (ins uimm6:$reg_id, uimm8:$flag_value), "standby", "$reg_id $flag_value", []> {
-    bits<8> flag_value;
+  def IMCE_STANDBY_INST  : InstIMCE<(outs), (ins uimm6:$reg_id, VGPROpnd:$rs1), "standby", "$reg_id $rs1", []> {
+    bits<6> rs1;
     bits<6> reg_id;
 
     let Inst{5-0} = 0b110100;
     let Inst{11-6} = reg_id;
     let Inst{17-12} = 0;
     let Inst{23-18} = 0;
-    let Inst{31-24} = flag_value;
+    let Inst{29-24} = rs1;
+    let Inst{31-30} = 0;
   }
+}
+
+def IMCE_LOAD_LB : Pseudo<(outs), (ins uimm6:$fifo_id), "# LOAD_LB $fifo_id", []> {
+  let hasSideEffects = 1;
+  let Defs = [BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3];
 }
 
 // P type
@@ -538,8 +545,9 @@ def : APat<int_IMCE_DWCONV, IMCE_DWCONV_INST>;
 // class CPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (inst uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
 def : Pat<(int_IMCE_SEND uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (IMCE_SEND_INST uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
 def : Pat<(int_IMCE_RECV uimm6:$fifo_id), (IMCE_RECV_INST uimm6:$fifo_id)>;
-def : Pat<(int_IMCE_SETFLAG uimm8:$flag_value), (IMCE_SET_FLAG_INST uimm8:$flag_value)>;
-def : Pat<(int_IMCE_STANDBY uimm6:$reg_id, uimm8:$flag_value), (IMCE_STANDBY_INST uimm6:$reg_id, uimm8:$flag_value)>;
+def : Pat<(int_IMCE_SETFLAG VGPROpnd:$rs1), (IMCE_SET_FLAG_INST VGPROpnd:$rs1)>;
+def : Pat<(int_IMCE_STANDBY uimm6:$reg_id, VGPROpnd:$rs1), (IMCE_STANDBY_INST uimm6:$reg_id, VGPROpnd:$rs1)>;
+def : Pat<(int_IMCE_LOAD_LB uimm6:$fifo_id), (IMCE_LOAD_LB uimm6:$fifo_id)>;
 
 // P type Pattern
 class PPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm1:$ksel, uimm4:$src_mask, uimm2:$bshr_sel), (inst uimm1:$ksel, uimm4:$src_mask, uimm2:$bshr_sel)>;

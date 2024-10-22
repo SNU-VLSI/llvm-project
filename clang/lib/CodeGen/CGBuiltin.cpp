@@ -22269,6 +22269,10 @@ Value *CodeGenFunction::EmitIMCEBuiltinExpr(unsigned BuiltinID,
     ID = Intrinsic::IMCE_cloop_end;
     break;
   }
+  case IMCE::BI__builtin_IMCE_LOAD_LB: {
+    ID = Intrinsic::IMCE_LOAD_LB;
+    break;
+  }
   }
 
   assert(ID != Intrinsic::not_intrinsic);

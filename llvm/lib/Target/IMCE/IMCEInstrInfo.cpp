@@ -111,6 +111,12 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     }
     break;
   }
+  case IMCE::IMCE_LOAD_LB: {
+    MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_RECV_INST))
+                                  .addReg(IMCE::V0, RegState::Undef)
+                                  .addImm(MI.getOperand(0).getImm());
+    break;
+  }
   // case IMCE::Pseudo_IMCE_VADD_INST_one_lane : {
   //   MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_VADD_INST))
   //                                 .add(MI.getOperand(0))

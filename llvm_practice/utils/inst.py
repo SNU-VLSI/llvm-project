@@ -239,15 +239,15 @@ class Conv2DCodeGenerator(InstructionGenerator):
       for i in range(4):
         psum_var = self.getVarName()
         work_seq.add("RECV", psum_var, self.psum_recv_fid)
-        work_seq.add("add", psum_var, compute_result[i], psum_var)
+        work_seq.add("vadd", psum_var, compute_result[i], psum_var)
         work_seq.add("SEND", psum_var, self.out_policy_addr, self.out_send_fid, 0)
       if self.with_sync:
-        work_seq.add("add", self.var_names["sync_val"], self.var_names["sync_val"], 1)
+        work_seq.add("addi", self.var_names["sync_val"], self.var_names["sync_val"], 1)
         work_seq.add("SET_FLAG", self.var_names["sync_val"])
     else:
       if dw_conv == False:
         if self.with_sync:
-          work_seq.add("add", self.var_names["sync_val"], self.var_names["sync_val"], 1)
+          work_seq.add("addi", self.var_names["sync_val"], self.var_names["sync_val"], 1)
           work_seq.add("SET_FLAG", self.var_names["sync_val"])
         for i in range(4):
           work_seq.add("SEND", compute_result[i], self.out_policy_addr, self.out_send_fid, 0)
@@ -440,11 +440,34 @@ class Conv2DCodeGenerator(InstructionGenerator):
         code += get_indent(indent) + f"__builtin_IMCE_SEND({work[2]}, {work[1]}, {work[3]}, {work[4]});\n"
       elif opcode == "RECV":
         code += get_indent(indent) + f"short16 {work[1]} = __builtin_IMCE_RECV({work[2]});\n"
+      elif opcode == "addi":
+        typename = "short"
+        if work[1] == work[2]:
+          typename = ""
+        if work[1] == work[3]:
+          typename = ""
+        code += get_indent(indent) + f"{typename} {work[1]} = {work[2]} + (short){work[3]};\n"
       elif opcode == "add":
-        if isinstance(work[3], int):
-          code += get_indent(indent) + f"short16 {work[1]} = __builtin_IMCE_ADDI({work[2]}, {work[3]});\n"
-        else:
-          code += get_indent(indent) + f"short16 {work[1]} = __builtin_IMCE_ADD({work[2]}, {work[3]}, 15);\n"
+        typename = "short"
+        if work[1] == work[2]:
+          typename = ""
+        if work[1] == work[3]:
+          typename = ""
+        code += get_indent(indent) + f"{typename} {work[1]} = {work[2]} + {work[3]};\n"
+      elif opcode == "vadd":
+        typename = "short16"
+        if work[1] == work[2]:
+          typename = ""
+        if work[1] == work[3]:
+          typename = ""
+        code += get_indent(indent) + f"{typename} {work[1]} = __builtin_IMCE_ADD({work[2]}, {work[3]}, 15);\n"
+      elif opcode == "vaddi":
+        typename = "short16"
+        if work[1] == work[2]:
+          typename = ""
+        if work[1] == work[3]:
+          typename = ""
+        code += get_indent(indent) + f"{typename} {work[1]} = __builtin_IMCE_ADDI({work[2]}, (short){work[3]});\n"
     
     code += "}\n"
     return code

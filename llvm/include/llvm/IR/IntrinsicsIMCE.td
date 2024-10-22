@@ -36,7 +36,7 @@ let TargetPrefix = "IMCE" in {
   // C type
   def int_IMCE_SEND     : Intrinsic<[], [llvm_i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>, IntrHasSideEffects]>;
   def int_IMCE_RECV     : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
-  def int_IMCE_SETFLAG  : Intrinsic<[], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
+  def int_IMCE_SETFLAG  : Intrinsic<[], [llvm_i16_ty], [IntrHasSideEffects]>;
   def int_IMCE_STANDBY  : Intrinsic<[], [llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<1>>, IntrHasSideEffects]>;
 
   // P type
@@ -80,4 +80,5 @@ let TargetPrefix = "IMCE" in {
   //             [llvm_i32_ty, llvm_i32_ty],
   //             [IntrHasSideEffects, IntrNoDuplicate]>;
 
+  def int_IMCE_LOAD_LB     : Intrinsic<[], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
 }
