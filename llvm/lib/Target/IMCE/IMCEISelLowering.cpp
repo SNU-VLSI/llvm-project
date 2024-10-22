@@ -33,7 +33,7 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
 
   addRegisterClass(MVT::i16, &IMCE::VGPRRegClass);
   // addRegisterClass(MVT::i32, &IMCE::VGPRRegClass);
-  addRegisterClass(MVT::i32, &IMCE::HWLOOP_REG_CLASSRegClass);
+  addRegisterClass(MVT::i32, &IMCE::HWLRRegClass);
   addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
 
   // Compute derived properties from the register classes
@@ -95,7 +95,7 @@ SDValue IMCETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID 
         RC = &IMCE::VGPRRegClass;
         break;
       case MVT::i32:
-        RC = &IMCE::HWLOOP_REG_CLASSRegClass;
+        RC = &IMCE::HWLRRegClass;
         break;
       }
 
@@ -182,8 +182,6 @@ const char *IMCETargetLowering::getTargetNodeName(unsigned Opcode) const {
     return #Opc
     OPCODE(IMCEISD::RET_GLUE);
     OPCODE(IMCEISD::CALL);
-    OPCODE(IMCEISD::IMCE_SEND);
-    OPCODE(IMCEISD::IMCE_LOOP_SET);
     OPCODE(IMCEISD::CLOOP_BEGIN_VALUE);
     OPCODE(IMCEISD::CLOOP_BEGIN_TERMINATOR);
     OPCODE(IMCEISD::CLOOP_END_VALUE);
@@ -209,6 +207,28 @@ SDValue IMCETargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const 
 }
 
 SDValue IMCETargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const {
+  unsigned IntNo = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
+  switch (IntNo) {
+  default:
+    break;
+  case Intrinsic::IMCE_GET_QREG: {
+    SDLoc dl(Op);
+    SDValue Idx = Op.getOperand(1);
+
+    Register QReg;
+    switch (cast<ConstantSDNode>(Idx)->getZExtValue()) {
+        case 0: QReg = IMCE::QREG0; break;
+        case 1: QReg = IMCE::QREG1; break;
+        case 2: QReg = IMCE::QREG2; break;
+        case 3: QReg = IMCE::QREG3; break;
+        default:
+            llvm_unreachable("Invalid QREG index.");
+    }
+
+    // Use the getRegister node to get QReg register
+    return DAG.getRegister(QReg, MVT::v16i16);
+  }
+  };
   return SDValue();
 }
 
@@ -229,21 +249,6 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
   switch (IntNo) {
   default:
     break;
-  // case Intrinsic::IMCE_SEND: {
-  //   SDLoc DL(Op);
-  //   SDValue Result =
-  //       DAG.getNode(IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0)},
-  //                   {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
-  //   return Result;
-  // }
-  // case Intrinsic::set_loop_iterations: {
-  //   SDLoc DL(Op);
-  //   int loop_cnt = Op.getConstantOperandVal(2);
-  //   SDValue const_loop_cnt = DAG.getConstant(loop_cnt, DL, MVT::i16, true, false);
-  //   SDValue Result = DAG.getNode(IMCEISD::IMCE_LOOP_SET, DL, {Op.getNode()->getValueType(0)},
-  //                                {Op.getOperand(0), const_loop_cnt});
-  //   return Result;
-  // }
   case Intrinsic::IMCE_cloop_begin: {
     assert(Op->getNumOperands() == 4);
     auto onFailure = [&]() {

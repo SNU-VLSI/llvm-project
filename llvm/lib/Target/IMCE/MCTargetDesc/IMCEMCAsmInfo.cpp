@@ -16,7 +16,7 @@ IMCEMCAsmInfo::IMCEMCAsmInfo(const Triple &TT) {
   // TODO: Check!
   CodePointerSize = 4;
   CalleeSaveStackSlotSize = 4;
-  IsLittleEndian = true;
+  IsLittleEndian = false;
   UseDotAlignForAlignment = true;
   MinInstAlignment = 4;
 

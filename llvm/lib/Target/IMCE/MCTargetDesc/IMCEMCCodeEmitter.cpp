@@ -67,7 +67,7 @@ void IMCEMCCodeEmitter::encodeInstruction(const MCInst &MI, SmallVectorImpl<char
   uint64_t Bits = getBinaryCodeForInstr(MI, Fixups, STI);
   ++MCNumEmitted; // Keep track of the number of emitted insns.
 
-  support::endian::write<uint32_t>(CB, Bits, endianness::little);
+  support::endian::write<uint32_t>(CB, Bits, endianness::big);
 }
 
 unsigned IMCEMCCodeEmitter::getMachineOpValue(const MCInst &MI, const MCOperand &MO,

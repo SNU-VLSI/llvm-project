@@ -31,7 +31,7 @@ class IMCEAsmBackend : public MCAsmBackend {
 public:
   IMCEAsmBackend(const MCSubtargetInfo &STI, uint8_t OSABI, bool Is64Bit,
                   const MCTargetOptions &Options)
-      : MCAsmBackend(llvm::endianness::little), STI(STI),
+      : MCAsmBackend(llvm::endianness::big), STI(STI),
         OSABI(OSABI), Is64Bit(Is64Bit), TargetOptions(Options) {}
   ~IMCEAsmBackend() override = default;
 

@@ -45,7 +45,7 @@ public:
     MCountName = "_mcount";
     HasFloat16 = true;
     HasStrictFP = true;
-    resetDataLayout("e-m:e-p:32:32-i16:16:16-v256:256:256");
+    resetDataLayout("E-m:e-p:32:32-i16:16:16-v256:256:256");
   }
 
   ArrayRef<Builtin::Info> getTargetBuiltins() const override;
