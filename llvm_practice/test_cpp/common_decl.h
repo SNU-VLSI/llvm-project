@@ -66,3 +66,5 @@ void __builtin_IMCE_NOP(void);
 void __builtin_IMCE_STOP(void);
 
 short16 __builtin_IMCE_SCAN_RW(short16);
+
+void __builtin_IMCE_LOAD_LB(short);

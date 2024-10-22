@@ -435,14 +435,14 @@ class Conv2DCodeGenerator(InstructionGenerator):
         code += get_indent(indent) + f"short16 {work[1][2]} = result.c;\n"
         code += get_indent(indent) + f"short16 {work[1][3]} = result.d;\n"
       elif opcode == "SET_FLAG":
-        code += get_indent(indent) + f"__builtin_IMCE_SET_FLAG({work[1]});\n"
+        code += get_indent(indent) + f"__builtin_IMCE_SETFLAG({work[1]});\n"
       elif opcode == "SEND":
         code += get_indent(indent) + f"__builtin_IMCE_SEND({work[2]}, {work[1]}, {work[3]}, {work[4]});\n"
       elif opcode == "RECV":
         code += get_indent(indent) + f"short16 {work[1]} = __builtin_IMCE_RECV({work[2]});\n"
       elif opcode == "add":
         if isinstance(work[3], int):
-          code += get_indent(indent) + f"short16 {work[1]} = __builtin_IMCE_ADDI({work[2]}, {work[3]}, 15);\n"
+          code += get_indent(indent) + f"short16 {work[1]} = __builtin_IMCE_ADDI({work[2]}, {work[3]});\n"
         else:
           code += get_indent(indent) + f"short16 {work[1]} = __builtin_IMCE_ADD({work[2]}, {work[3]}, 15);\n"
     

@@ -60,5 +60,7 @@ TARGET_BUILTIN(__builtin_IMCE_SCAN_RW, "E16sE16s", "", "")
 TARGET_BUILTIN(__builtin_IMCE_cloop_begin, "sss", "", "")
 TARGET_BUILTIN(__builtin_IMCE_cloop_end, "ssss", "", "")
 
+TARGET_BUILTIN(__builtin_IMCE_LOAD_LB, "vs", "", "") 
+
 #undef BUILTIN
 #undef TARGET_BUILTIN
