@@ -429,11 +429,11 @@ class Conv2DCodeGenerator(InstructionGenerator):
       elif opcode == "LOAD_LB":
         code += get_indent(indent) + f"__builtin_IMCE_LOAD_LB({work[1]});\n"
       elif opcode == "STEP":
-        code += get_indent(indent) + f"StepResult result = __builtin_IMCE_STEP();\n"
-        code += get_indent(indent) + f"short16 {work[1][0]} = result.a;\n"
-        code += get_indent(indent) + f"short16 {work[1][1]} = result.b;\n"
-        code += get_indent(indent) + f"short16 {work[1][2]} = result.c;\n"
-        code += get_indent(indent) + f"short16 {work[1][3]} = result.d;\n"
+        code += get_indent(indent) + f"__builtin_IMCE_STEP();\n"
+        code += get_indent(indent) + f"short16 {work[1][0]} = __builtin_IMCE_GET_CREG((short)0);\n"
+        code += get_indent(indent) + f"short16 {work[1][1]} = __builtin_IMCE_GET_CREG((short)1);\n"
+        code += get_indent(indent) + f"short16 {work[1][2]} = __builtin_IMCE_GET_CREG((short)2);\n"
+        code += get_indent(indent) + f"short16 {work[1][3]} = __builtin_IMCE_GET_CREG((short)3);\n"
       elif opcode == "SET_FLAG":
         code += get_indent(indent) + f"__builtin_IMCE_SETFLAG({work[1]});\n"
       elif opcode == "SEND":

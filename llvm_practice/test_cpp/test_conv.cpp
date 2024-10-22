@@ -7,11 +7,11 @@ void conv2d() {
     __builtin_IMCE_LOAD_LB(0);
     __builtin_IMCE_LOAD_LB(0);
   }
-  StepResult result = __builtin_IMCE_STEP();
-  short16 var_25 = result.a;
-  short16 var_26 = result.b;
-  short16 var_27 = result.c;
-  short16 var_28 = result.d;
+  __builtin_IMCE_STEP();
+  short16 var_25 = __builtin_IMCE_GET_CREG((short)0);
+  short16 var_26 = __builtin_IMCE_GET_CREG((short)1);
+  short16 var_27 = __builtin_IMCE_GET_CREG((short)2);
+  short16 var_28 = __builtin_IMCE_GET_CREG((short)3);
   short16 var_29 = __builtin_IMCE_RECV(5);
    var_29 = __builtin_IMCE_ADD(var_25, var_29, 15);
   __builtin_IMCE_SEND(3, var_29, 2, 0);
@@ -31,11 +31,11 @@ void conv2d() {
     __builtin_IMCE_LOAD_LB(0);
     __builtin_IMCE_LOAD_LB(0);
     __builtin_IMCE_LOAD_LB(0);
-    StepResult result = __builtin_IMCE_STEP();
-    short16 var_33 = result.a;
-    short16 var_34 = result.b;
-    short16 var_35 = result.c;
-    short16 var_36 = result.d;
+    __builtin_IMCE_STEP();
+    short16 var_33 = __builtin_IMCE_GET_CREG((short)0);
+    short16 var_34 = __builtin_IMCE_GET_CREG((short)1);
+    short16 var_35 = __builtin_IMCE_GET_CREG((short)2);
+    short16 var_36 = __builtin_IMCE_GET_CREG((short)3);
     short16 var_37 = __builtin_IMCE_RECV(5);
      var_37 = __builtin_IMCE_ADD(var_33, var_37, 15);
     __builtin_IMCE_SEND(3, var_37, 2, 0);
@@ -58,11 +58,11 @@ void conv2d() {
       __builtin_IMCE_LOAD_LB(0);
       __builtin_IMCE_LOAD_LB(0);
     }
-    StepResult result = __builtin_IMCE_STEP();
-    short16 var_41 = result.a;
-    short16 var_42 = result.b;
-    short16 var_43 = result.c;
-    short16 var_44 = result.d;
+    __builtin_IMCE_STEP();
+    short16 var_41 = __builtin_IMCE_GET_CREG((short)0);
+    short16 var_42 = __builtin_IMCE_GET_CREG((short)1);
+    short16 var_43 = __builtin_IMCE_GET_CREG((short)2);
+    short16 var_44 = __builtin_IMCE_GET_CREG((short)3);
     short16 var_45 = __builtin_IMCE_RECV(5);
      var_45 = __builtin_IMCE_ADD(var_41, var_45, 15);
     __builtin_IMCE_SEND(3, var_45, 2, 0);
@@ -82,11 +82,11 @@ void conv2d() {
       __builtin_IMCE_LOAD_LB(0);
       __builtin_IMCE_LOAD_LB(0);
       __builtin_IMCE_LOAD_LB(0);
-      StepResult result = __builtin_IMCE_STEP();
-      short16 var_49 = result.a;
-      short16 var_50 = result.b;
-      short16 var_51 = result.c;
-      short16 var_52 = result.d;
+      __builtin_IMCE_STEP();
+      short16 var_49 = __builtin_IMCE_GET_CREG((short)0);
+      short16 var_50 = __builtin_IMCE_GET_CREG((short)1);
+      short16 var_51 = __builtin_IMCE_GET_CREG((short)2);
+      short16 var_52 = __builtin_IMCE_GET_CREG((short)3);
       short16 var_53 = __builtin_IMCE_RECV(5);
        var_53 = __builtin_IMCE_ADD(var_49, var_53, 15);
       __builtin_IMCE_SEND(3, var_53, 2, 0);

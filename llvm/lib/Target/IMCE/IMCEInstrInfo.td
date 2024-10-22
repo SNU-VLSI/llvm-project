@@ -362,20 +362,28 @@ let Defs=[QREG0, QREG1, QREG2, QREG3] in {
 }
 
 // Pseduo for Q type
-def IMCE_GET_QREG_Pseudo : Pseudo<(outs QREGOpnd:$rd), (ins uimm2:$idx), "# GET_QREG $rd $idx", []> {
-  let Uses = [QREG0, QREG1, QREG2, QREG3];
-}
-
+// def IMCE_GET_QREG_Pseudo : Pseudo<(outs QREGOpnd:$rd), (ins uimm2:$idx), "# GET_QREG $rd $idx", []> {
+//   let Uses = [QREG0, QREG1, QREG2, QREG3];
+// }
 
 // X type
 class XInst<string opname, int opcode> : InstXType<opcode, (outs), (ins), opname, "", []>;
-def IMCE_STEP_INST : InstIMCE<(outs CREGOpnd:$rd0, CREGOpnd:$rd1, CREGOpnd:$rd2, CREGOpnd:$rd3), (ins), "step", "", []> {
+// def IMCE_STEP_INST : InstIMCE<(outs CREGOpnd:$rd0, CREGOpnd:$rd1, CREGOpnd:$rd2, CREGOpnd:$rd3), (ins), "step", "", []> {
+//   let Inst{5-0} = 0b111101;
+//   let Uses = [BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3];
+// }
+def IMCE_STEP_INST : InstIMCE<(outs), (ins), "step", "", []> {
   let Inst{5-0} = 0b111101;
   let Uses = [BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3];
+  let Defs = [CREG0, CREG1, CREG2, CREG3];
 }
 
 def IMCE_NOP_INST  : XInst<"nop" , 0b111110>;
 def IMCE_STOP_INST : XInst<"stop", 0b111111>;
+
+// def IMCE_GET_CREG_Pseudo : Pseudo<(outs CREGOpnd:$rd), (ins uimm2:$idx), "# GET_CREG $rd $idx", []> {
+//   let Uses = [CREG0, CREG1, CREG2, CREG3];
+// }
 
 // J type
 // def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]> {

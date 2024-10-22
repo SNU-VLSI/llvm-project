@@ -55,9 +55,10 @@ let TargetPrefix = "IMCE" in {
   def int_IMCE_GET_QREG : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrNoMem]>;
 
   // X type
-  def int_IMCE_STEP : Intrinsic<[llvm_v16i16_ty, llvm_v16i16_ty, llvm_v16i16_ty, llvm_v16i16_ty], []>;
-  def int_IMCE_NOP  : Intrinsic<[], []>;
-  def int_IMCE_STOP : Intrinsic<[], []>;
+  def int_IMCE_STEP : Intrinsic<[], [], [IntrHasSideEffects]>;
+  def int_IMCE_NOP  : Intrinsic<[], [], [IntrHasSideEffects]>;
+  def int_IMCE_STOP : Intrinsic<[], [], [IntrHasSideEffects]>;
+  def int_IMCE_GET_CREG : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrNoMem]>;
 
   // J type
   // def int_IMCE_JUMP : Intrinsic<[], [llvm_i32_ty], [ImmArg<ArgIndex<0>>]>;

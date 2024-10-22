@@ -22269,13 +22269,16 @@ Value *CodeGenFunction::EmitIMCEBuiltinExpr(unsigned BuiltinID,
     ID = Intrinsic::IMCE_cloop_end;
     break;
   }
-<<<<<<< HEAD
   case IMCE::BI__builtin_IMCE_LOAD_LB: {
     ID = Intrinsic::IMCE_LOAD_LB;
-=======
+    break;
+  }
   case IMCE::BI__builtin_IMCE_GET_QREG: {
     ID = Intrinsic::IMCE_GET_QREG;
->>>>>>> origin/IMCE
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_GET_CREG: {
+    ID = Intrinsic::IMCE_GET_CREG;
     break;
   }
   }
