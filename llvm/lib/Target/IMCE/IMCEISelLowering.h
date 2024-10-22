@@ -37,10 +37,6 @@ enum NodeType : unsigned {
   // There is an optional glue operand at the end.
   CALL,
 
-  // SEND intrinsic
-  IMCE_SEND,
-  IMCE_LOOP_SET,
-
   // Hardware loops
   CLOOP_BEGIN_VALUE,
   CLOOP_BEGIN_TERMINATOR,

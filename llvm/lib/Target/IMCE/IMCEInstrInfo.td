@@ -187,9 +187,6 @@ def jumpOperand : Operand<OtherVT> {
 // ========================================
 // SDNodes
 // ========================================
-// def SDT_SEND : SDTypeProfile<0, 3, [SDTCisVT<0, v16i16>, SDTCisVT<1, v16i16>, SDTCisVT<2, i16>]>;
-// def IMCE_SEND_NODE : SDNode<"IMCEISD::IMCE_SEND", SDT_SEND, [SDNPHasChain]>;
-// def IMCE_LOOP_SET : SDNode<"IMCEISD::IMCE_LOOP_SET", SDTypeProfile<0, 1>, [SDNPHasChain]>
 
 // ========================================
 // instructions
@@ -254,8 +251,6 @@ let mayLoad=0, mayStore=0 in {
   def IMCE_VMULTL_INST : RInst<"vmultl",0b001010>;
   def IMCE_VMULTH_INST : RInst<"vmulth",0b001011>;
 }
-// def Pseudo_IMCE_VADD_INST_one_lane : Pseudo<(outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, SGPROpnd:$rs2), []>;
-// def Pseudo_IMCE_VADD_INST_all_lane : Pseudo<(outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, VGPROpnd:$rs2), []>;
 
 // I type
 class IInst<string opname, int opcode> : InstIType<opcode, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, simm14:$imm), opname, "$rd $rs1 $imm", []>;

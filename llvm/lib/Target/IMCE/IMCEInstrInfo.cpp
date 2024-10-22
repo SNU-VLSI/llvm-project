@@ -52,29 +52,6 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     }
     break;
   }
-  // case IMCE::Pseudo_IMCE_VADD_INST_one_lane : {
-  //   MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_VADD_INST))
-  //                                 .add(MI.getOperand(0))
-  //                                 .add(MI.getOperand(1))
-  //                                 .add(MI.getOperand(2))
-  //                                 .addImm(0);
-  //   break;
-  // }
-  // case IMCE::Pseudo_IMCE_VADD_INST_all_lane: {
-  //   MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_VADD_INST))
-  //                                 .add(MI.getOperand(0))
-  //                                 .add(MI.getOperand(1))
-  //                                 .add(MI.getOperand(2))
-  //                                 .addImm(15);
-  // }
- 
-  // case IMCE::Pseudo_IMCE_VADDI_INST_SCALAR: {
-  //   MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_VADDI_INST))
-  //                                 .add(MI.getOperand(0))
-  //                                 .add(MI.getOperand(1))
-  //                                 .add(MI.getOperand(2));
-  //   break;
-  // }
   }
 
 finish_label:
@@ -108,7 +85,7 @@ void IMCEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::itera
         .addImm(0);
   }
 
-  //TODO : 
+  //TODO :
   // if(TRI->getMinimalPhysRegClass(DestReg) != TRI->getMinimalPhysRegClass(SrcReg)) {
   //   llvm_unreachable("Not implemented yet");
   // }

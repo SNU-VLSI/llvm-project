@@ -182,8 +182,6 @@ const char *IMCETargetLowering::getTargetNodeName(unsigned Opcode) const {
     return #Opc
     OPCODE(IMCEISD::RET_GLUE);
     OPCODE(IMCEISD::CALL);
-    OPCODE(IMCEISD::IMCE_SEND);
-    OPCODE(IMCEISD::IMCE_LOOP_SET);
     OPCODE(IMCEISD::CLOOP_BEGIN_VALUE);
     OPCODE(IMCEISD::CLOOP_BEGIN_TERMINATOR);
     OPCODE(IMCEISD::CLOOP_END_VALUE);
@@ -251,21 +249,6 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
   switch (IntNo) {
   default:
     break;
-  // case Intrinsic::IMCE_SEND: {
-  //   SDLoc DL(Op);
-  //   SDValue Result =
-  //       DAG.getNode(IMCEISD::IMCE_SEND, DL, {Op.getNode()->getValueType(0)},
-  //                   {Op.getOperand(0), Op.getOperand(2), Op.getOperand(3), Op.getOperand(4)});
-  //   return Result;
-  // }
-  // case Intrinsic::set_loop_iterations: {
-  //   SDLoc DL(Op);
-  //   int loop_cnt = Op.getConstantOperandVal(2);
-  //   SDValue const_loop_cnt = DAG.getConstant(loop_cnt, DL, MVT::i16, true, false);
-  //   SDValue Result = DAG.getNode(IMCEISD::IMCE_LOOP_SET, DL, {Op.getNode()->getValueType(0)},
-  //                                {Op.getOperand(0), const_loop_cnt});
-  //   return Result;
-  // }
   case Intrinsic::IMCE_cloop_begin: {
     assert(Op->getNumOperands() == 4);
     auto onFailure = [&]() {
