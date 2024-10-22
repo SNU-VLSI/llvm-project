@@ -340,7 +340,7 @@ let hasSideEffects=1 in {
 
 def IMCE_LOAD_LB : Pseudo<(outs), (ins uimm6:$fifo_id), "# LOAD_LB $fifo_id", []> {
   let hasSideEffects = 1;
-  let Defs = [BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3];
+  let Defs = [BSHR0, BSHR1, BSHR2, BSHR3];
 }
 
 // P type

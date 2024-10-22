@@ -64,5 +64,8 @@ TARGET_BUILTIN(__builtin_IMCE_cloop_end, "ssss", "", "")
 
 TARGET_BUILTIN(__builtin_IMCE_LOAD_LB, "vs", "", "") 
 
+TARGET_BUILTIN(__builtin_IMCE_GET_CORE_HID, "s", "", "") 
+TARGET_BUILTIN(__builtin_IMCE_GET_CORE_WID, "s", "", "") 
+
 #undef BUILTIN
 #undef TARGET_BUILTIN

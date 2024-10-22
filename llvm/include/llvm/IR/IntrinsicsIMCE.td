@@ -85,4 +85,7 @@ let TargetPrefix = "IMCE" in {
   //             [IntrHasSideEffects, IntrNoDuplicate]>;
 
   def int_IMCE_LOAD_LB     : Intrinsic<[], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
+
+  def int_IMCE_HID : Intrinsic<[llvm_i16_ty], [], [IntrHasSideEffects]>;
+  def int_IMCE_WID : Intrinsic<[llvm_i16_ty], [], [IntrHasSideEffects]>;
 }
