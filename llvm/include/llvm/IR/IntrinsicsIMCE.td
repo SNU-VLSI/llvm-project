@@ -52,13 +52,13 @@ let TargetPrefix = "IMCE" in {
   def int_IMCE_MM_QUANT : Intrinsic<[], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
 
   // Pseduo for Q type
-  def int_IMCE_GET_QREG : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrNoMem]>;
+  def int_IMCE_GET_QREG : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrNoMem, IntrHasSideEffects]>;
 
   // X type
   def int_IMCE_STEP : Intrinsic<[], [], [IntrHasSideEffects]>;
   def int_IMCE_NOP  : Intrinsic<[], [], [IntrHasSideEffects]>;
   def int_IMCE_STOP : Intrinsic<[], [], [IntrHasSideEffects]>;
-  def int_IMCE_GET_CREG : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrNoMem]>;
+  def int_IMCE_GET_CREG : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrNoMem, IntrHasSideEffects]>;
 
   // J type
   // def int_IMCE_JUMP : Intrinsic<[], [llvm_i32_ty], [ImmArg<ArgIndex<0>>]>;

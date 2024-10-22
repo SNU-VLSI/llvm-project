@@ -53,7 +53,7 @@ TARGET_BUILTIN(__builtin_IMCE_MM_QUANT, "vE16sE16sss", "", "")
 TARGET_BUILTIN(__builtin_IMCE_GET_QREG, "E16ss", "", "")
 
 // TARGET_BUILTIN(__builtin_IMCE_STEP, "vv*", "", "")
-TARGET_BUILTIN(__builtin_IMCE_STEP, "v", "", "")
+TARGET_BUILTIN(__builtin_IMCE_STEP, "v", "u", "")
 TARGET_BUILTIN(__builtin_IMCE_NOP, "v", "", "")
 TARGET_BUILTIN(__builtin_IMCE_STOP, "v", "", "")
 TARGET_BUILTIN(__builtin_IMCE_GET_CREG, "E16ss", "", "")

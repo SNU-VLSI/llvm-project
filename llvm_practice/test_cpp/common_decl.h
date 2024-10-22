@@ -61,7 +61,7 @@ typedef short short16 __attribute__((ext_vector_type(16)));
 // QTypeResult __builtin_IMCE_NU_QUANT(short16, short16, short, short);
 // QTypeResult __builtin_IMCE_MM_QUANT(short16, short16, short, short);
 
-// void __builtin_IMCE_STEP(void);
+__attribute__((noinline, used)) void __builtin_IMCE_STEP(void);
 // void __builtin_IMCE_NOP(void);
 // void __builtin_IMCE_STOP(void);
 

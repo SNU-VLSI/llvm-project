@@ -420,6 +420,8 @@ class Conv2DCodeGenerator(InstructionGenerator):
           indent += 2
           loop_var_cnt += 1
           active_loops.append(loop_label)
+        else:
+          code += get_indent(indent) + f"// {loop_label} unroll\n"
       elif opcode == "loop_end":
         if work[1] in active_loops:
           indent -= 2

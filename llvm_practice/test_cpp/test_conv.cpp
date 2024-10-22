@@ -1,6 +1,8 @@
 #include "common_decl.h"
 void conv2d() {
   short var_24 = 0;
+  // region_loop_start_region_0 unroll
+  // sliding_loop_start_0_0 unroll
   for (int i0 = 0; i0 < 66; i0++) { // load_loop_start_0_0
     __builtin_IMCE_LOAD_LB(0);
     __builtin_IMCE_LOAD_LB(0);
@@ -27,6 +29,7 @@ void conv2d() {
    var_24 = var_24 + (short)1;
   __builtin_IMCE_SETFLAG(var_24);
   for (int i1 = 0; i1 < 28; i1++) { // sliding_loop_start_0_1
+    // load_loop_start_0_1 unroll
     __builtin_IMCE_LOAD_LB(0);
     __builtin_IMCE_LOAD_LB(0);
     __builtin_IMCE_LOAD_LB(0);
@@ -52,6 +55,7 @@ void conv2d() {
     __builtin_IMCE_SETFLAG(var_24);
   }
   for (int i2 = 0; i2 < 28; i2++) { // region_loop_start_region_1
+    // sliding_loop_start_1_0 unroll
     for (int i3 = 0; i3 < 2; i3++) { // load_loop_start_1_0
       __builtin_IMCE_LOAD_LB(0);
       __builtin_IMCE_LOAD_LB(0);
@@ -78,6 +82,7 @@ void conv2d() {
      var_24 = var_24 + (short)1;
     __builtin_IMCE_SETFLAG(var_24);
     for (int i4 = 0; i4 < 28; i4++) { // sliding_loop_start_1_1
+      // load_loop_start_1_1 unroll
       __builtin_IMCE_LOAD_LB(0);
       __builtin_IMCE_LOAD_LB(0);
       __builtin_IMCE_LOAD_LB(0);
