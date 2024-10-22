@@ -44,12 +44,15 @@ let TargetPrefix = "IMCE" in {
   def int_IMCE_AVGPOOL : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>]>;
 
   // Q type
-  def int_IMCE_ADDQ     : Intrinsic<[llvm_i16_ty, llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
-  def int_IMCE_SUBQ     : Intrinsic<[llvm_i16_ty, llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
-  def int_IMCE_MULTLQ   : Intrinsic<[llvm_i16_ty, llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
-  def int_IMCE_MULTHQ   : Intrinsic<[llvm_i16_ty, llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
-  def int_IMCE_NU_QUANT : Intrinsic<[llvm_i16_ty, llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
-  def int_IMCE_MM_QUANT : Intrinsic<[llvm_i16_ty, llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
+  def int_IMCE_ADDQ     : Intrinsic<[], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
+  def int_IMCE_SUBQ     : Intrinsic<[], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
+  def int_IMCE_MULTLQ   : Intrinsic<[], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
+  def int_IMCE_MULTHQ   : Intrinsic<[], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
+  def int_IMCE_NU_QUANT : Intrinsic<[], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
+  def int_IMCE_MM_QUANT : Intrinsic<[], [llvm_v16i16_ty, llvm_v16i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>]>;
+
+  // Pseduo for Q type
+  def int_IMCE_GET_QREG : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrNoMem]>;
 
   // X type
   def int_IMCE_STEP : Intrinsic<[llvm_v16i16_ty, llvm_v16i16_ty, llvm_v16i16_ty, llvm_v16i16_ty], []>;

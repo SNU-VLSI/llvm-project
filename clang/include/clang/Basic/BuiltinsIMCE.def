@@ -50,6 +50,7 @@ TARGET_BUILTIN(__builtin_IMCE_MULTLQ, "ssssE16sE16sss", "", "")
 TARGET_BUILTIN(__builtin_IMCE_MULTHQ, "ssssE16sE16sss", "", "")
 TARGET_BUILTIN(__builtin_IMCE_NU_QUANT, "ssssE16sE16sss", "", "")
 TARGET_BUILTIN(__builtin_IMCE_MM_QUANT, "ssssE16sE16sss", "", "")
+TARGET_BUILTIN(__builtin_IMCE_GET_QREG, "E16ss", "", "")
 
 TARGET_BUILTIN(__builtin_IMCE_STEP, "E16sE16sE16sE16sv", "", "")
 TARGET_BUILTIN(__builtin_IMCE_NOP, "vv", "", "")

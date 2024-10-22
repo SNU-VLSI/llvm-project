@@ -35,67 +35,8 @@ void IMCEInstrInfo::anchor() {}
 
 IMCEInstrInfo::IMCEInstrInfo(IMCESubtarget &STI) : IMCEGenInstrInfo(), RI(), STI(STI) {}
 
-std::array<int, 4> getQSubRegs(int lane) {
-  std::array<int, 4> SubRegs;
-  if(lane < 10) {
-    SubRegs[0] = IMCE::QSUBREG00 + lane;
-    SubRegs[1] = IMCE::QSUBREG10 + lane;
-    SubRegs[2] = IMCE::QSUBREG20 + lane;
-    SubRegs[3] = IMCE::QSUBREG30 + lane;
-  } else {
-    SubRegs[0] = IMCE::QSUBREG010 + lane;
-    SubRegs[1] = IMCE::QSUBREG110 + lane;
-    SubRegs[2] = IMCE::QSUBREG210 + lane;
-    SubRegs[3] = IMCE::QSUBREG310 + lane;
-  }
-  return SubRegs;
-}
-
-bool IMCEInstrInfo::expandQInst(MachineBasicBlock &MBB, MachineInstr &MI, unsigned int Pop, unsigned int Op) const {
-  if((MI.getOpcode() >= Pop) && (MI.getOpcode() <= (Pop + 15))) {
-    unsigned Opcode = MI.getOpcode();
-    unsigned Lane = Opcode - Pop;
-    std::array<int, 4> reg_id = getQSubRegs(Lane);
-    MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(Op))
-                                  .addReg(reg_id[0], RegState::ImplicitDefine)
-                                  .addReg(reg_id[1], RegState::ImplicitDefine)
-                                  .addReg(reg_id[2], RegState::ImplicitDefine)
-                                  .addReg(reg_id[3], RegState::ImplicitDefine)
-                                  .addReg(MI.getOperand(4).getReg())
-                                  .addReg(MI.getOperand(5).getReg())
-                                  .addImm(MI.getOperand(6).getImm())
-                                  .addImm(Lane);
-    return true;
-  } else {
-    return false;
-  }
-}
-
 bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   MachineBasicBlock &MBB = *MI.getParent();
-
-  // expand Q type instrunctions
-  if(expandQInst(MBB, MI, IMCE::IMCE_ADDQ_INST_LANE0, IMCE::IMCE_ADDQ_INST)) {
-    goto finish_label;
-  }
-  if(expandQInst(MBB, MI, IMCE::IMCE_SUBQ_INST_LANE0, IMCE::IMCE_SUBQ_INST)) {
-    goto finish_label;
-  }
-  if(expandQInst(MBB, MI, IMCE::IMCE_MULTLQ_INST_LANE0, IMCE::IMCE_MULTLQ_INST)) {
-    goto finish_label;
-  }
-  if(expandQInst(MBB, MI, IMCE::IMCE_MULTHQ_INST_LANE0, IMCE::IMCE_MULTHQ_INST)) {
-    goto finish_label;
-  }
-  if(expandQInst(MBB, MI, IMCE::IMCE_NU_QUANT_INST_LANE0, IMCE::IMCE_NU_QUANT_INST)) {
-    goto finish_label;
-  }
-  if(expandQInst(MBB, MI, IMCE::IMCE_MM_QUANT_INST_LANE0, IMCE::IMCE_MM_QUANT_INST)) {
-    goto finish_label;
-  }
-  if((MI.getOpcode() >= IMCE::QREG0_BUILD_INST) && (MI.getOpcode() <= IMCE::QREG3_BUILD_INST)) {
-    goto finish_label;
-  }
 
   switch (MI.getOpcode()) {
   default:

@@ -58,7 +58,7 @@ foreach I = 0-3 in {
 
 foreach I = 0-3 in {
   foreach J = 0-15 in {
-    def QSUBREG#I#J : Register<"qsubreg"#I#J> {
+    def QSUBREG#I#_#J : Register<"qsubreg"#I#"_"#J> {
       let Namespace = "IMCE";
       let HWEncoding{15-6} = 0;
       let HWEncoding{5-0} = !add(I,32);
@@ -118,131 +118,62 @@ def DWREG : Register<"dwreg"> {
   let Namespace = "IMCE";
 }
 
-def SCANREG0 : Register<"scanreg0"> {
-  let Namespace = "IMCE";
-}
-
-def SCANREG1 : Register<"scanreg1"> {
-  let Namespace = "IMCE";
+foreach I=0-1 in {
+  def SCANREG#I : Register<"scanreg"#I> {
+    let Namespace = "IMCE";
+  }
 }
 
 // ==============================================================
 // Register classes
 // ==============================================================
-// def SGPR : RegisterClass<"IMCE", [i16, i32], 16, (add (sequence "S%u", 0, 31))> {
-//   let Size = 16;
-//   let CopyCost = 1;
-// }
 
 def VGPR : RegisterClass<"IMCE", [v16i16, i16, i32], 256, (add (sequence "V%u", 0, 31))> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeVGPRRegisterClass";
 }
 
-def CREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "CREG%u", 0, 3))> {
+def CRegs : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "CREG%u", 0, 3))> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
-}
-foreach I=0-3 in {
-  def CREG # I # _CLASS : RegisterClass<"IMCE", [v16i16], 256, (add !cast<Register>("CREG"#I))> {
-    let Size = 256;
-    let CopyCost = 1;
-    let DecoderMethod = "decodeRegisterClass";
-  }
 }
 
-def QSUBREG_CLASS : RegisterClass<"IMCE", [i16], 16, (add (sequence "QSUBREG0%u", 0, 15), (sequence "QSUBREG1%u", 0, 15), (sequence "QSUBREG2%u", 0, 15), (sequence "QSUBREG3%u", 0, 15))> {
-  let Size = 16;
-  let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
-}
-
-foreach I = 0-3 in {
-  foreach J = 0-15 in {
-    def QSUBREG_CLASS#I#J : RegisterClass<"IMCE", [i16], 16, (add !cast<Register>("QSUBREG"#I#J))> {
-      let Size = 16;
-      let CopyCost = 1;
-      let DecoderMethod = "decodeRegisterClass";
-    }
-  }
-}
-
-def QREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "QREG%u", 0, 3))> {
+def QRegs : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "QREG%u", 0, 3))> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
 }
 
-def QREG0_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add QREG0)> {
+def BSHR : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "BSHR_REG%u", 0, 3))> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
 }
 
-def QREG1_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add QREG1)> {
-  let Size = 256;
-  let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
-}
-
-def QREG2_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add QREG2)> {
-  let Size = 256;
-  let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
-}
-
-def QREG3_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add QREG3)> {
-  let Size = 256;
-  let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
-}
-
-def BSHR_REG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "BSHR_REG%u", 0, 3))> {
-  let Size = 256;
-  let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
-}
-
-def HWLOOP_REG_CLASS : RegisterClass<"IMCE", [i32], 256, (add (sequence "HWLOOP_REG%u", 0, 5))> {
+def HWLR : RegisterClass<"IMCE", [i32], 256, (add (sequence "HWLOOP_REG%u", 0, 5))> {
   let Size = 32;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
 }
 
-def MINMAXREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add MINREG, MAXREG)> {
+def MMRegs : RegisterClass<"IMCE", [v16i16], 256, (add MINREG, MAXREG)> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
 }
 
-def CFGREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add CFGREG)> {
+def CfgRegs : RegisterClass<"IMCE", [v16i16], 256, (add CFGREG)> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
 }
 
-def PCREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add PCREG)> {
+def PcRegs : RegisterClass<"IMCE", [v16i16], 256, (add PCREG)> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
 }
 
-def DWREG_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add DWREG)> {
+def DwRegs : RegisterClass<"IMCE", [v16i16], 256, (add DWREG)> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
 }
 
-def SCANREG0_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add SCANREG0)> {
+def ScanRegs : RegisterClass<"IMCE", [v16i16], 256, (add (sequence "SCANREG%u", 0, 1))> {
   let Size = 256;
   let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
-}
-
-def SCANREG1_CLASS : RegisterClass<"IMCE", [v16i16], 256, (add SCANREG1)> {
-  let Size = 256;
-  let CopyCost = 1;
-  let DecoderMethod = "decodeRegisterClass";
 }

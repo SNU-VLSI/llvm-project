@@ -56,6 +56,19 @@ static const uint16_t GPRDecoderTable[] = {
     IMCE::V24, IMCE::V25, IMCE::V26, IMCE::V27, IMCE::V28, IMCE::V29, IMCE::V30, IMCE::V31,
 };
 
+static const uint16_t HWLRDecoderTable[] = {
+    IMCE::HWLOOP_REG0, IMCE::HWLOOP_REG1, IMCE::HWLOOP_REG2,
+    IMCE::HWLOOP_REG3, IMCE::HWLOOP_REG4, IMCE::HWLOOP_REG5,
+};
+
+static const uint16_t QRegsDecoderTable[] = {
+    IMCE::QREG0, IMCE::QREG1, IMCE::QREG2, IMCE::QREG3,
+};
+
+static const uint16_t CRegsDecoderTable[] = {
+    IMCE::CREG0, IMCE::CREG1, IMCE::CREG2, IMCE::CREG3,
+};
+
 static DecodeStatus decodeVGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
                                             const void *Decoder) {
   if (RegNo > 31)
@@ -66,23 +79,33 @@ static DecodeStatus decodeVGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64
   return MCDisassembler::Success;
 }
 
-static DecodeStatus decodeSGPRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
+static DecodeStatus decodeHWLRRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
                                             const void *Decoder) {
-  if (RegNo > 31)
+  if (RegNo > 5)
     return MCDisassembler::Fail;
 
-  unsigned Register = GPRDecoderTable[RegNo];
+  unsigned Register = HWLRDecoderTable[RegNo];
   Inst.addOperand(MCOperand::createReg(Register));
   return MCDisassembler::Success;
 }
 
-static DecodeStatus decodeRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
-                                        const void *Decoder) {
-  // if (RegNo > 31)
-  //   return MCDisassembler::Fail;
+static DecodeStatus decodeQRegsRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
+                                            const void *Decoder) {
+  if (RegNo > 3)
+    return MCDisassembler::Fail;
 
-  // unsigned Register = GPRDecoderTable[RegNo];
-  Inst.addOperand(MCOperand::createReg(0));
+  unsigned Register = QRegsDecoderTable[RegNo];
+  Inst.addOperand(MCOperand::createReg(Register));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus decodeCRegsRegisterClass(MCInst &Inst, uint64_t RegNo, uint64_t Address,
+                                            const void *Decoder) {
+  if (RegNo > 3)
+    return MCDisassembler::Fail;
+
+  unsigned Register = CRegsDecoderTable[RegNo];
+  Inst.addOperand(MCOperand::createReg(Register));
   return MCDisassembler::Success;
 }
 

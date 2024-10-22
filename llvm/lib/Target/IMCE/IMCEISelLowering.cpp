@@ -33,7 +33,7 @@ IMCETargetLowering::IMCETargetLowering(const TargetMachine &TM, const IMCESubtar
 
   addRegisterClass(MVT::i16, &IMCE::VGPRRegClass);
   // addRegisterClass(MVT::i32, &IMCE::VGPRRegClass);
-  addRegisterClass(MVT::i32, &IMCE::HWLOOP_REG_CLASSRegClass);
+  addRegisterClass(MVT::i32, &IMCE::HWLRRegClass);
   addRegisterClass(MVT::v16i16, &IMCE::VGPRRegClass);
 
   // Compute derived properties from the register classes
@@ -95,7 +95,7 @@ SDValue IMCETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID 
         RC = &IMCE::VGPRRegClass;
         break;
       case MVT::i32:
-        RC = &IMCE::HWLOOP_REG_CLASSRegClass;
+        RC = &IMCE::HWLRRegClass;
         break;
       }
 
@@ -209,6 +209,28 @@ SDValue IMCETargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const 
 }
 
 SDValue IMCETargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const {
+  unsigned IntNo = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
+  switch (IntNo) {
+  default:
+    break;
+  case Intrinsic::IMCE_GET_QREG: {
+    SDLoc dl(Op);
+    SDValue Idx = Op.getOperand(1);
+
+    Register QReg;
+    switch (cast<ConstantSDNode>(Idx)->getZExtValue()) {
+        case 0: QReg = IMCE::QREG0; break;
+        case 1: QReg = IMCE::QREG1; break;
+        case 2: QReg = IMCE::QREG2; break;
+        case 3: QReg = IMCE::QREG3; break;
+        default:
+            llvm_unreachable("Invalid QREG index.");
+    }
+
+    // Use the getRegister node to get QReg register
+    return DAG.getRegister(QReg, MVT::v16i16);
+  }
+  };
   return SDValue();
 }
 
