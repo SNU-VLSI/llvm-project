@@ -207,45 +207,6 @@ SDValue IMCETargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const 
 }
 
 SDValue IMCETargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const {
-  unsigned IntNo = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
-  switch (IntNo) {
-  default:
-    break;
-  case Intrinsic::IMCE_GET_QREG: {
-    SDLoc dl(Op);
-    SDValue Idx = Op.getOperand(1);
-
-    Register QReg;
-    switch (cast<ConstantSDNode>(Idx)->getZExtValue()) {
-        case 0: QReg = IMCE::QREG0; break;
-        case 1: QReg = IMCE::QREG1; break;
-        case 2: QReg = IMCE::QREG2; break;
-        case 3: QReg = IMCE::QREG3; break;
-        default:
-            llvm_unreachable("Invalid QREG index.");
-    }
-
-    // Use the getRegister node to get QReg register
-    return DAG.getRegister(QReg, MVT::v16i16);
-  }
-  case Intrinsic::IMCE_GET_CREG: {
-    SDLoc dl(Op);
-    SDValue Idx = Op.getOperand(1);
-
-    Register CReg;
-    switch (cast<ConstantSDNode>(Idx)->getZExtValue()) {
-        case 0: CReg = IMCE::CREG0; break;
-        case 1: CReg = IMCE::CREG1; break;
-        case 2: CReg = IMCE::CREG2; break;
-        case 3: CReg = IMCE::CREG3; break;
-        default:
-            llvm_unreachable("Invalid QREG index.");
-    }
-
-    // Use the getRegister node to get QReg register
-    return DAG.getRegister(CReg, MVT::v16i16);
-  }
-  };
   return SDValue();
 }
 
@@ -266,6 +227,39 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
   switch (IntNo) {
   default:
     break;
+  case Intrinsic::IMCE_GET_QREG: {
+    SDValue Chain = Op.getOperand(0);
+    SDValue Idx = Op.getOperand(2);
+
+    Register QReg;
+    switch (cast<ConstantSDNode>(Idx)->getZExtValue()) {
+        case 0: QReg = IMCE::QREG0; break;
+        case 1: QReg = IMCE::QREG1; break;
+        case 2: QReg = IMCE::QREG2; break;
+        case 3: QReg = IMCE::QREG3; break;
+        default:
+            llvm_unreachable("Invalid QREG index.");
+    }
+    // Use the getRegister node to get QReg register
+    return DAG.getCopyFromReg(Chain, dl, QReg, MVT::v16i16);
+  }
+  case Intrinsic::IMCE_GET_CREG: {
+    SDValue Chain = Op.getOperand(0);
+    SDValue Idx = Op.getOperand(2);
+
+    Register CReg;
+    switch (cast<ConstantSDNode>(Idx)->getZExtValue()) {
+        case 0: CReg = IMCE::CREG0; break;
+        case 1: CReg = IMCE::CREG1; break;
+        case 2: CReg = IMCE::CREG2; break;
+        case 3: CReg = IMCE::CREG3; break;
+        default:
+            llvm_unreachable("Invalid CREG index.");
+    }
+
+    // Use the getRegister node to get CReg register
+    return DAG.getCopyFromReg(Chain, dl, CReg, MVT::v16i16);
+  }
   case Intrinsic::IMCE_cloop_begin: {
     assert(Op->getNumOperands() == 4);
     auto onFailure = [&]() {

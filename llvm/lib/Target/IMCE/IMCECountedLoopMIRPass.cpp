@@ -501,7 +501,7 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
       findBySearchingFromTerminator(body, IMCE::CLOOP_END_VALUE);
   auto bodyEndBranch = body->getFirstInstrTerminator();
 
-  Register reg = headerBeginValue->getOperand(0).getReg();
+  // Register reg = headerBeginValue->getOperand(0).getReg();
   int64_t hw_loop_cnt = headerBeginValue->getOperand(1).getImm();
 
   // Check for instruction preceding CLOOP_BEGIN_VALUE that modifies the

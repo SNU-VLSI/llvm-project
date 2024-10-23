@@ -53,14 +53,13 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     break;
   }
   case IMCE::IMCE_LOAD_LB: {
-    MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_RECV_INST))
-                                  .addReg(IMCE::V0, RegState::Undef)
-                                  .addImm(MI.getOperand(0).getImm());
+    BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_RECV_INST))
+        .addReg(IMCE::V0, RegState::Undef)
+        .addImm(MI.getOperand(0).getImm());
     break;
   }
   }
 
-finish_label:
   // Erase the pseudo instruction.
   MBB.erase(MI);
   return true;

@@ -26,7 +26,7 @@ class IMCESubtarget;
 
 class IMCEInstrInfo : public IMCEGenInstrInfo {
   const IMCERegisterInfo RI;
-  [[maybe_unused]] IMCESubtarget &STI;
+  IMCESubtarget &STI;
 
   virtual void anchor();
 
