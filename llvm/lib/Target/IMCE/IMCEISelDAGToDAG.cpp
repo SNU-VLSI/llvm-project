@@ -99,6 +99,7 @@ void IMCEDAGToDAGISel::Select(SDNode *Node) {
         return;
       }
     }
+    break;
   }
 
   case ISD::SPLAT_VECTOR: {
@@ -110,6 +111,7 @@ void IMCEDAGToDAGISel::Select(SDNode *Node) {
       ReplaceNode(Node, Add.getNode());
       return;
     }
+    break;
   }
   }
 
