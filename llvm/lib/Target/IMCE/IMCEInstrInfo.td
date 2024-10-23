@@ -176,12 +176,22 @@ def simm14 : Operand<i16>, TImmLeaf<i16, [{return isInt<14>(Imm);}]> {
 
 def JumpTargetAsmOperand : AsmOperandClass {
   let Name = "JumpTarget";
-  let PredicateMethod = "isJumpTarget";
-  let RenderMethod = "addJumpTargetOperands";
+  let PredicateMethod = "isJumpTarget"; // CHECK
+  let RenderMethod = "addJumpTargetOperands"; // CHECK
 }
 
-def jumpOperand : Operand<OtherVT> {
+def jumptarget : Operand<OtherVT> {
+  let EncoderMethod = "getJumpTargetOpValue";
   let ParserMatchClass = JumpTargetAsmOperand;
+  let PrintMethod = "printJumpOperand";
+}
+
+def brtarget : Operand<OtherVT> {
+  let EncoderMethod = "getBranchTargetOpValue";
+  let OperandType = "OPERAND_PCREL";
+  // let DecoderMethod = "DecodeBranchTarget";
+  let ParserMatchClass = JumpTargetAsmOperand;
+  let PrintMethod = "printBranchOperand";
 }
 
 // ========================================
@@ -225,7 +235,7 @@ let mayLoad = 0, mayStore = 0 in {
   }
 
   def CLOOP_END_BRANCH : Pseudo<(outs),
-                            (ins HWLOOPREGOpnd:$op0, jumpOperand:$op1, uimm16:$meta),
+                            (ins HWLOOPREGOpnd:$op0, brtarget:$op1, uimm16:$meta),
                             "# CLOOP_END_BRANCH $op0, $op1, $meta",
                              []> {
     let isBranch = 1;
@@ -386,8 +396,8 @@ def IMCE_STOP_INST : XInst<"stop", 0b111111>;
 // }
 
 // J type
-// def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumpOperand:$imm), "jmp", "$imm", [(br (bb:$imm))]> {
-def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumpOperand:$imm), "jmp", "$imm", []> {
+// def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumptarget:$imm), "jmp", "$imm", [(br (bb:$imm))]> {
+def IMCE_JMP_INST : InstJType<0b111100, (outs), (ins jumptarget:$imm), "jmp", "$imm", []> {
   let isTerminator=1;
   let isBarrier=1;
 }
@@ -475,9 +485,9 @@ def : XPat<int_IMCE_NOP , IMCE_NOP_INST>;
 def : XPat<int_IMCE_STOP, IMCE_STOP_INST>;
 
 // J type pattern
-// class JPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op jumpOperand:$imm), (inst jumpOperand:$imm)>;
+// class JPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op jumptarget:$imm), (inst jumptarget:$imm)>;
 // def : JPat<int_IMCE_JUMP, IMCE_JMP_INST>;
-def : Pat<(br (bb:$imm)), (IMCE_JMP_INST jumpOperand:$imm)>;
+def : Pat<(br (bb:$imm)), (IMCE_JMP_INST jumptarget:$imm)>;
 
 // S type Pattern
 class SPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1), (inst VGPROpnd:$rs1)>;

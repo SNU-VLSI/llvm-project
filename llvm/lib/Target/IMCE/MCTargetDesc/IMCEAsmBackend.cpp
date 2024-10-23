@@ -35,7 +35,7 @@ const MCFixupKindInfo &IMCEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const 
       // RISCVFixupKinds.h.
       //
       // name                      offset bits  flags
-      {"fixup_imce_branch", 0, 32, MCFixupKindInfo::FKF_IsPCRel},
+      {"fixup_imce_PC6", 0, 32, MCFixupKindInfo::FKF_IsPCRel},
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -79,7 +79,7 @@ bool IMCEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value) 
   switch (Kind) {
   default:
     return false;
-  case IMCE::fixup_imce_branch:
+  case IMCE::fixup_imce_PC6:
     // For BNE instruction the immediate (simm6) must be
     // in the range [-32, 31].
     return Offset > 31 || Offset < -32;

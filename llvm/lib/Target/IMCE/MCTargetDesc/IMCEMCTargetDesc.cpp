@@ -28,6 +28,8 @@ using namespace llvm;
 #define GET_REGINFO_MC_DESC
 #include "IMCEGenRegisterInfo.inc"
 
+// VINN: May want to implement InstAnalysis as in Mips
+
 static MCInstPrinter *createIMCEMCInstPrinter(const Triple &T, unsigned SyntaxVariant,
                                               const MCAsmInfo &MAI, const MCInstrInfo &MII,
                                               const MCRegisterInfo &MRI) {

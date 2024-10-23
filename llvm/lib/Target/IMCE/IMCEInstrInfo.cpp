@@ -42,8 +42,7 @@ bool IMCEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   default:
     return false;
   case IMCE::IMCE_RET_INST: {
-    MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_JMP_INST))
-                                  .addReg(IMCE::V1, RegState::Undef);
+    MachineInstrBuilder MIB = BuildMI(MBB, &MI, MI.getDebugLoc(), get(IMCE::IMCE_STOP_INST));
 
     // Retain any imp-use flags.
     for (auto &MO : MI.operands()) {

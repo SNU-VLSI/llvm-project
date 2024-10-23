@@ -50,23 +50,18 @@ unsigned IMCEELFObjectWriter::getRelocType(MCContext &Ctx,
                                             const MCValue &Target,
                                             const MCFixup &Fixup,
                                             bool IsPCRel) const {
-  const MCExpr *Expr = Fixup.getValue();
   // Determine the type of the relocation
   unsigned Kind = Fixup.getTargetKind();
   if (Kind >= FirstLiteralRelocationKind)
     return Kind - FirstLiteralRelocationKind;
+
   if (IsPCRel) {
     switch (Kind) {
     default:
       Ctx.reportError(Fixup.getLoc(), "unsupported relocation type");
       return ELF::R_IMCE_NONE;
-    case FK_Data_4:
-    case FK_PCRel_4:
-      return Target.getAccessVariant() == MCSymbolRefExpr::VK_PLT
-                 ? ELF::R_IMCE_PLT32
-                 : ELF::R_IMCE_32_PCREL;
-    case IMCE::fixup_imce_branch:
-      return ELF::R_IMCE_BRANCH;
+    case IMCE::fixup_imce_PC6:
+      return ELF::R_IMCE_PC6;
     }
   }
 
@@ -74,19 +69,8 @@ unsigned IMCEELFObjectWriter::getRelocType(MCContext &Ctx,
   default:
     Ctx.reportError(Fixup.getLoc(), "unsupported relocation type");
     return ELF::R_IMCE_NONE;
-  case FK_Data_1:
-    Ctx.reportError(Fixup.getLoc(), "1-byte data relocations not supported");
-    return ELF::R_IMCE_NONE;
-  case FK_Data_2:
-    Ctx.reportError(Fixup.getLoc(), "2-byte data relocations not supported");
-    return ELF::R_IMCE_NONE;
-  case FK_Data_4:
-    if (Expr->getKind() == MCExpr::Target &&
-        cast<IMCEMCExpr>(Expr)->getKind() == IMCEMCExpr::VK_IMCE_32_PCREL)
-      return ELF::R_IMCE_32_PCREL;
-    return ELF::R_IMCE_32;
-  case FK_Data_8:
-    return ELF::R_IMCE_64;
+  case IMCE::fixup_imce_26:
+    return ELF::R_IMCE_26;
   }
 }
 
