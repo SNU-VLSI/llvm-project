@@ -1,4 +1,5 @@
 #include "IMCE.h"
+#include "IMCECoreIDAssign.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
@@ -16,7 +17,6 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/User.h"
 #include "llvm/IR/Value.h"
@@ -31,6 +31,7 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/IntrinsicsIMCE.h"
+#include "llvm/IR/PassManager.h"
 #include <utility>
 
 using namespace llvm;
@@ -99,4 +100,18 @@ char IMCECoreIDAssign::ID = 0;
 
 FunctionPass *llvm::createIMCECoreIDAssignPass() {
   return new IMCECoreIDAssign();
+}
+
+// ====================================================
+// new pass manager wrapper
+// ====================================================
+PreservedAnalyses IMCECoreIDAssignWrapPass::run(Function &F, FunctionAnalysisManager &AM) {
+  bool changed = runCoreAssign(F);
+  LLVM_DEBUG(F.print(dbgs()));
+
+  if (!changed)
+    return PreservedAnalyses::all();
+
+  auto PA = PreservedAnalyses();
+  return PA;
 }

@@ -34,6 +34,8 @@ public:
   TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
 
   TargetLoweringObjectFile *getObjFileLowering() const override { return TLOF.get(); }
+
+  void registerPassBuilderCallbacks(PassBuilder &PB) override;
 };
 
 } // end namespace llvm
