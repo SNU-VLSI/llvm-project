@@ -48,5 +48,8 @@ FunctionPass *createIMCEPrintMachineFunctionPass();
 void initializeIMCECountedLoopMIRPass(PassRegistry &);
 FunctionPass *createIMCECountedLoopMIRPass();
 
+void initializeIMCECoreIDAssignPass(PassRegistry &);
+FunctionPass *createIMCECoreIDAssignPass();
+
 } // end namespace llvm
 #endif
