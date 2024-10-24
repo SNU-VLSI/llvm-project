@@ -25,15 +25,6 @@ public:
 
   ~IMCEELFObjectWriter() override;
 
-  // // Return true if the given relocation must be with a symbol rather than
-  // // section plus offset.
-  // bool needsRelocateWithSymbol(const MCSymbol &Sym,
-  //                              unsigned Type) const override {
-  //   // TODO: this is very conservative, update once RISC-V psABI requirements
-  //   //       are clarified.
-  //   return true;
-  // }
-
 protected:
   unsigned getRelocType(MCContext &Ctx, const MCValue &Target,
                         const MCFixup &Fixup, bool IsPCRel) const override;
