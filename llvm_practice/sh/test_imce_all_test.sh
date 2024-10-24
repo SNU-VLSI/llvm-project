@@ -1,10 +1,13 @@
-../sh/run_imce_llc.sh ../test_ll/test_imce_ainst.ll 2> ./output/test_imce_ainst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_jinst.ll 2> ./output/test_imce_jinst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_sinst.ll 2> ./output/test_imce_sinst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_binst.ll 2> ./output/test_imce_binst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_pinst.ll 2> ./output/test_imce_pinst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_xinst.ll 2> ./output/test_imce_xinst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_cinst.ll 2> ./output/test_imce_cinst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_qinst.ll 2> ./output/test_imce_qinst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_iinst.ll 2> ./output/test_imce_iinst.log
-../sh/run_imce_llc.sh ../test_ll/test_imce_rinst.ll 2> ./output/test_imce_rinst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_ainst.ll   2>&1 | tee -a ./output/test_imce_ainst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_jinst.ll   2>&1 | tee -a ./output/test_imce_jinst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_sinst.ll   2>&1 | tee -a ./output/test_imce_sinst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_binst.ll   2>&1 | tee -a ./output/test_imce_binst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_pinst.ll   2>&1 | tee -a ./output/test_imce_pinst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_xinst.ll   2>&1 | tee -a ./output/test_imce_xinst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_cinst.ll   2>&1 | tee -a ./output/test_imce_cinst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_qinst.ll   2>&1 | tee -a ./output/test_imce_qinst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_iinst.ll   2>&1 | tee -a ./output/test_imce_iinst.log
+../sh/run_imce_llc.sh ../test_ll/test_imce_rinst.ll   2>&1 | tee -a ./output/test_imce_rinst.log
+../sh/run_imce_clang.sh ../test_cpp/test_relu.cpp     2>&1 | tee -a ./output/test_relu.log
+../sh/run_imce_clang.sh ../test_cpp/test_conv.cpp     2>&1 | tee -a ./output/test_conv.log
+../sh/run_imce_clang.sh ../test_cpp/test_builtins.cpp 2>&1 | tee -a ./output/test_builtins.log

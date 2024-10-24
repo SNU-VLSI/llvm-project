@@ -15,4 +15,4 @@ llc --march=IMCE output/$filename_no_ext.ll -o ./output/$filename_no_ext.o \
   -filetype=obj \
   -debug
 
-llvm-objdump -d --triple=IMCE output/$filename_no_ext.o > output/$filename_no_ext.dump
+llvm-objdump -dr --triple=IMCE output/$filename_no_ext.o > output/$filename_no_ext.dump
