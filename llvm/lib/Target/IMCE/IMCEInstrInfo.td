@@ -160,13 +160,6 @@ def uimm26 : Operand<i16>, TImmLeaf<i16, [{return isUInt<26>(Imm);}]> {
   let OperandNamespace = "IMCEOp";
 }
 
-def simm6 : Operand<i16>, TImmLeaf<i16, [{return isInt<6>(Imm);}]> {
-  let ParserMatchClass = SImmAsmOperand<6>;
-  let DecoderMethod = "decodeSImmOperand<6>";
-  let OperandType = "OPERAND_SIMM6";
-  let OperandNamespace = "IMCEOp";
-}
-
 def simm14 : Operand<i16>, TImmLeaf<i16, [{return isInt<14>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<14>;
   let DecoderMethod = "decodeSImmOperand<14>";
@@ -182,6 +175,7 @@ def JumpTargetAsmOperand : AsmOperandClass {
 
 def jumptarget : Operand<OtherVT> {
   let EncoderMethod = "getJumpTargetOpValue";
+  let DecoderMethod = "decodeJumpTarget";
   let ParserMatchClass = JumpTargetAsmOperand;
   let PrintMethod = "printJumpOperand";
 }
@@ -189,7 +183,7 @@ def jumptarget : Operand<OtherVT> {
 def brtarget : Operand<OtherVT> {
   let EncoderMethod = "getBranchTargetOpValue";
   let OperandType = "OPERAND_PCREL";
-  // let DecoderMethod = "DecodeBranchTarget";
+  let DecoderMethod = "decodeBranchTarget";
   let ParserMatchClass = JumpTargetAsmOperand;
   let PrintMethod = "printBranchOperand";
 }
@@ -290,7 +284,7 @@ def IMCE_DWCONV_INST : AInst<"dwconv", 0b001100> {
 }
 
 // B type
-class BInst<string opname, int opcode> : InstBType<opcode, (outs HWLOOPREGOpnd:$rs2), (ins simm6:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm), opname, "$imm2 $rs1 $imm", []>;
+class BInst<string opname, int opcode> : InstBType<opcode, (outs HWLOOPREGOpnd:$rs2), (ins brtarget:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm), opname, "$imm2 $rs1 $imm", []>;
 def IMCE_BNE_INST : BInst<"bne", 0b111000> {
   let mayLoad=0;
   let mayStore=0;

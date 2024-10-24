@@ -85,6 +85,22 @@ static DecodeStatus decodeSImmOperand(MCInst &Inst, uint32_t Imm,
   return MCDisassembler::Success;
 }
 
+static DecodeStatus decodeJumpTarget(MCInst &Inst, unsigned Offset,
+                                     uint64_t Address,
+                                     const MCDisassembler *Decoder) {
+  unsigned JumpOffset = Offset << 2;
+  Inst.addOperand(MCOperand::createImm(JumpOffset));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus decodeBranchTarget(MCInst &Inst, unsigned Offset,
+                                     uint64_t Address,
+                                     const MCDisassembler *Decoder) {
+  int32_t BranchOffset = SignExtend32<6>(Offset) * 4;
+  Inst.addOperand(MCOperand::createImm(BranchOffset));
+  return MCDisassembler::Success;
+}
+
 #include "IMCEGenDisassemblerTables.inc"
 
 DecodeStatus IMCEDisassembler::getInstruction(MCInst &MI, uint64_t &Size, ArrayRef<uint8_t> Bytes,

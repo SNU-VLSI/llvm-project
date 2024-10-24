@@ -25,6 +25,47 @@
 
 using namespace llvm;
 
+static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
+                                 MCContext &Ctx) {
+
+  unsigned Kind = Fixup.getKind();
+
+  // Add/subtract and shift
+  switch (Kind) {
+  default:
+    return 0;
+  case FK_Data_2:
+    Value &= 0xffff;
+    break;
+  case FK_DTPRel_4:
+  case FK_DTPRel_8:
+  case FK_TPRel_4:
+  case FK_TPRel_8:
+  case FK_GPRel_4:
+  case FK_Data_4:
+  case FK_Data_8:
+    break;
+  case IMCE::fixup_imce_PC6:
+    // The displacement is then divided by 4 to give us an 8 bit
+    // address range. Forcing a signed division because Value can be negative.
+    Value = (int64_t)Value / 4;
+    // We now check if Value can be encoded as a 6-bit signed immediate.
+    if (!isInt<6>(Value)) {
+      Ctx.reportError(Fixup.getLoc(), "out of range PC6 fixup");
+      return 0;
+    }
+    break;
+  case IMCE::fixup_imce_26:
+    // So far we are only using this type for jumps.
+    // The displacement is then divided by 4 to give us an 28 bit
+    // address range.
+    Value >>= 2;
+    break;
+  }
+
+  return Value;
+}
+
 std::unique_ptr<MCObjectTargetWriter> IMCEAsmBackend::createObjectTargetWriter() const {
   return createIMCEELFObjectWriter(OSABI, Is64Bit);
 }
@@ -32,10 +73,11 @@ std::unique_ptr<MCObjectTargetWriter> IMCEAsmBackend::createObjectTargetWriter()
 const MCFixupKindInfo &IMCEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
   const static MCFixupKindInfo Infos[] = {
       // This table *must* be in the order that the fixup_* kinds are defined in
-      // RISCVFixupKinds.h.
+      // IMCEFixupKinds.h. the offset and bits are in big endian.
       //
-      // name                      offset bits  flags
-      {"fixup_imce_PC6", 0, 32, MCFixupKindInfo::FKF_IsPCRel},
+      // name             offset bits  flags
+      { "fixup_imce_PC6",      6,   6, MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_imce_26",       6,  26, 0 },
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -46,11 +88,44 @@ const MCFixupKindInfo &IMCEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const 
   return Infos[Kind - FirstTargetFixupKind];
 }
 
+/// ApplyFixup - Apply the \p Value for given \p Fixup into the provided
+/// data fragment, at the offset specified by the fixup and following the
+/// fixup kind as appropriate.
 void IMCEAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
                                 const MCValue &Target,
                                 MutableArrayRef<char> Data, uint64_t Value,
                                 bool IsResolved,
                                 const MCSubtargetInfo *STI) const {
+  MCFixupKind Kind = Fixup.getKind();
+  MCContext &Ctx = Asm.getContext();
+  Value = adjustFixupValue(Fixup, Value, Ctx);
+
+  unsigned TargetOffset = getFixupKindInfo(Kind).TargetOffset;
+  unsigned TargetSize = getFixupKindInfo(Kind).TargetSize;
+
+  // Shift the value into position.
+  Value <<= TargetOffset;
+  // Mask out the MSBs that don't fit in the fixup.
+  Value &= (1 << (TargetSize + TargetOffset)) - 1;
+
+  if (!Value)
+    return; // Doesn't change encoding.
+
+  // Where do we start in the object
+  unsigned Offset = Fixup.getOffset();
+  // Number of bytes we need to fixup
+  unsigned NumBytes = (TargetSize + TargetOffset + 7) / 8;
+  assert(Offset + NumBytes <= Data.size() && "Invalid fixup offset!");
+  // Used to point to big endian bytes.
+  unsigned FullSizeBytes = 4;
+
+  // For each byte of the fragment that the fixup touches, mask in the bits
+  // from the fixup value. The Value has been "split up" into the appropriate
+  // bitfields above.
+  for (unsigned i = 0; i != NumBytes; ++i) {
+    unsigned Idx = (FullSizeBytes - 1 - i);
+    Data[Offset + Idx] |= (uint8_t)((Value >> (i * 8)) & 0xff);
+  }
 }
 
 bool IMCEAsmBackend::writeNopData(raw_ostream &OS, uint64_t Count,

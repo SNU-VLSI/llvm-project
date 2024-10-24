@@ -89,9 +89,8 @@ getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
   assert(MO.isExpr() &&
          "getBranchTargetOpValue expects only expressions or immediates");
 
-  const MCExpr *FixupExpression = MCBinaryExpr::createAdd(
-      MO.getExpr(), MCConstantExpr::create(-4, Ctx), Ctx);
-  Fixups.push_back(MCFixup::create(0, FixupExpression,
+  const MCExpr *Expr = MO.getExpr();
+  Fixups.push_back(MCFixup::create(0, Expr,
                                    MCFixupKind(IMCE::fixup_imce_PC6)));
   return 0;
 }
