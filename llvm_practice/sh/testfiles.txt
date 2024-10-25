@@ -1,0 +1,13 @@
+../test_ll/test_imce_ainst.ll
+../test_ll/test_imce_jinst.ll
+../test_ll/test_imce_sinst.ll
+../test_ll/test_imce_binst.ll
+../test_ll/test_imce_pinst.ll
+../test_ll/test_imce_xinst.ll
+../test_ll/test_imce_cinst.ll
+../test_ll/test_imce_qinst.ll
+../test_ll/test_imce_iinst.ll
+../test_ll/test_imce_rinst.ll
+../test_cpp/test_relu.cpp
+../test_cpp/test_conv.cpp
+../test_cpp/test_builtins.cpp
