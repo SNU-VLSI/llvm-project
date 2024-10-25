@@ -93,7 +93,7 @@ static bool runCoreAssign(Function &F) {
 bool IMCECoreIDAssign::runOnFunction(Function &F) {
   bool changed = runCoreAssign(F);
   LLVM_DEBUG(F.print(dbgs()));
-  return runCoreAssign(F);
+  return changed;
 }
 
 char IMCECoreIDAssign::ID = 0;
