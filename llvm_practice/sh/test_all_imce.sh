@@ -26,17 +26,11 @@ while IFS= read -r fn || [[ -n "$fn" ]]; do
 
   # compile with debug flag if -d is set
   if [ "$debug" = 'true' ]; then
-    echo -n "Testing with -d: $fn"
+    echo "Testing with -d: $fn"
     $script_dir/compile_imce_debug.sh $fn 2>&1 | tee -a ./logs/$fn_no_ext.debug.log
   else
-    echo -n "Testing: $fn"
+    echo "Testing: $fn"
     $script_dir/compile_imce.sh $fn 2> ./logs/$fn_no_ext.log
   fi
 
-  # check if the last command was successful
-  if [ $? -ne 0 ]; then
-    echo " ... Fail"
-  else
-    echo " ... Success"
-  fi
 done < $script_dir/testfiles.txt
