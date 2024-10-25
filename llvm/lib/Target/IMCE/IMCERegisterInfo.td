@@ -48,7 +48,9 @@ foreach I=0-1 in {
 // Register classes
 // ==============================================================
 
-def VGPR : RegisterClass<"IMCE", [v16i16, i16, i32], 256, (add (sequence "V%u", 0, 31))> {
+def VGPR : RegisterClass<"IMCE", [v16i16, i16, i32], 256, (add
+                         (sequence "V%u", 0, 31), (sequence "QREG%u", 0, 3),
+                         (sequence "CREG%u", 0, 3))> {
   let Size = 256;
   let CopyCost = 1;
 }

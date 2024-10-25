@@ -40,24 +40,38 @@ void IMCEInstPrinter::printOperand(const MCInst *MI, int OpNum,
     llvm_unreachable("Invalid operand");
 }
 
-void IMCEInstPrinter::printOperand(const MCOperand &MO, const MCAsmInfo *MAI,
-                                   raw_ostream &O) {
-  if (MO.isReg()) {
-    if (!MO.getReg())
-      O << '0';
-    else
-      O << '%' << getRegisterName(MO.getReg());
-  } else if (MO.isImm())
-    O << MO.getImm();
-  else if (MO.isExpr())
-    MO.getExpr()->print(O, MAI);
-  else
-    llvm_unreachable("Invalid operand");
-}
-
 void IMCEInstPrinter::printInst(const MCInst *MI, uint64_t Address,
                                 StringRef Annot, const MCSubtargetInfo &STI,
                                 raw_ostream &O) {
   printInstruction(MI, Address, STI, O);
   printAnnotation(O, Annot);
+}
+
+void IMCEInstPrinter::printJumpOperand(const MCInst *MI, unsigned OpNo,
+                                       const MCSubtargetInfo &STI,
+                                       raw_ostream &O) {
+  const MCOperand &Op = MI->getOperand(OpNo);
+  if (!Op.isImm())
+    return printOperand(MI, OpNo, STI, O);
+
+  if (PrintBranchImmAsAddress)
+    markup(O, Markup::Immediate) << formatHex(Op.getImm());
+  else
+    markup(O, Markup::Immediate) << formatImm(Op.getImm());
+}
+
+void IMCEInstPrinter::printBranchOperand(const MCInst *MI, uint64_t Address,
+                                         unsigned OpNo,
+                                         const MCSubtargetInfo &STI,
+                                         raw_ostream &O) {
+  const MCOperand &Op = MI->getOperand(OpNo);
+  if (!Op.isImm())
+    return printOperand(MI, OpNo, STI, O);
+
+  if (PrintBranchImmAsAddress) {
+    uint64_t Target = Address + Op.getImm();
+    markup(O, Markup::Immediate) << formatHex(Target);
+  } else {
+    markup(O, Markup::Immediate) << formatImm(Op.getImm());
+  }
 }

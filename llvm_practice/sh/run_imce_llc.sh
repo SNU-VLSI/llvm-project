@@ -13,4 +13,4 @@ llc --march=IMCE $1 -o ./output/$filename_no_ext.o \
   -filetype=obj \
   -debug-only=isel
 
-llvm-objdump -d --triple=IMCE output/$filename_no_ext.o > output/$filename_no_ext.dump
+llvm-objdump -dr --triple=IMCE output/$filename_no_ext.o > output/$filename_no_ext.dump

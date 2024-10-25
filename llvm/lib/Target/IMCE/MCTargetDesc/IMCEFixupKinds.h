@@ -16,8 +16,11 @@
 
 namespace llvm::IMCE {
 enum Fixups {
-  // 6-bit fixup for symbol references in the branch instructions
-  fixup_imce_branch,
+  // PC relative 6-bit fixup for branch resulting in - R_IMCE_PC6
+  fixup_imce_PC6 = FirstTargetFixupKind,
+
+  // 26-bit fixup for jump resulting in - R_IMCE_26
+  fixup_imce_26,
 
   // Used as a sentinel, must be the last
   LastTargetFixupKind,
