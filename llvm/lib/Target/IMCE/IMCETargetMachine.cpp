@@ -135,9 +135,9 @@ void IMCEPassConfig::addIRPasses() {
 
 bool IMCEPassConfig::addPreISel() {
   addPass(createHardwareLoopsLegacyPass());
-  addPass(createPrintFunctionsPass());
+  // addPass(createPrintFunctionsPass());
   addPass(createIMCELoopConversionPass());
-  addPass(createPrintFunctionsPass());
+  // addPass(createPrintFunctionsPass());
   return false;
 }
 
@@ -147,7 +147,7 @@ bool IMCEPassConfig::addInstSelector() {
 }
 
 void IMCEPassConfig::addPreRegAlloc() {
-  addPass(createIMCEPrintMachineFunctionPass());
+  // addPass(createIMCEPrintMachineFunctionPass());
   TargetPassConfig::addPreRegAlloc();
   // addPass(&MachineCopyPropagationID);
   // addPass(createIMCEPrintMachineFunctionPass());
@@ -158,11 +158,11 @@ void IMCEPassConfig::addPreEmitPass() {
   if (getOptLevel() != CodeGenOptLevel::None) {
     addPass(&FinalizeMachineBundlesID);
   }
-  addPass(createIMCEPrintMachineFunctionPass());
+  // addPass(createIMCEPrintMachineFunctionPass());
 }
 
 void IMCEPassConfig::addMachineLateOptimization() {
-  addPass(createIMCEPrintMachineFunctionPass());
+  // addPass(createIMCEPrintMachineFunctionPass());
   TargetPassConfig::addMachineLateOptimization();
-  addPass(createIMCEPrintMachineFunctionPass());
+  // addPass(createIMCEPrintMachineFunctionPass());
 }
