@@ -102,7 +102,7 @@ class IMCEPassConfig : public TargetPassConfig {
 public:
   IMCEPassConfig(IMCETargetMachine &TM, PassManagerBase &PM) : TargetPassConfig(TM, PM) {}
 
-  // void addIRPasses() override;
+  void addIRPasses() override;
   bool addPreISel() override;
   bool addInstSelector() override;
   void addPreRegAlloc() override;
@@ -127,11 +127,11 @@ void IMCETargetMachine::registerPassBuilderCallbacks(PassBuilder &PB) {
       });
 }
 
-// void IMCEPassConfig::addIRPasses() {
-//   addPass(createIMCECoreIDAssignPass());
-//   addPass(createCFGSimplificationPass());
-//   TargetPassConfig::addIRPasses();
-// }
+void IMCEPassConfig::addIRPasses() {
+  addPass(createIMCECoreIDAssignPass());
+  addPass(createSCCPLegacyPass());
+  TargetPassConfig::addIRPasses();
+}
 
 bool IMCEPassConfig::addPreISel() {
   addPass(createHardwareLoopsLegacyPass());

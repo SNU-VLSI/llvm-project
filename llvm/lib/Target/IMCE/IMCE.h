@@ -51,5 +51,8 @@ FunctionPass *createIMCECountedLoopMIRPass();
 void initializeIMCECoreIDAssignPass(PassRegistry &);
 FunctionPass *createIMCECoreIDAssignPass();
 
+void initializeSCCPLegacyPass(PassRegistry &);
+FunctionPass *createSCCPLegacyPass();
+
 } // end namespace llvm
 #endif
