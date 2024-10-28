@@ -20,7 +20,7 @@ elif [[ $fn_ext == "ll" ]]; then
       -filetype=obj \
       $1 -o output/$fn_no_ext.o
 else
-  echo "Invalid file extension"
+  echo "Invalid file extension $fn_ext"
 fi
 
 # create binary using ld.lld

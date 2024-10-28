@@ -13,7 +13,7 @@ if [[ $fn_ext == "cpp" ]]; then
 elif [[ $fn_ext == "ll" ]]; then
   cp $1 output/$fn_no_ext.ll
 else
-  echo "Invalid file extension"
+  echo "Invalid file extension $fn_ext"
 fi
 
 # generate .s with debug flag
@@ -34,7 +34,7 @@ llc --march=IMCE output/$fn_no_ext.ll -o ./output/$fn_no_ext.o \
   -print-after-all
 
 # create binary using ld.lld
-ld.lld -e 0 -Ttext 0x0 -o --verbose output/$fn_no_ext output/$fn_no_ext.o
+ld.lld -e 0 -Ttext 0x0 --verbose -o output/$fn_no_ext output/$fn_no_ext.o
 
 # dump .o to .dump
 llvm-objdump -dr --triple=IMCE output/$fn_no_ext.o > output/$fn_no_ext.dump

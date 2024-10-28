@@ -27,7 +27,7 @@ while IFS= read -r fn || [[ -n "$fn" ]]; do
   # compile with debug flag if -d is set
   if [ "$debug" = 'true' ]; then
     echo "Testing with -d: $fn"
-    $script_dir/compile_imce_debug.sh $fn 2>&1 | tee -a ./logs/$fn_no_ext.debug.log
+    $script_dir/compile_imce_debug.sh $fn 2> ./logs/$fn_no_ext.debug.log
   else
     echo "Testing: $fn"
     $script_dir/compile_imce.sh $fn 2> ./logs/$fn_no_ext.log
