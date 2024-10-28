@@ -19,6 +19,9 @@ enum Fixups {
   // PC relative 6-bit fixup for branch resulting in - R_IMCE_PC6
   fixup_imce_PC6 = FirstTargetFixupKind,
 
+  // target-dependent 26-bit fixup for jump resulting in - R_IMCE_TARGET_26
+  fixup_imce_target_26,
+
   // 26-bit fixup for jump resulting in - R_IMCE_26
   fixup_imce_26,
 

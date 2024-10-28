@@ -5,4 +5,5 @@
 
 ELF_RELOC(R_IMCE_NONE,               0)
 ELF_RELOC(R_IMCE_PC6,                1)
-ELF_RELOC(R_IMCE_26,                 2)
+ELF_RELOC(R_IMCE_TARGET_26,          2)
+ELF_RELOC(R_IMCE_26,                 3)

@@ -8,6 +8,7 @@
 
 #include "Symbols.h"
 #include "Target.h"
+#include "OutputSections.h"
 #include "lld/Common/ErrorHandler.h"
 #include "llvm/BinaryFormat/ELF.h"
 #include "llvm/Support/Endian.h"
@@ -40,6 +41,8 @@ RelExpr IMCE::getRelExpr(RelType type, const Symbol &s,
     return R_NONE;
   case R_IMCE_PC6:
     return R_PC;
+  case R_IMCE_TARGET_26:
+    return R_IMCE_ADD_PC_TO_OFFSET;
   default:
     return R_ABS;
   }
@@ -48,14 +51,13 @@ RelExpr IMCE::getRelExpr(RelType type, const Symbol &s,
 void IMCE::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
   switch (rel.type) {
   case R_IMCE_PC6: {
-    // VINN: check this
     uint32_t mask = 0x00000FC0;
     checkInt(loc, val, 8, rel);
     write32(loc, (read32(loc) & ~mask) | ((val << 4) & mask));
     break;
   }
+  case R_IMCE_TARGET_26:
   case R_IMCE_26: {
-    // VINN: check this
     uint32_t mask = 0xFFFFFFC0;
     checkIntUInt(loc, val, 26, rel);
     write32(loc, (read32(loc) & ~mask) | ((val << 4) & mask));

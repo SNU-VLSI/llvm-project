@@ -19,6 +19,7 @@
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
+#include "llvm/MC/MCInstBuilder.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
@@ -40,9 +41,63 @@ MCCodeEmitter *createIMCEMCCodeEmitter(const MCInstrInfo &MCII, MCContext &Ctx) 
 
 } // namespace llvm
 
+// Expand IMCE_LONG_BNE to a BNE, JMP, JUMP instruction sequence.
+void IMCEMCCodeEmitter::expandLongBNE(const MCInst &MI,
+                                          SmallVectorImpl<char> &CB,
+                                          SmallVectorImpl<MCFixup> &Fixups,
+                                          const MCSubtargetInfo &STI) const {
+  MCRegister OutReg = MI.getOperand(0).getReg();
+  MCOperand SrcSymbol = MI.getOperand(1);
+  MCRegister SrcReg = MI.getOperand(2).getReg();
+  MCRegister SrcImm = MI.getOperand(3).getImm();
+
+  // Emit a bne where if not taken, proceed to first JMP_INST, if taken jump to the second.
+  MCInst TmpInst =
+      MCInstBuilder(IMCE::IMCE_BNE_INST).addReg(OutReg).addImm(8).addReg(SrcReg).addImm(SrcImm);
+  uint32_t Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+  support::endian::write(CB, Binary, llvm::endianness::big);
+
+  // Emit an unconditional jump to skip the next instruction.
+  int64_t TargetOffset = 8;
+  const MCExpr *OffsetExpr = MCConstantExpr::create(TargetOffset, Ctx);
+
+  TmpInst =
+      MCInstBuilder(IMCE::IMCE_JMP_INST).addExpr(OffsetExpr);
+  Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+  support::endian::write(CB, Binary, llvm::endianness::big);
+
+  // Emit an unconditional jump to the destination.
+  TmpInst =
+      MCInstBuilder(IMCE::IMCE_JMP_INST).addOperand(SrcSymbol);
+  Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+  support::endian::write(CB, Binary, llvm::endianness::big);
+
+  // override the fixups.
+  Fixups.clear();
+  uint32_t Offset = 4;
+  Fixups.push_back(MCFixup::create(Offset, OffsetExpr,
+                                    MCFixupKind(IMCE::fixup_imce_target_26),
+                                    MI.getLoc()));
+  if (SrcSymbol.isExpr()) {
+    Offset = 8;
+    Fixups.push_back(MCFixup::create(Offset, SrcSymbol.getExpr(),
+                                     MCFixupKind(IMCE::fixup_imce_26),
+                                     MI.getLoc()));
+  }
+}
+
 void IMCEMCCodeEmitter::encodeInstruction(const MCInst &MI, SmallVectorImpl<char> &CB,
                                           SmallVectorImpl<MCFixup> &Fixups,
                                           const MCSubtargetInfo &STI) const {
+  switch (MI.getOpcode()) {
+  default:
+    break;
+  case IMCE::IMCE_LONG_BNE:
+    expandLongBNE(MI, CB, Fixups, STI);
+    MCNumEmitted += 3;
+    return;
+  }
+
   // Get instruction encoding and emit it.
   uint64_t Bits = getBinaryCodeForInstr(MI, Fixups, STI);
   ++MCNumEmitted; // Keep track of the number of emitted insns.

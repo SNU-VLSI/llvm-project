@@ -62,6 +62,8 @@ unsigned IMCEELFObjectWriter::getRelocType(MCContext &Ctx,
     return ELF::R_IMCE_NONE;
   case IMCE::fixup_imce_26:
     return ELF::R_IMCE_26;
+  case IMCE::fixup_imce_target_26:
+    return ELF::R_IMCE_TARGET_26;
   }
 }
 

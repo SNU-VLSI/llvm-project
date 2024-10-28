@@ -55,6 +55,7 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
       return 0;
     }
     break;
+  case IMCE::fixup_imce_target_26:
   case IMCE::fixup_imce_26:
     // So far we are only using this type for jumps.
     // The displacement is then divided by 4 to give us an 28 bit
@@ -75,9 +76,10 @@ const MCFixupKindInfo &IMCEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const 
       // This table *must* be in the order that the fixup_* kinds are defined in
       // IMCEFixupKinds.h. the offset and bits are in big endian.
       //
-      // name             offset bits  flags
-      { "fixup_imce_PC6",      6,   6, MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_imce_26",       6,  26, 0 },
+      // name              offset bits  flags
+      { "fixup_imce_PC6",       6,   6, MCFixupKindInfo::FKF_IsPCRel  },
+      { "fixup_imce_target_26", 6,  26, MCFixupKindInfo::FKF_IsTarget },
+      { "fixup_imce_26",        6,  26, 0 },
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -86,6 +88,19 @@ const MCFixupKindInfo &IMCEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const 
   assert(unsigned(Kind - FirstTargetFixupKind) < getNumFixupKinds() &&
          "Invalid kind!");
   return Infos[Kind - FirstTargetFixupKind];
+}
+
+bool IMCEAsmBackend::evaluateTargetFixup(const MCAssembler &Asm,
+                                          const MCFixup &Fixup,
+                                          const MCFragment *DF,
+                                          const MCValue &Target,
+                                          const MCSubtargetInfo *STI,
+                                          uint64_t &Value, bool &WasForced) {
+  if (Fixup.getTargetKind() != IMCE::fixup_imce_target_26)
+    llvm_unreachable("Unexpected fixup kind!");
+
+  Value = Target.getConstant();
+  return false;
 }
 
 /// ApplyFixup - Apply the \p Value for given \p Fixup into the provided
@@ -156,60 +171,26 @@ bool IMCEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value) 
     return false;
   case IMCE::fixup_imce_PC6:
     // For BNE instruction the immediate (simm6) must be
-    // in the range [-32, 31].
+    // in the range [-32, 31], thus Offset in range [-128, 127]
+    // return Offset > 127 || Offset < -128;
     return Offset > 31 || Offset < -32;
   }
 };
 
 void IMCEAsmBackend::relaxInstruction(MCInst &Inst,
                       const MCSubtargetInfo &STI) const {
+  MCInst Res;
   switch (Inst.getOpcode()) {
     default:
       llvm_unreachable("Unexpected instruction to relax");
     case IMCE::IMCE_BNE_INST: {
-      llvm_unreachable("not yet implemented");
+      Res.setOpcode(IMCE::IMCE_LONG_BNE);
+      Res.addOperand(Inst.getOperand(0));
+      Res.addOperand(Inst.getOperand(1));
+      Res.addOperand(Inst.getOperand(2));
+      Res.addOperand(Inst.getOperand(3));
+      break;
     }
   }
+  Inst = std::move(Res);
 };
-
-// void IMCEAsmBackend::relaxInstruction(const MCInst &Inst, MCInst &Res) const {
-//     assert(Inst.getOpcode() == IMCE::BNE && "Only relaxing BNE instructions is supported");
-
-//     // Extract the operands from the original BNE instruction
-//     // Assuming BNE format: BNE $reg1, $reg2, offset
-//     auto Reg1 = Inst.getOperand(0).getReg();
-//     auto Reg2 = Inst.getOperand(1).getReg();
-//     int64_t TargetOffset = Inst.getOperand(2).getImm();
-
-//     // Determine if the target offset is within the signed 6-bit range (-32 to +31)
-//     if (TargetOffset >= -32 && TargetOffset <= 31) {
-//         // If within range, no relaxation is needed
-//         Res = Inst;
-//         return;
-//     }
-
-//     // Otherwise, we need to relax the instruction into a BNE + JMP sequence
-//     // Step 1: Create a BNE instruction that branches to a "nearby" location
-//     MCInst BNE_Near;
-//     BNE_Near.setOpcode(IMCE::BNE);
-//     BNE_Near.addOperand(MCOperand::createReg(Reg1));
-//     BNE_Near.addOperand(MCOperand::createReg(Reg2));
-//     BNE_Near.addOperand(MCOperand::createImm(2)); // BNE to the next instruction (JMP long_target)
-
-//     // Step 2: Create a JMP instruction that skips over the long jump
-//     MCInst JMP_End;
-//     JMP_End.setOpcode(IMCE::JMP);
-//     JMP_End.addOperand(MCOperand::createImm(2)); // Skip over the long_target JMP
-
-//     // Step 3: Create the JMP instruction to the actual long target
-//     MCInst JMP_LongTarget;
-//     JMP_LongTarget.setOpcode(IMCE::JMP);
-//     JMP_LongTarget.addOperand(MCOperand::createImm(TargetOffset));
-
-//     // Step 4: Combine the instructions in order: BNE_Near, JMP_End, JMP_LongTarget
-//     Res = MCInst();
-//     Res.setOpcode(IMCE::SEQUENCE); // This is a pseudo-op to represent a sequence of instructions
-//     Res.addOperand(MCOperand::createInst(BNE_Near));
-//     Res.addOperand(MCOperand::createInst(JMP_End));
-//     Res.addOperand(MCOperand::createInst(JMP_LongTarget));
-// }

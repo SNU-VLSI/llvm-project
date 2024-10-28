@@ -288,7 +288,22 @@ class BInst<string opname, int opcode> : InstBType<opcode, (outs HWLOOPREGOpnd:$
 def IMCE_BNE_INST : BInst<"bne", 0b111000> {
   let mayLoad=0;
   let mayStore=0;
+  let isBranch = 1;
+  let isTerminator = 1;
   let Constraints = "$rs2 = $rs1";
+}
+
+def IMCE_LONG_BNE : Pseudo<(outs HWLOOPREGOpnd:$rs2),
+                           (ins brtarget:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm),
+                          "# LONG_BNE $imm2, $rs1, $imm",
+                           []> {
+  let isBarrier = 1;
+  let isBranch = 1;
+  let hasSideEffects = 0;
+  let mayStore = 0;
+  let mayLoad = 0;
+  let isAsmParserOnly = 1;
+  let hasNoSchedulingInfo = 1;
 }
 
 // C type

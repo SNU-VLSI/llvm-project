@@ -933,6 +933,8 @@ uint64_t InputSectionBase::getRelocTargetVA(const InputFile *file, RelType type,
     return in.got->getTlsIndexOff() + a;
   case R_TLSLD_PC:
     return in.got->getTlsIndexVA() + a - p;
+  case R_IMCE_ADD_PC_TO_OFFSET:
+    return a + p; // VINN: this seems a lot awkward
   default:
     llvm_unreachable("invalid expression");
   }

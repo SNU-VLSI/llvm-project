@@ -118,6 +118,8 @@ enum RelExpr {
   R_LOONGARCH_GOT_PAGE_PC,
   R_LOONGARCH_TLSGD_PAGE_PC,
   R_LOONGARCH_TLSDESC_PAGE_PC,
+  // IMCE's target-specific relocation type.
+  R_IMCE_ADD_PC_TO_OFFSET,
 };
 
 // Architecture-neutral representation of relocation.

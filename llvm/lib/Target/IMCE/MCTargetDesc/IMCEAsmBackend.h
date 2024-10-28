@@ -41,6 +41,11 @@ public:
 
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
 
+  bool evaluateTargetFixup(const MCAssembler &Asm, const MCFixup &Fixup,
+                           const MCFragment *DF, const MCValue &Target,
+                           const MCSubtargetInfo *STI, uint64_t &Value,
+                           bool &WasForced) override;
+
   void applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
                   const MCValue &Target, MutableArrayRef<char> Data,
                   uint64_t Value, bool IsResolved,
