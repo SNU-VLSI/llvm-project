@@ -17,9 +17,12 @@
 // Selection DAG types.
 
 // These are target-independent nodes, but have target-specific formats.
-def SDT_CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i16>, SDTCisVT<1, i16>]>;
-def SDT_CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i16>, SDTCisVT<1, i16>]>;
+def SDT_CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
+def SDT_CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
 def SDT_Call         : SDTypeProfile<0, -1, [SDTCisPtrTy<0>]>;
+def SDT_INODEBrCC    : SDTypeProfile<0, 4, [SDTCisSameAs<0, 1>,
+                                            SDTCisVT<2, OtherVT>,
+                                            SDTCisVT<3, OtherVT>]>;
 
 // Selection DAG nodes.
 def call             : SDNode<"INODEISD::CALL", SDT_Call,
@@ -30,19 +33,19 @@ def retglue          : SDNode<"INODEISD::RET_GLUE", SDTNone,
 
 def INODECloopBeginValue :
   SDNode<"INODEISD::CLOOP_BEGIN_VALUE",
-         SDTypeProfile<1, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
+         SDTypeProfile<1, 1, [SDTCisVT<0, i32>, SDTCisVT<1, i32>]>, // loop_indvar_reg, loop_bound_constant 
          [SDNPHasChain]>;
 def INODECloopBeginTerminator :
   SDNode<"INODEISD::CLOOP_BEGIN_TERMINATOR",
-         SDTypeProfile<0, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>]>,
+         SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>, // loop_indvar_reg
          [SDNPHasChain]>;
 def INODECloopEndValue :
   SDNode<"INODEISD::CLOOP_END_VALUE",
-         SDTypeProfile<1, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>]>,
+         SDTypeProfile<1, 1, [SDTCisVT<0, i32>, SDTCisVT<1, i32>]>, //loop_indvar_reg, loop_indvar_reg
          [SDNPHasChain]>;
 def INODECloopEndBranch :
   SDNode<"INODEISD::CLOOP_END_BRANCH",
-         SDTypeProfile<0, 3, [SDTCisVT<1, i32>, SDTCisVT<2, i32>]>,
+         SDTypeProfile<0, 2, [SDTCisVT<0, i32>, SDTCisVT<2, i32>]>, // loop_indvar, br_target
          [SDNPHasChain]>;
 
 // ===================================================
@@ -53,14 +56,10 @@ def INODECloopEndBranch :
 class INODERegisterOperand<RegisterClass RC> : RegisterOperand<RC> {
   let DecoderMethod = "decodeRegisterClass";
 }
-
-def VGPROpnd : INODERegisterOperand<VGPR> {
-  let GIZeroRegister = V0;
+def SGPROpnd : INODERegisterOperand<SGPR> {
+  let GIZeroRegister = SReg0;
 }
-
-def QREGOpnd : INODERegisterOperand<QRegs>;
-def HWLOOPREGOpnd : INODERegisterOperand<HWLR>;
-def CREGOpnd : INODERegisterOperand<CRegs>;
+def AddrCntRegOpnd : INODERegisterOperand<AddrCnt>;
 
 // immediate operands
 class ImmAsmOperand<string prefix, int width, string suffix> : AsmOperandClass {
@@ -83,56 +82,56 @@ def ImmZeroAsmOperand : AsmOperandClass {
   let DiagnosticType = !strconcat("Invalid", Name);
 }
 
-def immzero : Operand<i16>,
-              TImmLeaf<i16, [{return (Imm == 0);}]> {
+def immzero : Operand<i32>,
+              TImmLeaf<i32, [{return (Imm == 0);}]> {
   let ParserMatchClass = ImmZeroAsmOperand;
   let OperandType = "OPERAND_ZERO";
   let OperandNamespace = "INODEOp";
 }
 
-def uimm1 : Operand<i16>, TImmLeaf<i16, [{return isUInt<1>(Imm);}]> {
+def uimm1 : Operand<i32>, TImmLeaf<i32, [{return isUInt<1>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<1>;
   let DecoderMethod = "decodeUImmOperand<1>";
   let OperandType = "OPERAND_UIMM1";
   let OperandNamespace = "INODEOp";
 }
 
-def uimm2 : Operand<i16>, TImmLeaf<i16, [{return isUInt<2>(Imm);}]> {
+def uimm2 : Operand<i32>, TImmLeaf<i32, [{return isUInt<2>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<2>;
   let DecoderMethod = "decodeUImmOperand<2>";
   let OperandType = "OPERAND_UIMM2";
   let OperandNamespace = "INODEOp";
 }
 
-def uimm3 : Operand<i16>, TImmLeaf<i16, [{return isUInt<3>(Imm);}]> {
+def uimm3 : Operand<i32>, TImmLeaf<i32, [{return isUInt<3>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<3>;
   let DecoderMethod = "decodeUImmOperand<3>";
   let OperandType = "OPERAND_UIMM3";
   let OperandNamespace = "INODEOp";
 }
 
-def uimm4 : Operand<i16>, TImmLeaf<i16, [{return isUInt<4>(Imm);}]> {
+def uimm4 : Operand<i32>, TImmLeaf<i32, [{return isUInt<4>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<4>;
   let DecoderMethod = "decodeUImmOperand<4>";
   let OperandType = "OPERAND_UIMM4";
   let OperandNamespace = "INODEOp";
 }
 
-def uimm4_allone : Operand<i16>, TImmLeaf<i16, [{return (imm == 15);}]> {
+def uimm4_allone : Operand<i32>, TImmLeaf<i32, [{return (imm == 15);}]> {
   let ParserMatchClass = UImmAsmOperand<4>;
   let DecoderMethod = "decodeUImmOperand<4>";
   let OperandType = "OPERAND_UIMM4_ALLONE";
   let OperandNamespace = "INODEOp";
 }
 
-def uimm6 : Operand<i16>, TImmLeaf<i16, [{return isUInt<6>(Imm);}]> {
+def uimm6 : Operand<i32>, TImmLeaf<i32, [{return isUInt<6>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<6>;
   let DecoderMethod = "decodeUImmOperand<6>";
   let OperandType = "OPERAND_UIMM6";
   let OperandNamespace = "INODEOp";
 }
 
-def uimm8 : Operand<i16>, TImmLeaf<i16, [{return isUInt<8>(Imm);}]> {
+def uimm8 : Operand<i32>, TImmLeaf<i32, [{return isUInt<8>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<8>;
   let DecoderMethod = "decodeUImmOperand<8>";
   let OperandType = "OPERAND_UIMM8";
@@ -153,17 +152,31 @@ def uimm16 : Operand<i32>, ImmLeaf<i32, [{return isUInt<16>(Imm);}]> {
   let OperandNamespace = "INODEOp";
 }
 
-def uimm26 : Operand<i16>, TImmLeaf<i16, [{return isUInt<26>(Imm);}]> {
+def uimm26 : Operand<i32>, TImmLeaf<i32, [{return isUInt<26>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<26>;
   let DecoderMethod = "decodeUImmOperand<26>";
   let OperandType = "OPERAND_UIMM26";
   let OperandNamespace = "INODEOp";
 }
 
-def simm14 : Operand<i16>, TImmLeaf<i16, [{return isInt<14>(Imm);}]> {
+def uimm32 : Operand<i32>, TImmLeaf<i32, [{return isUInt<32>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<32>;
+  let DecoderMethod = "decodeUImmOperand<32>";
+  let OperandType = "OPERAND_UIMM32";
+  let OperandNamespace = "INODEOp";
+}
+
+def simm14 : Operand<i32>, TImmLeaf<i32, [{return isInt<14>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<14>;
   let DecoderMethod = "decodeSImmOperand<14>";
   let OperandType = "OPERAND_SIMM14";
+  let OperandNamespace = "INODEOp";
+}
+
+def simm20 : Operand<i32>, TImmLeaf<i32, [{return isInt<20>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<20>;
+  let DecoderMethod = "decodeSImmOperand<20>";
+  let OperandType = "OPERAND_SIMM20";
   let OperandNamespace = "INODEOp";
 }
 
@@ -191,6 +204,8 @@ def brtarget : Operand<OtherVT> {
 // ========================================
 // SDNodes
 // ========================================
+def inode_brcc      : SDNode<"INODEISD::BR_CC", SDT_INODEBrCC,
+                             [SDNPHasChain]>;
 
 // ========================================
 // instructions
@@ -209,94 +224,75 @@ let mayLoad = 0, mayStore = 0 in {
 // between their location and the terminators
 // Metadata limit of imm16zi could be increased by implementing imm32
   let hasSideEffects = 0, isAsCheapAsAMove = 1 in {
-    def CLOOP_BEGIN_VALUE : Pseudo<(outs HWLOOPREGOpnd:$op0),
-                               (ins uimm14:$op1, uimm16:$meta),
-                               "# CLOOP_BEGIN_VALUE $op0, $op1, $meta",
+    def CLOOP_BEGIN_VALUE : Pseudo<(outs SGPROpnd:$loop_indvar), (ins uimm32:$loop_cnt),
+                               "# CLOOP_BEGIN_VALUE $loop_indvar, $loop_cnt",
                                []>;
 
-    def CLOOP_END_VALUE : Pseudo<(outs HWLOOPREGOpnd:$op0),
-                             (ins HWLOOPREGOpnd:$op1, uimm16:$meta),
-                             "# CLOOP_END_VALUE $op0, $op1, $meta",
-                             []>,RegConstraint<"$op0 = $op1">;
+    def CLOOP_END_VALUE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i),
+                             "# CLOOP_END_VALUE $indvar_o, $indvar_i",
+                             []>,RegConstraint<"$indvar_o = $indvar_i">;
   }
 
   def CLOOP_BEGIN_TERMINATOR : Pseudo<(outs),
-                                      (ins HWLOOPREGOpnd:$op0, uimm16:$meta),
-                                      "# CLOOP_BEGIN_TERMINATOR $op0, $meta",
+                                      (ins SGPROpnd:$indvar),
+                                      "# CLOOP_BEGIN_TERMINATOR $indvar",
                                       []> {
     let isTerminator = 1;
     let hasSideEffects = 0;
   }
 
   def CLOOP_END_BRANCH : Pseudo<(outs),
-                            (ins HWLOOPREGOpnd:$op0, brtarget:$op1, uimm16:$meta),
-                            "# CLOOP_END_BRANCH $op0, $op1, $meta",
+                            (ins SGPROpnd:$indvar, brtarget:$br_target),
+                            "# CLOOP_END_BRANCH $indvar, $br_target",
                              []> {
     let isBranch = 1;
     let isTerminator = 1;
     let hasSideEffects = 1;
   }
-
-}
-
-// R type
-class RInst<string opname, int opcode> : InstRType<opcode, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask), opname, "$rd $rs1 $rs2 $src_mask", []>;
-let mayLoad=0, mayStore=0 in {
-  def INODE_VADD_INST   : RInst<"vadd"  ,0b000000>;
-  def INODE_VSUB_INST   : RInst<"vsub"  ,0b000001>;
-  def INODE_VAND_INST   : RInst<"vand"  ,0b000010>;
-  def INODE_VOR_INST    : RInst<"vor"   ,0b000011>;
-  def INODE_VXOR_INST   : RInst<"vxor"  ,0b000100>;
-  def INODE_VSRL_INST   : RInst<"vsrl"  ,0b000101>;
-  def INODE_VSLL_INST   : RInst<"vsll"  ,0b000110>;
-  def INODE_VSRA_INST   : RInst<"vsra"  ,0b000111>;
-  def INODE_VMAX_INST   : RInst<"vmax"  ,0b001000>;
-  def INODE_VMIN_INST   : RInst<"vmin"  ,0b001001>;
-  def INODE_VMULTL_INST : RInst<"vmultl",0b001010>;
-  def INODE_VMULTH_INST : RInst<"vmulth",0b001011>;
 }
 
 // I type
-class IInst<string opname, int opcode> : InstIType<opcode, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, simm14:$imm), opname, "$rd $rs1 $imm", []>;
+class IInst<string opname, int opcode> : InstIType<opcode, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm14:$imm), opname, "$rd $rs1 $imm", []>;
 let mayLoad=0, mayStore=0 in {
-  def INODE_VADDI_INST   : IInst<"vaddi"  , 0b100000>;
-  def INODE_VSUBI_INST   : IInst<"vsubi"  , 0b100001>;
-  def INODE_VANDI_INST   : IInst<"vandi"  , 0b100010>;
-  def INODE_VORI_INST    : IInst<"vori"   , 0b100011>;
-  def INODE_VXORI_INST   : IInst<"vxori"  , 0b100100>;
-  def INODE_VSRLI_INST   : IInst<"vsrli"  , 0b100101>;
-  def INODE_VSLLI_INST   : IInst<"vslli"  , 0b100110>;
-  def INODE_VSRAI_INST   : IInst<"vsrai"  , 0b100111>;
-  def INODE_VMAXI_INST   : IInst<"vmaxi"  , 0b101000>;
-  def INODE_VMINI_INST   : IInst<"vmini"  , 0b101001>;
-  def INODE_VMULTLI_INST : IInst<"vmultli", 0b101010>;
-  def INODE_VMULTHI_INST : IInst<"vmulthi", 0b101011>;
+  def INODE_ADDI_INST   : IInst<"addi"  , 0b10001>;
+  def INODE_MULI_INST : IInst<"muli", 0b10010>;
+  def INODE_LUI_INST : IInst<"lui", 0b10011>;
 }
-
-// A type
-class AInst<string opname, int opcode> : InstAType<opcode, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1, uimm3:$shift_amt, uimm1:$dwresult_valid, uimm4:$src_mask, uimm2:$bshr_sel), opname, "$rd $rs1 $shift_amt $dwresult_valid $src_mask $bshr_sel", []>;
-def INODE_DWCONV_INST : AInst<"dwconv", 0b001100> {
-  let mayLoad=0;
-  let mayStore=0;
-  let Uses = [DWREG, BSHR0, BSHR1, BSHR2, BSHR3];
-  let Defs = [DWREG];
+def INODE_LOAD_INST : InstIType<0b101, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm14:$imm), "load", "$rd, $rs1, $imm", []> {
+  let mayLoad = 1;
+  let hasSideEffects = 1;
+}
+def INODE_STORE_INST : InstIType<0b110, (outs), (ins SGPROpnd:$rd, simm14:$imm, SGPROpnd:$rs1), "store", "$rd, $imm, $rs1", []> {
+  let mayStore = 1;
   let hasSideEffects = 1;
 }
 
 // B type
-class BInst<string opname, int opcode> : InstBType<opcode, (outs HWLOOPREGOpnd:$rs2), (ins brtarget:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm), opname, "$imm2 $rs1 $imm", []>;
-def INODE_BNE_INST : BInst<"bne", 0b111000> {
+class BInst<string opname, int opcode> : InstBType<opcode, (outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), opname, "$rs1 $rs2 $br_target", []>;
+let mayLoad=0, mayStore=0, isBranch=1, isTerminator=1 in {
+  def INODE_BEQ : BInst<"beq", 0b1001>;
+  def INODE_BNE : BInst<"bne", 0b1010>;
+  def INODE_BLT : BInst<"blt", 0b1100>;
+  def INODE_BGE : BInst<"bge", 0b1101>;
+}
+
+let isBarrier = 1, let isBranch = 1, let hasSideEffects = 0, let mayStore = 0, let mayLoad = 0, let isAsmParserOnly = 1, let hasNoSchedulingInfo = 1 in {
+  def INODE_LONG_BEQ : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), "# LONG_BEQ $rs1, $rs2, $br_target", []>;
+  def INODE_LONG_BNE : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), "# LONG_BNE $rs1, $rs2, $br_target", []>;
+  def INODE_LONG_BLT : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), "# LONG_BLT $rs1, $rs2, $br_target", []>;
+  def INODE_LONG_BGE : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), "# LONG_BGE $rs1, $rs2, $br_target", []>;
+}
+
+class BIInst<string opname, int opcode> : InstBType<opcode, (outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i, uimm14:$loop_cnt, brtarget:$br_target), opname, "$indvar_i $loop_cnt $br_target", []>;
+def INODE_BNE_UPDATE_INST : BInst<"bne_update", 0b1011> {
   let mayLoad=0;
   let mayStore=0;
   let isBranch = 1;
   let isTerminator = 1;
-  let Constraints = "$rs2 = $rs1";
+  let Constraints = "$indvar_o = $indvar_i";
 }
-
-def INODE_LONG_BNE : Pseudo<(outs HWLOOPREGOpnd:$rs2),
-                           (ins brtarget:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm),
-                          "# LONG_BNE $imm2, $rs1, $imm",
-                           []> {
+def INODE_LONG_BNE_UPDATE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i, uimm14:$loop_cnt, brtarget:$br_target),
+                          "# LONG_BNE_UPDATE $indvar_i, $loop_cnt, $br_target", []> {
   let isBarrier = 1;
   let isBranch = 1;
   let hasSideEffects = 0;
@@ -307,211 +303,151 @@ def INODE_LONG_BNE : Pseudo<(outs HWLOOPREGOpnd:$rs2),
 }
 
 // C type
-class CInst<string opname, int opcode> : InstCType<opcode, (outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), opname, "$imm2 $rs1 $fifo_id, $flag_value", []>;
+class CCommInst<string opname, int opcode> : InstCType<opcode, (outs), (ins SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id), opname, "$rs1 $offset $policy, $fifo_id", []>;
+let hasSideEffects=1, mayLoad=1 in {
+  def INODE_SEND_INST : CCommInst<"send", 0b01>;
+}
+
+let hasSideEffects=1, mayStore=1 in {
+  def INODE_RECV_INST : CCommInst<"recv", 0b10>;
+}
+
 let hasSideEffects=1 in {
-  def INODE_SEND_INST : InstINODE<(outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), "send", "$imm2 $rs1 $fifo_id, $flag_value", []> {
-    bits<6> imm2;
-    bits<6> rs1;
-    bits<6> fifo_id;
-    bits<8> flag_value;
+  def INODE_LAYERINIT_INST : InstCType<0b11111, (outs), (ins), "layerinit", "", []> {
+    let rs1 = 0;
+    let imm = 0;
+    let policy = 0;
+    let fifo_id = 0; 
+  };
+}
 
-    let Inst{5-0} = 0b110010;
-    let Inst{11-6} = imm2;
-    let Inst{17-12} = rs1;
-    let Inst{23-18} = fifo_id;
-    let Inst{31-24} = flag_value;
-  }
-
-  def INODE_RECV_INST : InstINODE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
-    bits<6> rd;
-    bits<6> fifo_id;
-
-    let Inst{5-0} = 0b110010;
-    let Inst{11-6} = rd;
-    let Inst{17-12} = 0;
-    let Inst{23-18} = fifo_id;
-    let Inst{31-24} = 0;
-  }
-
-  def INODE_SET_FLAG_INST : InstINODE<(outs), (ins VGPROpnd:$rs1), "set_flag", "$rs1", []> {
-    bits<6> rs1;
-
-    let Inst{5-0} = 0b110100;
-    let Inst{11-6} = 0;
-    let Inst{17-12} = 0;
-    let Inst{23-18} = 0;
-    let Inst{29-24} = rs1;
-    let Inst{31-30} = 0;
-  }
-
-  def INODE_STANDBY_INST  : InstINODE<(outs), (ins uimm6:$reg_id, VGPROpnd:$rs1), "standby", "$reg_id $rs1", []> {
-    bits<6> rs1;
-    bits<6> reg_id;
-
-    let Inst{5-0} = 0b110100;
-    let Inst{11-6} = reg_id;
-    let Inst{17-12} = 0;
-    let Inst{23-18} = 0;
-    let Inst{29-24} = rs1;
-    let Inst{31-30} = 0;
+let hasSideEffects=1 in {
+  def INODE_IMCE_COMPUTE_INST : InstCType<0b100000, (outs), (ins uimm13:$imm), "imce_compute", "$imm", []> {
+    let rs1 = 0;
+    let policy = 0;
+    let fifo_id = 0; 
   }
 }
 
-def INODE_LOAD_LB : Pseudo<(outs), (ins uimm6:$fifo_id), "# LOAD_LB $fifo_id", []> {
-  let hasSideEffects = 1;
-  let Defs = [BSHR0, BSHR1, BSHR2, BSHR3];
+class CConfigInst<string opname, int opcode> : InstCType<opcode, (outs), (ins SGPROpnd:$rs1, simm13:$imm, uimm6:$policy), opname, "$rs1 $imm $policy", []> {
+  let Uses = [AddrCntReg];
+  let Defs = [AddrCntReg];
+  let fifo_id = 0;
 }
 
-// P type
-class PInst<string opname, int opcode> : InstPType<opcode, (outs VGPROpnd:$rd), (ins uimm1:$ksel, uimm4:$src_mask, uimm2:$bshr_sel), opname, "$rd $ksel $src_mask $bshr_sel", []>;
-let Uses = [BSHR0, BSHR1, BSHR2, BSHR3] in {
-  def INODE_MAXPOOL_INST : PInst<"maxpool", 0b001101>;
-  def INODE_AVGPOOL_INST : PInst<"avgpool", 0b001110>;
+let hasSideEffects=1, mayLoad=1 in {
+  def INODE_WR_IMEM_INST : CConfigInst<"wr_imem", 0b10101>;
+  def INODE_WR_IMCU_INST : CConfigInst<"wr_imcu", 0b11001>;
+  def INODE_WR_REG_INST : CConfigInst<"wr_reg", 0b10111>;
+
 }
 
-// Q type
-class QInst<string opname, int opcode> : InstQType<opcode, (outs), (ins VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask, uimm4:$qreg_offset), opname, "$rs1 $rs2 $src_mask $qreg_offset", []>;
-let Defs=[QREG0, QREG1, QREG2, QREG3] in {
-  def INODE_ADDQ_INST     : QInst<"addq", 0b010000>;
-  def INODE_SUBQ_INST     : QInst<"subq", 0b010001>;
-  def INODE_MULTLQ_INST   : QInst<"multlq", 0b011010>;
-  def INODE_MULTHQ_INST   : QInst<"multhq", 0b011011>;
-  def INODE_NU_QUANT_INST : QInst<"nu_quant", 0b011100>;
-  def INODE_MM_QUANT_INST : QInst<"mm_quant", 0b011101>;
+let hasSideEffects=1 in {
+  def INODE_SET_ADDR_CNT_INST : InstCType<0b10100, (outs), (ins uimm13:$imm), "set_addr_cnt", "$imm", []> {
+    let rs1 = 0;
+    let policy = 0;
+    let fifo_id = 0; 
+    let Defs = [AddrCntReg];
+  }
 }
 
-// Pseduo for Q type
-// def INODE_GET_QREG_Pseudo : Pseudo<(outs QREGOpnd:$rd), (ins uimm2:$idx), "# GET_QREG $rd $idx", []> {
-//   let Uses = [QREG0, QREG1, QREG2, QREG3];
-// }
+let hasSideEffects=1 in {
+  def INODE_SET_FLAG_INST : InstSType<0b011, (outs), (ins SGPROpnd:$flag_value_rs), "set_flag", "$flag_value_rs", []> {
+    let rs1 = 0;
+  }
+
+  def INODE_STANDBY_INST  : InstSType<0b100, (outs), (ins uimm7:$rs1, SGPROpnd:$flag_value_rs), "set_flag", "$rs1, $flag_value_rs", []>;
+}
 
 // X type
-class XInst<string opname, int opcode> : InstXType<opcode, (outs), (ins), opname, "", []>;
-// def INODE_STEP_INST : InstINODE<(outs CREGOpnd:$rd0, CREGOpnd:$rd1, CREGOpnd:$rd2, CREGOpnd:$rd3), (ins), "step", "", []> {
-//   let Inst{5-0} = 0b111101;
-//   let Uses = [BSHR_REG0, BSHR_REG1, BSHR_REG2, BSHR_REG3];
-// }
-def INODE_STEP_INST : InstINODE<(outs), (ins), "step", "", []> {
-  let Inst{5-0} = 0b111101;
-  let Uses = [BSHR0, BSHR1, BSHR2, BSHR3];
-  let Defs = [CREG0, CREG1, CREG2, CREG3];
+class XNoOpInst<string opname, int opcode> : InstXType<opcode, (outs), (ins), opname, "", []> {
+  let intr_id = 0;
+  let hasSideEffects = 1;
+};
+def INODE_DONE_INST : XNoOpInst<"done", 0b100001>;
+def INODE_HALT_INST : XNoOpInst<"halt", 0b100010>;
+
+def INODE_INTRT_INST : InstXType<0b111101, (outs), (ins uimm26:$intr_id), "intrt", "$intr_id", []> {
+  let hasSideEffects = 1;
 }
 
-def INODE_NOP_INST  : XInst<"nop" , 0b111110>;
-def INODE_STOP_INST : XInst<"stop", 0b111111>;
-
-// def INODE_GET_CREG_Pseudo : Pseudo<(outs CREGOpnd:$rd), (ins uimm2:$idx), "# GET_CREG $rd $idx", []> {
-//   let Uses = [CREG0, CREG1, CREG2, CREG3];
-// }
-
 // J type
-// def INODE_JMP_INST : InstJType<0b111100, (outs), (ins jumptarget:$imm), "jmp", "$imm", [(br (bb:$imm))]> {
-def INODE_JMP_INST : InstJType<0b111100, (outs), (ins jumptarget:$imm), "jmp", "$imm", []> {
+def INODE_JMP_INST : InstJType<0b11100, (outs), (ins jumptarget:$imm), "jmp", "$imm", []> {
   let isTerminator=1;
   let isBarrier=1;
 }
 
-// S type
-def INODE_SCAN_RW_INST : InstSType<0b101100, (outs VGPROpnd:$rd), (ins VGPROpnd:$rs1), "scan_rw", "$rd $rs1", []> {
-  let Uses = [SCANREG0, SCANREG1];
-  let Defs = [SCANREG0, SCANREG1];
-}
+// U type
+def INODE_PU_INST : InstUType<0b11011, (outs), (ins SGPROpnd:$rs1, simm13:$imm, SGPROpnd:$entry_addr, uimm4:$node_col_id), "pu", "$rs1 $imm $entry_addr $node_col_id", []>;
 
 // ================================================
 // Patterns
 // ================================================
-// R pattern
-class RPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask), (inst VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask)>;
-def : RPat<int_INODE_ADD, INODE_VADD_INST>;
-def : RPat<int_INODE_SUB, INODE_VSUB_INST>;
-def : RPat<int_INODE_AND, INODE_VAND_INST>;
-def : RPat<int_INODE_OR, INODE_VOR_INST>;
-def : RPat<int_INODE_XOR, INODE_VXOR_INST>;
-def : RPat<int_INODE_SRL, INODE_VSRL_INST>;
-def : RPat<int_INODE_SLL, INODE_VSLL_INST>;
-def : RPat<int_INODE_SRA, INODE_VSRA_INST>;
-def : RPat<int_INODE_MAX, INODE_VMAX_INST>;
-def : RPat<int_INODE_MIN, INODE_VMIN_INST>;
-def : RPat<int_INODE_MULTL, INODE_VMULTL_INST>;
-def : RPat<int_INODE_MULTH, INODE_VMULTH_INST>;
-// def : Pat<(add VGPROpnd:$rs1, VGPROpnd:$rs2), (Pseudo_INODE_VADD_INST_all_lane VGPROpnd:$rs1, VGPROpnd:$rs2)>;
-// def : Pat<(add SGPROpnd:$rs1, SGPROpnd:$rs2), (Pseudo_INODE_VADD_INST_one_lane SGPROpnd:$rs1, SGPROpnd:$rs2)>;
-def : Pat<(add (v16i16 VGPROpnd:$rs1), (v16i16 VGPROpnd:$rs2)), (INODE_VADD_INST (v16i16 VGPROpnd:$rs1), (v16i16 VGPROpnd:$rs2), 15)>;
-def : Pat<(add (i16 VGPROpnd:$rs1), (i16 VGPROpnd:$rs2)), (INODE_VADD_INST (i16 VGPROpnd:$rs1), (i16 VGPROpnd:$rs2), 0)>;
-// def : Pat<(add (i16 SGPROpnd:$rs1), (i16 SGPROpnd:$rs2)), (INODE_VADD_INST (i16 VGPROpnd:$rs1), (i16 VGPROpnd:$rs2), 0)>;
-
 // I type pattern
-class IPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1, simm14:$imm), (inst VGPROpnd:$rs1, simm14:$imm)>;
-def : IPat<int_INODE_ADDI  , INODE_VADDI_INST>;
-def : IPat<int_INODE_SUBI  , INODE_VSUBI_INST>;
-def : IPat<int_INODE_ANDI  , INODE_VANDI_INST>;
-def : IPat<int_INODE_ORI   , INODE_VORI_INST>;
-def : IPat<int_INODE_XORI  , INODE_VXORI_INST>;
-def : IPat<int_INODE_SRLI  , INODE_VSRLI_INST>;
-def : IPat<int_INODE_SLLI  , INODE_VSLLI_INST>;
-def : IPat<int_INODE_SRAI  , INODE_VSRAI_INST>;
-def : IPat<int_INODE_MAXI  , INODE_VMAXI_INST>;
-def : IPat<int_INODE_MINI  , INODE_VMINI_INST>;
-def : IPat<int_INODE_MULTLI, INODE_VMULTLI_INST>;
-def : IPat<int_INODE_MULTHI, INODE_VMULTHI_INST>;
-def : Pat<(v16i16 (build_vector (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0), (i16 0))),
-          (v16i16 (INODE_VADDI_INST (i16 V0), (i16 0)))>;
+// LUI selected from custom isel
+//TODO: implement SelectAddrRegImm and SelectConstant
+def Pat<(add SGPROpnd:$rs1, simm14:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, simm14:$imm)>;
+def Pat<(mul SGPROpnd:$rs1, simm14:$imm), (INODE_MULI_INST SGPROpnd:$rs1, simm14:$imm)>;
 
-// A type pattern
-class APat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1, uimm3:$shift_amt, uimm1:$dwresult_valid, uimm4:$src_mask, uimm2:$bshr_sel), (inst VGPROpnd:$rs1, uimm3:$shift_amt, uimm1:$dwresult_valid, uimm4:$src_mask, uimm2:$bshr_sel)>;
-def : APat<int_INODE_DWCONV, INODE_DWCONV_INST>;
+def AddrRegImm : ComplexPattern<iPTR, 2, "SelectAddrRegImm">;
+class LdPat<PatFrag LoadOp, InstINODE Inst>
+    : Pat<(i32 (LoadOp (AddrRegImm (i32 SGPROpnd:$rs1), simm14:$imm14))),
+          (Inst SGPROpnd:$rs1, simm14:$imm14)>;
+def : LdPat<load, LW>;
+
+class StPat<PatFrag StoreOp, InstINODE Inst>
+    : Pat<(StoreOp (i32 SGPROpnd:$rs1), (AddrRegImm (i32 SGPROpnd:$rd), simm14:$imm14)),
+          (Inst SGPROpnd:$rd, simm14:$imm14, SGPROpnd:$rs1)>;
+def : StPat<store, SW>;
 
 // B type pattern
-// class BPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op simm6:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm), (inst simm6:$imm2, HWLOOPREGOpnd:$rs1, uimm14:$imm)>;
-// def : BPat<int_INODE_BNE, INODE_BNE_INST>;
+multiclass BccPat<CondCode Cond, InstINODE Inst> {
+  def : Pat<(inode_brcc (i32 SGPROpnd:$rs1), SGPROpnd:$rs2, Cond, bb:$imm14),
+            (Inst SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm14)>;
+  // Explicitly select 0 to X0. The register coalescer doesn't always do it.
+  def : Pat<(inode_brcc (i32 SGPROpnd:$rs1), 0, Cond, bb:$imm14),
+            (Inst SGPROpnd:$rs1, (i32 SReg0), brtarget:$imm14)>;
+}
+
+defm : BccPat<SETEQ, INODE_BEQ>;
+defm : BccPat<SETNE, INODE_BNE>;
+defm : BccPat<SETLT, INODE_BLT>;
+defm : BccPat<SETGE, INODE_BGE>;
+
+// BI type pattern
+// BNE_UPDATE is selected from custom isel
 
 // C type pattern
-// class CPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (inst uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
-def : Pat<(int_INODE_SEND uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (INODE_SEND_INST uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
-def : Pat<(int_INODE_RECV uimm6:$fifo_id), (INODE_RECV_INST uimm6:$fifo_id)>;
-def : Pat<(int_INODE_SETFLAG VGPROpnd:$rs1), (INODE_SET_FLAG_INST VGPROpnd:$rs1)>;
-def : Pat<(int_INODE_STANDBY uimm6:$reg_id, VGPROpnd:$rs1), (INODE_STANDBY_INST uimm6:$reg_id, VGPROpnd:$rs1)>;
-def : Pat<(int_INODE_LOAD_LB uimm6:$fifo_id), (INODE_LOAD_LB uimm6:$fifo_id)>;
+// class CPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm6:$imm2, SGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (inst uimm6:$imm2, SGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
+def : Pat<(int_INODE_SEND SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id), (INODE_SEND_INST SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id)>;
+def : Pat<(int_INODE_RECV SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id), (INODE_RECV_INST SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id)>;
 
-// P type Pattern
-class PPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm1:$ksel, uimm4:$src_mask, uimm2:$bshr_sel), (inst uimm1:$ksel, uimm4:$src_mask, uimm2:$bshr_sel)>;
-def : PPat<int_INODE_MAXPOOL, INODE_MAXPOOL_INST>;
-def : PPat<int_INODE_AVGPOOL, INODE_AVGPOOL_INST>;
+def : Pat<(int_INODE_LAYERINIT), (INODE_LAYERINIT_INST)>;
+def : Pat<(int_INODE_IMCE_COMPUTE uimm13:$imm), (INODE_IMCE_COMPUTE_INST uimm13:$imm)>;
 
-// Q type Pattern
-class QPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask, uimm4:$qreg_offset), (inst VGPROpnd:$rs1, VGPROpnd:$rs2, uimm4:$src_mask, uimm4:$qreg_offset)>;
-def : QPat<int_INODE_ADDQ    , INODE_ADDQ_INST>;
-def : QPat<int_INODE_SUBQ    , INODE_SUBQ_INST>;
-def : QPat<int_INODE_MULTLQ  , INODE_MULTLQ_INST>;
-def : QPat<int_INODE_MULTHQ  , INODE_MULTHQ_INST>;
-def : QPat<int_INODE_NU_QUANT, INODE_NU_QUANT_INST>;
-def : QPat<int_INODE_MM_QUANT, INODE_MM_QUANT_INST>;
+def : Pat<(int_INODE_WR_IMEM SGPROpnd:$rs1, simm13:$imm, uimm6:$policy), (INODE_WR_IMEM_INST SGPROpnd:$rs1, simm13:$imm, uimm6:$policy)>;
+def : Pat<(int_INODE_WR_IMCU SGPROpnd:$rs1, simm13:$imm, uimm6:$policy), (INODE_WR_IMCU_INST SGPROpnd:$rs1, simm13:$imm, uimm6:$policy)>;
+def : Pat<(int_INODE_WR_REG SGPROpnd:$rs1, simm13:$imm, uimm6:$policy), (INODE_WR_REG_INST SGPROpnd:$rs1, simm13:$imm, uimm6:$policy)>;
+
+def : Pat<(int_INODE_SET_ADDR_CNT uimm13:$imm), (INODE_SET_ADDR_CNT_INST uimm13:$imm)>;
+
+// S type pattern
+def : Pat<(int_INODE_SET_FLAG SGPROpnd:$flag_value_rs), (INODE_SET_FLAG_INST SGPROpnd:$flag_value_rs)>;
+def : Pat<(int_INODE_STANDBY uimm7:$rs1, SGPROpnd:$flag_value_rs), (INODE_STANDBY_INST uimm7:$rs1, SGPROpnd:$flag_value_rs)>;
 
 // X type Pattern
-class XPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op), (inst)>;
-def : XPat<int_INODE_STEP, INODE_STEP_INST>;
-def : XPat<int_INODE_NOP , INODE_NOP_INST>;
-def : XPat<int_INODE_STOP, INODE_STOP_INST>;
+def : Pat<(int_INODE_DONE), (INODE_DONE_INST)>;
+def : Pat<(int_INODE_HALT), (INODE_HALT_INST)>;
+def : Pat<(int_INODE_INTRT uimm26:$intr_id), (INODE_INTRT_INST uimm26:$intr_id)>;
 
 // J type pattern
-// class JPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op jumptarget:$imm), (inst jumptarget:$imm)>;
-// def : JPat<int_INODE_JUMP, INODE_JMP_INST>;
 def : Pat<(br (bb:$imm)), (INODE_JMP_INST jumptarget:$imm)>;
 
-// S type Pattern
-class SPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op VGPROpnd:$rs1), (inst VGPROpnd:$rs1)>;
-def : SPat<int_INODE_SCAN_RW, INODE_SCAN_RW_INST>;
+// U type Pattern
+def : Pat<(int_INODE_PU SGPROpnd:$rs1, simm13:$imm, SGPROpnd:$entry_addr, uimm4:$node_col_id), (INODE_PU_INST SGPROpnd:$rs1, simm13:$imm, SGPROpnd:$entry_addr, uimm4:$node_col_id)>;
 
-def i32MR : PatLeaf<(i32 HWLOOPREGOpnd:$R)>;
-// def : Pat<(i32 (INODECloopBeginValue i32MR:$op0, uimm16:$meta)),
-//           (i32 (CLOOP_BEGIN_VALUE i32MR:$op0, uimm16:$meta))>;
-def : Pat<(i32 (INODECloopBeginValue uimm14:$op0, uimm16:$meta)),
-          (i32 (CLOOP_BEGIN_VALUE uimm14:$op0, uimm16:$meta))>;
-def : Pat<(i32 (INODECloopEndValue i32MR:$op0, uimm16:$meta)),
-          (i32 (CLOOP_END_VALUE i32MR:$op0, uimm16:$meta))>;
-def : Pat<(INODECloopBeginTerminator i32MR:$op0, uimm16:$meta),
-          (CLOOP_BEGIN_TERMINATOR i32MR:$op0, uimm16:$meta)>;
-def : Pat<(INODECloopEndBranch bb:$op0, i32MR:$op1, uimm16:$meta),
-          (CLOOP_END_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;
-// def : Pat<(INODECloopGuardBranch bb:$op0, i32MR:$op1, uimm16:$meta),
-//           (CLOOP_GUARD_BRANCH i32MR:$op1, bb:$op0, uimm16:$meta)>;
+def i32MR : PatLeaf<(i32 SGPROpnd:$R)>;
+def : Pat<(i32 (INODECloopBeginValue uimm32:$op0)), (i32 (CLOOP_BEGIN_VALUE uimm32:$op0))>;
+def : Pat<(INODECloopBeginTerminator i32MR:$op0), (CLOOP_BEGIN_TERMINATOR i32MR:$op0)>;
+def : Pat<(i32 (INODECloopEndValue i32MR:$op0)), (i32 (CLOOP_END_VALUE i32MR:$op0))>;
+def : Pat<(INODECloopEndBranch bb:$op0, i32MR:$op1), (CLOOP_END_BRANCH i32MR:$op1, bb:$op0)>;
