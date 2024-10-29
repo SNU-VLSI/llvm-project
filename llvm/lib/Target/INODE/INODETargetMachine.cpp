@@ -51,10 +51,7 @@ std::string computeDataLayout(const Triple &TT, StringRef CPU, StringRef FS) {
   Ret += "-p:32:32";
 
   // scalar type i16 is 16 bit aligned.
-  Ret += "-i16:16:16";
-
-  // vector types are 256 bit.
-  Ret += "-v256:256:256";
+  Ret += "-i32:32:32";
 
   return Ret;
 }

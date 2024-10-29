@@ -15,7 +15,7 @@
 using namespace llvm;
 
 INODEFrameLowering::INODEFrameLowering()
-    : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, Align(8), 0, Align(8),
+    : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, Align(4), 0, Align(4),
                           false /* StackRealignable */) {}
 
 void INODEFrameLowering::emitPrologue(MachineFunction &MF, MachineBasicBlock &MBB) const {}

@@ -25,7 +25,7 @@ def AddrCntReg : INODEReg<0 ,"addr_cnt_reg">;
 // Register classes
 // ==============================================================
 
-def SGPR : RegisterClass<"INODE", [i32], 32, (add (sequence "sreg%u", 0, 7))> {
+def SGPR : RegisterClass<"INODE", [i32], 32, (add (sequence "SReg%u", 0, 7))> {
   let Size = 32;
   let CopyCost = 1;
 }

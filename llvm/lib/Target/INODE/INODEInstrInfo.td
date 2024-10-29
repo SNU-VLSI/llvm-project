@@ -45,7 +45,7 @@ def INODECloopEndValue :
          [SDNPHasChain]>;
 def INODECloopEndBranch :
   SDNode<"INODEISD::CLOOP_END_BRANCH",
-         SDTypeProfile<0, 2, [SDTCisVT<0, i32>, SDTCisVT<2, i32>]>, // loop_indvar, br_target
+         SDTypeProfile<0, 2, [SDTCisVT<0, i32>]>, // loop_indvar, br_target
          [SDNPHasChain]>;
 
 // ===================================================
@@ -131,10 +131,24 @@ def uimm6 : Operand<i32>, TImmLeaf<i32, [{return isUInt<6>(Imm);}]> {
   let OperandNamespace = "INODEOp";
 }
 
+def uimm7 : Operand<i32>, TImmLeaf<i32, [{return isUInt<7>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<7>;
+  let DecoderMethod = "decodeUImmOperand<7>";
+  let OperandType = "OPERAND_UIMM7";
+  let OperandNamespace = "INODEOp";
+}
+
 def uimm8 : Operand<i32>, TImmLeaf<i32, [{return isUInt<8>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<8>;
   let DecoderMethod = "decodeUImmOperand<8>";
   let OperandType = "OPERAND_UIMM8";
+  let OperandNamespace = "INODEOp";
+}
+
+def uimm13 : Operand<i32>, TImmLeaf<i32, [{return isUInt<13>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<13>;
+  let DecoderMethod = "decodeUImmOperand<13>";
+  let OperandType = "OPERAND_UIMM13";
   let OperandNamespace = "INODEOp";
 }
 
@@ -163,6 +177,13 @@ def uimm32 : Operand<i32>, TImmLeaf<i32, [{return isUInt<32>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<32>;
   let DecoderMethod = "decodeUImmOperand<32>";
   let OperandType = "OPERAND_UIMM32";
+  let OperandNamespace = "INODEOp";
+}
+
+def simm13 : Operand<i32>, TImmLeaf<i32, [{return isInt<13>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<13>;
+  let DecoderMethod = "decodeSImmOperand<13>";
+  let OperandType = "OPERAND_SIMM13";
   let OperandNamespace = "INODEOp";
 }
 
@@ -268,7 +289,7 @@ def INODE_STORE_INST : InstIType<0b110, (outs), (ins SGPROpnd:$rd, simm14:$imm, 
 }
 
 // B type
-class BInst<string opname, int opcode> : InstBType<opcode, (outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), opname, "$rs1 $rs2 $br_target", []>;
+class BInst<string opname, int opcode> : InstBType<opcode, (outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm), opname, "$rs1 $rs2 $imm", []>;
 let mayLoad=0, mayStore=0, isBranch=1, isTerminator=1 in {
   def INODE_BEQ : BInst<"beq", 0b1001>;
   def INODE_BNE : BInst<"bne", 0b1010>;
@@ -276,23 +297,23 @@ let mayLoad=0, mayStore=0, isBranch=1, isTerminator=1 in {
   def INODE_BGE : BInst<"bge", 0b1101>;
 }
 
-let isBarrier = 1, let isBranch = 1, let hasSideEffects = 0, let mayStore = 0, let mayLoad = 0, let isAsmParserOnly = 1, let hasNoSchedulingInfo = 1 in {
-  def INODE_LONG_BEQ : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), "# LONG_BEQ $rs1, $rs2, $br_target", []>;
-  def INODE_LONG_BNE : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), "# LONG_BNE $rs1, $rs2, $br_target", []>;
-  def INODE_LONG_BLT : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), "# LONG_BLT $rs1, $rs2, $br_target", []>;
-  def INODE_LONG_BGE : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$br_target), "# LONG_BGE $rs1, $rs2, $br_target", []>;
+let isBarrier = 1, isBranch = 1, hasSideEffects = 0, mayStore = 0, mayLoad = 0, isAsmParserOnly = 1, hasNoSchedulingInfo = 1 in {
+  def INODE_LONG_BEQ : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm), "# LONG_BEQ $rs1, $rs2, $imm", []>;
+  def INODE_LONG_BNE : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm), "# LONG_BNE $rs1, $rs2, $imm", []>;
+  def INODE_LONG_BLT : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm), "# LONG_BLT $rs1, $rs2, $imm", []>;
+  def INODE_LONG_BGE : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm), "# LONG_BGE $rs1, $rs2, $imm", []>;
 }
 
-class BIInst<string opname, int opcode> : InstBType<opcode, (outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i, uimm14:$loop_cnt, brtarget:$br_target), opname, "$indvar_i $loop_cnt $br_target", []>;
-def INODE_BNE_UPDATE_INST : BInst<"bne_update", 0b1011> {
+class BIInst<string opname, int opcode> : InstBIType<opcode, (outs SGPROpnd:$indvar_o), (ins SGPROpnd:$rs1, uimm14:$imm, brtarget:$offset), opname, "$rs1 $imm $offset", []>;
+def INODE_BNE_UPDATE_INST : BIInst<"bne_update", 0b1011> {
   let mayLoad=0;
   let mayStore=0;
   let isBranch = 1;
   let isTerminator = 1;
-  let Constraints = "$indvar_o = $indvar_i";
+  let Constraints = "$indvar_o = $rs1";
 }
-def INODE_LONG_BNE_UPDATE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i, uimm14:$loop_cnt, brtarget:$br_target),
-                          "# LONG_BNE_UPDATE $indvar_i, $loop_cnt, $br_target", []> {
+def INODE_LONG_BNE_UPDATE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i, uimm14:$loop_cnt, brtarget:$imm),
+                          "# LONG_BNE_UPDATE $indvar_i, $loop_cnt, $imm", []> {
   let isBarrier = 1;
   let isBranch = 1;
   let hasSideEffects = 0;
@@ -303,7 +324,7 @@ def INODE_LONG_BNE_UPDATE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$ind
 }
 
 // C type
-class CCommInst<string opname, int opcode> : InstCType<opcode, (outs), (ins SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id), opname, "$rs1 $offset $policy, $fifo_id", []>;
+class CCommInst<string opname, int opcode> : InstCType<opcode, (outs), (ins SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id), opname, "$rs1 $imm $policy, $fifo_id", []>;
 let hasSideEffects=1, mayLoad=1 in {
   def INODE_SEND_INST : CCommInst<"send", 0b01>;
 }
@@ -318,7 +339,7 @@ let hasSideEffects=1 in {
     let imm = 0;
     let policy = 0;
     let fifo_id = 0; 
-  };
+  }
 }
 
 let hasSideEffects=1 in {
@@ -363,7 +384,7 @@ let hasSideEffects=1 in {
 class XNoOpInst<string opname, int opcode> : InstXType<opcode, (outs), (ins), opname, "", []> {
   let intr_id = 0;
   let hasSideEffects = 1;
-};
+}
 def INODE_DONE_INST : XNoOpInst<"done", 0b100001>;
 def INODE_HALT_INST : XNoOpInst<"halt", 0b100010>;
 
@@ -386,19 +407,19 @@ def INODE_PU_INST : InstUType<0b11011, (outs), (ins SGPROpnd:$rs1, simm13:$imm, 
 // I type pattern
 // LUI selected from custom isel
 //TODO: implement SelectAddrRegImm and SelectConstant
-def Pat<(add SGPROpnd:$rs1, simm14:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, simm14:$imm)>;
-def Pat<(mul SGPROpnd:$rs1, simm14:$imm), (INODE_MULI_INST SGPROpnd:$rs1, simm14:$imm)>;
+def : Pat<(add SGPROpnd:$rs1, simm14:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, simm14:$imm)>;
+def : Pat<(mul SGPROpnd:$rs1, simm14:$imm), (INODE_MULI_INST SGPROpnd:$rs1, simm14:$imm)>;
 
 def AddrRegImm : ComplexPattern<iPTR, 2, "SelectAddrRegImm">;
 class LdPat<PatFrag LoadOp, InstINODE Inst>
     : Pat<(i32 (LoadOp (AddrRegImm (i32 SGPROpnd:$rs1), simm14:$imm14))),
           (Inst SGPROpnd:$rs1, simm14:$imm14)>;
-def : LdPat<load, LW>;
+def : LdPat<load, INODE_LOAD_INST>;
 
 class StPat<PatFrag StoreOp, InstINODE Inst>
     : Pat<(StoreOp (i32 SGPROpnd:$rs1), (AddrRegImm (i32 SGPROpnd:$rd), simm14:$imm14)),
           (Inst SGPROpnd:$rd, simm14:$imm14, SGPROpnd:$rs1)>;
-def : StPat<store, SW>;
+def : StPat<store, INODE_STORE_INST>;
 
 // B type pattern
 multiclass BccPat<CondCode Cond, InstINODE Inst> {
@@ -450,4 +471,4 @@ def i32MR : PatLeaf<(i32 SGPROpnd:$R)>;
 def : Pat<(i32 (INODECloopBeginValue uimm32:$op0)), (i32 (CLOOP_BEGIN_VALUE uimm32:$op0))>;
 def : Pat<(INODECloopBeginTerminator i32MR:$op0), (CLOOP_BEGIN_TERMINATOR i32MR:$op0)>;
 def : Pat<(i32 (INODECloopEndValue i32MR:$op0)), (i32 (CLOOP_END_VALUE i32MR:$op0))>;
-def : Pat<(INODECloopEndBranch bb:$op0, i32MR:$op1), (CLOOP_END_BRANCH i32MR:$op1, bb:$op0)>;
+def : Pat<(INODECloopEndBranch i32MR:$op1, bb:$op0), (CLOOP_END_BRANCH i32MR:$op1, bb:$op0)>;
