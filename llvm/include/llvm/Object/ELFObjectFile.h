@@ -1321,6 +1321,8 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
       return "elf32-xtensa";
     case ELF::EM_IMCE:
       return "elf32-IMCE";
+    case ELF::EM_INODE:
+      return "elf32-INODE";
     default:
       return "elf32-unknown";
     }
@@ -1352,6 +1354,8 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
       return "elf64-loongarch";
     case ELF::EM_IMCE:
       return "elf64-IMCE";
+    case ELF::EM_INODE:
+      return "elf64-INODE";
     default:
       return "elf64-unknown";
     }
@@ -1458,6 +1462,9 @@ template <class ELFT> Triple::ArchType ELFObjectFile<ELFT>::getArch() const {
 
   case ELF::EM_IMCE:
     return Triple::IMCE;
+
+  case ELF::EM_INODE:
+    return Triple::INODE;
 
   default:
     return Triple::UnknownArch;

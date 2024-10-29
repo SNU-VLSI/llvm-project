@@ -322,6 +322,7 @@ enum {
   EM_CSKY = 252,          // C-SKY 32-bit processor
   EM_LOONGARCH = 258,     // LoongArch
   EM_IMCE = 259,          // IMCE
+  EM_INODE = 260         // INODE
 };
 
 // Object file classes.
@@ -1026,6 +1027,15 @@ enum : unsigned {
 
 enum {
 #include "ELFRelocs/IMCE.def"
+};
+
+enum : unsigned {
+  EF_INODE_NABI = 0x80000000,  // Not ABI compliant
+  EF_INODE_M88110 = 0x00000004 // File uses 88110-specific features
+};
+
+enum {
+#include "ELFRelocs/INODE.def"
 };
 
 

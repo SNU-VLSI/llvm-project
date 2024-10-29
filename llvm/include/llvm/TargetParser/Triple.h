@@ -108,6 +108,7 @@ public:
     renderscript64, // 64-bit RenderScript
     ve,             // NEC SX-Aurora Vector Engine
     IMCE,
+    INODE,
     LastArchType = ve
   };
   enum SubArchType {
@@ -1049,6 +1050,7 @@ public:
 
   /// Tests whether the target is IMCE.
   bool isIMCE() const { return getArch() == Triple::IMCE; }
+  bool isINODE() const { return getArch() == Triple::INODE; }
 
   /// Tests whether the target supports comdat
   bool supportsCOMDAT() const {
