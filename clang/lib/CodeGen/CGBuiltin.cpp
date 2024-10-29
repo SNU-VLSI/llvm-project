@@ -56,6 +56,7 @@
 #include "llvm/IR/IntrinsicsWebAssembly.h"
 #include "llvm/IR/IntrinsicsX86.h"
 #include "llvm/IR/IntrinsicsIMCE.h"
+#include "llvm/IR/IntrinsicsINODE.h"
 #include "llvm/IR/MDBuilder.h"
 #include "llvm/IR/MatrixBuilder.h"
 #include "llvm/IR/MemoryModelRelaxationAnnotations.h"
@@ -6321,6 +6322,8 @@ static Value *EmitTargetArchBuiltinExpr(CodeGenFunction *CGF,
     return CGF->EmitAMDGPUBuiltinExpr(BuiltinID, E);
   case llvm::Triple::IMCE:
     return CGF->EmitIMCEBuiltinExpr(BuiltinID, E, ReturnValue);
+  case llvm::Triple::INODE:
+    return CGF->EmitINODEBuiltinExpr(BuiltinID, E, ReturnValue);
   default:
     return nullptr;
   }
@@ -22287,6 +22290,85 @@ Value *CodeGenFunction::EmitIMCEBuiltinExpr(unsigned BuiltinID,
   }
   case IMCE::BI__builtin_IMCE_GET_CORE_WID: {
     ID = Intrinsic::IMCE_WID;
+    break;
+  }
+  }
+
+  assert(ID != Intrinsic::not_intrinsic);
+  llvm::Function *F = CGM.getIntrinsic(ID, IntrinsicTypes);
+  return Builder.CreateCall(F, Ops, "");
+}
+
+Value *CodeGenFunction::EmitINODEBuiltinExpr(unsigned BuiltinID,
+                                             const CallExpr *E,
+                                             ReturnValueSlot ReturnValue) {
+  SmallVector<Value *, 4> Ops;
+  llvm::SmallVector<llvm::Type *, 2> IntrinsicTypes;
+  Intrinsic::ID ID = Intrinsic::not_intrinsic;
+
+  for(int i=0; i<E->getNumArgs(); i++) {
+    Ops.push_back(EmitScalarExpr(E->getArg(i)));
+  }
+
+  switch (BuiltinID) {
+  case INODE::BI__builtin_INODE_SEND: {
+    ID = Intrinsic::INODE_SEND;
+    break;
+  }
+  case INODE::BI__builtin_INODE_RECV: {
+    ID = Intrinsic::INODE_RECV;
+    break;
+  }
+  case INODE::BI__builtin_INODE_LAYERINIT: {
+    ID = Intrinsic::INODE_LAYERINIT;
+    break;
+  }
+  case INODE::BI__builtin_INODE_IMCE_COMPUTE: {
+    ID = Intrinsic::INODE_IMCE_COMPUTE;
+    break;
+  }
+  case INODE::BI__builtin_INODE_WR_IMEM: {
+    ID = Intrinsic::INODE_WR_IMEM;
+    break;
+  }
+  case INODE::BI__builtin_INODE_WR_IMCU: {
+    ID = Intrinsic::INODE_WR_IMCU;
+    break;
+  }
+  case INODE::BI__builtin_INODE_WR_REG: {
+    ID = Intrinsic::INODE_WR_REG;
+    break;
+  }
+  case INODE::BI__builtin_INODE_SET_ADDR_CNT: {
+    ID = Intrinsic::INODE_SET_ADDR_CNT;
+    break;
+  }
+  case INODE::BI__builtin_INODE_SET_FLAG: {
+    ID = Intrinsic::INODE_SET_FLAG;
+    break;
+  }
+  case INODE::BI__builtin_INODE_STANDBY: {
+    ID = Intrinsic::INODE_STANDBY;
+    break;
+  }
+  case INODE::BI__builtin_INODE_DONE: {
+    ID = Intrinsic::INODE_DONE;
+    break;
+  }
+  case INODE::BI__builtin_INODE_HALT: {
+    ID = Intrinsic::INODE_HALT;
+    break;
+  }
+  case INODE::BI__builtin_INODE_INTRT: {
+    ID = Intrinsic::INODE_INTRT;
+    break;
+  }
+  case INODE::BI__builtin_INODE_GET_CORE_HID: {
+    ID = Intrinsic::INODE_HID;
+    break;
+  }
+  case INODE::BI__builtin_INODE_GET_CORE_WID: {
+    ID = Intrinsic::INODE_WID;
     break;
   }
   }

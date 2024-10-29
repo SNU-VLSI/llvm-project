@@ -4709,6 +4709,9 @@ public:
   llvm::Value *EmitIMCEBuiltinExpr(unsigned BuiltinID, const CallExpr *E,
                                     ReturnValueSlot ReturnValue);
 
+  llvm::Value *EmitINODEBuiltinExpr(unsigned BuiltinID, const CallExpr *E,
+                                    ReturnValueSlot ReturnValue);
+
 
   llvm::Value *EmitBuiltinAvailable(const VersionTuple &Version);
 

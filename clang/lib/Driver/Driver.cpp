@@ -50,6 +50,7 @@
 #include "ToolChains/XCore.h"
 #include "ToolChains/ZOS.h"
 #include "ToolChains/IMCEToolchain.h"
+#include "ToolChains/INODEToolchain.h"
 #include "clang/Basic/DiagnosticDriver.h"
 #include "clang/Basic/TargetID.h"
 #include "clang/Basic/Version.h"
@@ -6510,6 +6511,9 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
         break;
       case llvm::Triple::IMCE:
         TC = std::make_unique<toolchains::IMCEToolChain>(*this, Target, Args);
+        break;
+      case llvm::Triple::INODE:
+        TC = std::make_unique<toolchains::INODEToolChain>(*this, Target, Args);
         break;
       default:
         if (toolchains::BareMetal::handlesTarget(Target))

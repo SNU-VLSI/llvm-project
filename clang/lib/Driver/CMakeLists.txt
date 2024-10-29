@@ -86,6 +86,7 @@ add_clang_library(clangDriver
   ToolChains/InterfaceStubs.cpp
   ToolChains/ZOS.cpp
   ToolChains/IMCEToolchain.cpp
+  ToolChains/INODEToolchain.cpp
   Types.cpp
   XRayArgs.cpp
 

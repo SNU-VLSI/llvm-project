@@ -42,6 +42,7 @@
 #include "Targets/X86.h"
 #include "Targets/XCore.h"
 #include "Targets/IMCE.h"
+#include "Targets/INODE.h"
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/DiagnosticFrontend.h"
 #include "llvm/ADT/StringExtras.h"
@@ -755,6 +756,9 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
     }
   case llvm::Triple::IMCE: {
     return std::make_unique<IMCETargetInfo>(Triple, Opts);
+  }
+  case llvm::Triple::INODE: {
+    return std::make_unique<INODETargetInfo>(Triple, Opts);
   }
   }
 }
