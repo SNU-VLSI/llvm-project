@@ -13,21 +13,15 @@
 
 // INODE 32-bit ELF C Calling convention.
 def CC_INODE : CallingConv<[
-  CCIfType<[i8, i16], CCPromoteToType<i16>>,
-  CCIfType<[i16], CCAssignToReg<[V2, V3, V4, V5, V6, V7, V8, V9]>>,
-  CCIfType<[i32], CCAssignToReg<[V2, V3, V4, V5, V6, V7, V8, V9]>>,
-  CCIfType<[v16i16], CCAssignToReg<[V2, V3, V4, V5, V6, V7, V8, V9]>>,
+  CCIfType<[i8, i16], CCPromoteToType<i32>>,
+  CCIfType<[i32], CCAssignToReg<[SReg2, SReg3, SReg4, SReg5]>>,
   CCAssignToStack<4, 4>
 ]>;
 
 // INODE 32-bit ELF C return-value convention.
 def RetCC_INODE : CallingConv<[
-  // 32-bit values are returned in R2.
-  CCIfType<[i16], CCAssignToReg<[V2]>>,
-  CCIfType<[i32], CCAssignToReg<[V2]>>,
-  CCIfType<[v16i16], CCAssignToReg<[V2]>>,
+  CCIfType<[i32], CCAssignToReg<[SReg2]>>
 ]>;
 
 // INODE 32-bit ELF C callee saved registers.
-// def CSR_INODE : CalleeSavedRegs<(add V1, V30, (sequence "V%d", 25, 14), S1, S30, (sequence "S%d", 25, 14))>;
-def CSR_INODE : CalleeSavedRegs<(add V1, V30, (sequence "V%d", 25, 14))>;
+def CSR_INODE : CalleeSavedRegs<(add SReg1, SReg2)>;
