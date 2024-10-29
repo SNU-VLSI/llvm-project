@@ -1,0 +1,34 @@
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#if defined(BUILTIN) && !defined(TARGET_BUILTIN)
+#   define TARGET_BUILTIN(ID, TYPE, ATTRS, FEATURE) BUILTIN(ID, TYPE, ATTRS)
+#endif
+
+TARGET_BUILTIN(__builtin_INODE_SEND, "viiii", "", "")
+TARGET_BUILTIN(__builtin_INODE_RECV, "viiii", "", "")
+
+TARGET_BUILTIN(__builtin_INODE_LAYERINIT, "v", "", "")
+TARGET_BUILTIN(__builtin_INODE_IMCE_COMPUTE, "vi", "", "")
+TARGET_BUILTIN(__builtin_INODE_WR_IMEM, "viii", "", "")
+TARGET_BUILTIN(__builtin_INODE_WR_IMCU, "viii", "", "")
+TARGET_BUILTIN(__builtin_INODE_WR_REG, "viii", "", "")
+TARGET_BUILTIN(__builtin_INODE_SET_ADDR_CNT, "vi", "", "")
+
+TARGET_BUILTIN(__builtin_INODE_SETFLAG, "vi", "", "")
+TARGET_BUILTIN(__builtin_INODE_STANDBY, "vii", "", "")
+
+TARGET_BUILTIN(__builtin_INODE_DONE, "v", "", "")
+TARGET_BUILTIN(__builtin_INODE_HALT, "v", "", "")
+TARGET_BUILTIN(__builtin_INODE_INTRT, "vi", "", "")
+
+TARGET_BUILTIN(__builtin_INODE_PU, "viiii", "", "")
+
+TARGET_BUILTIN(__builtin_INODE_GET_CORE_HID, "i", "", "") 
+TARGET_BUILTIN(__builtin_INODE_GET_CORE_WID, "i", "", "") 
+
+#undef BUILTIN
+#undef TARGET_BUILTIN
