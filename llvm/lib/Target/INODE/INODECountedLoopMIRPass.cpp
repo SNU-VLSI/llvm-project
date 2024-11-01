@@ -539,7 +539,7 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
   bodyEndValue->eraseFromParent();
 
   // VINN: get the immediate value from instruction prior to headerBeginValue?
-  BuildMI(*body, bodyEndBranch, dl, TII.get(INODE::INODE_BNE_INST),
+  BuildMI(*body, bodyEndBranch, dl, TII.get(INODE::INODE_BNE),
           bodyEndBranch->getOperand(0).getReg()) // $rs2 == $rs1
       .add(bodyEndBranch->getOperand(1))         // branch target (bb)
       .add(bodyEndBranch->getOperand(0))         // $rs1

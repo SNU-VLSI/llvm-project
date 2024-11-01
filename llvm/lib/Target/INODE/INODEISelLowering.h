@@ -43,6 +43,7 @@ enum NodeType : unsigned {
   CLOOP_END_VALUE,
   CLOOP_END_BRANCH,
   CLOOP_GUARD_BRANCH,
+  BR_CC,
 };
 } // end namespace INODEISD
 

@@ -31,10 +31,7 @@ using namespace llvm;
 INODETargetLowering::INODETargetLowering(const TargetMachine &TM, const INODESubtarget &STI)
     : TargetLowering(TM), Subtarget(STI) {
 
-  addRegisterClass(MVT::i16, &INODE::VGPRRegClass);
-  // addRegisterClass(MVT::i32, &INODE::VGPRRegClass);
-  addRegisterClass(MVT::i32, &INODE::HWLRRegClass);
-  addRegisterClass(MVT::v16i16, &INODE::VGPRRegClass);
+  addRegisterClass(MVT::i32, &INODE::SGPRRegClass);
 
   // Compute derived properties from the register classes
   computeRegisterProperties(Subtarget.getRegisterInfo());
@@ -48,14 +45,10 @@ INODETargetLowering::INODETargetLowering(const TargetMachine &TM, const INODESub
   setMinFunctionAlignment(Align(4));
   setPrefFunctionAlignment(Align(4));
 
-  setOperationAction(ISD::ADD, {MVT::v16i16, MVT::i16}, Legal);
+  setOperationAction(ISD::ADD, MVT::i32, Legal);
+  setOperationAction(ISD::ADD, MVT::i16, Legal);
 
-  // setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
-  //                    {MVT::v16i16, MVT::i32}, Custom);
-  setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
-                     {MVT::Other, MVT::v16i16, MVT::i16, MVT::i32}, Custom);
-
-  //TODO : ISD::Constant for i32
+  setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID}, MVT::Other, Custom);
 }
 
 //===----------------------------------------------------------------------===//
@@ -88,14 +81,8 @@ SDValue INODETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID
       switch (LocVT.getSimpleVT().SimpleTy) {
       default:
         llvm_unreachable("Unexpected argument type");
-      case MVT::v16i16:
-        RC = &INODE::VGPRRegClass;
-        break;
-      case MVT::i16:
-        RC = &INODE::VGPRRegClass;
-        break;
       case MVT::i32:
-        RC = &INODE::HWLRRegClass;
+        RC = &INODE::SGPRRegClass;
         break;
       }
 
@@ -187,6 +174,7 @@ const char *INODETargetLowering::getTargetNodeName(unsigned Opcode) const {
     OPCODE(INODEISD::CLOOP_END_VALUE);
     OPCODE(INODEISD::CLOOP_END_BRANCH);
     OPCODE(INODEISD::CLOOP_GUARD_BRANCH);
+    OPCODE(INODEISD::BR_CC);
 #undef OPCODE
   default:
     return nullptr;
@@ -227,39 +215,6 @@ SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DA
   switch (IntNo) {
   default:
     break;
-  case Intrinsic::INODE_GET_QREG: {
-    SDValue Chain = Op.getOperand(0);
-    SDValue Idx = Op.getOperand(2);
-
-    Register QReg;
-    switch (cast<ConstantSDNode>(Idx)->getZExtValue()) {
-        case 0: QReg = INODE::QREG0; break;
-        case 1: QReg = INODE::QREG1; break;
-        case 2: QReg = INODE::QREG2; break;
-        case 3: QReg = INODE::QREG3; break;
-        default:
-            llvm_unreachable("Invalid QREG index.");
-    }
-    // Use the getRegister node to get QReg register
-    return DAG.getCopyFromReg(Chain, dl, QReg, MVT::v16i16);
-  }
-  case Intrinsic::INODE_GET_CREG: {
-    SDValue Chain = Op.getOperand(0);
-    SDValue Idx = Op.getOperand(2);
-
-    Register CReg;
-    switch (cast<ConstantSDNode>(Idx)->getZExtValue()) {
-        case 0: CReg = INODE::CREG0; break;
-        case 1: CReg = INODE::CREG1; break;
-        case 2: CReg = INODE::CREG2; break;
-        case 3: CReg = INODE::CREG3; break;
-        default:
-            llvm_unreachable("Invalid CREG index.");
-    }
-
-    // Use the getRegister node to get CReg register
-    return DAG.getCopyFromReg(Chain, dl, CReg, MVT::v16i16);
-  }
   case Intrinsic::INODE_cloop_begin: {
     assert(Op->getNumOperands() == 4);
     auto onFailure = [&]() {

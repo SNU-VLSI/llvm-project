@@ -29,7 +29,7 @@ using namespace llvm;
 #define GET_REGINFO_TARGET_DESC
 #include "INODEGenRegisterInfo.inc"
 
-INODERegisterInfo::INODERegisterInfo() : INODEGenRegisterInfo(INODE::V1) {}
+INODERegisterInfo::INODERegisterInfo() : INODEGenRegisterInfo(INODE::SReg1) {}
 
 const MCPhysReg *INODERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   return CSR_INODE_SaveList;
@@ -39,9 +39,9 @@ BitVector INODERegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
 
   // R31 is the stack pointer.
-  Reserved.set(INODE::V31);
+  Reserved.set(INODE::SReg7);
   // markSuperRegs(Reserved, INODE::S0); // zero
-  markSuperRegs(Reserved, INODE::V0); // zero
+  markSuperRegs(Reserved, INODE::SReg0); // zero
 
   return Reserved;
 }
@@ -51,4 +51,4 @@ bool INODERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator MI, int 
   return false;
 }
 
-Register INODERegisterInfo::getFrameRegister(const MachineFunction &MF) const { return INODE::V30; }
+Register INODERegisterInfo::getFrameRegister(const MachineFunction &MF) const { return INODE::SReg6; }

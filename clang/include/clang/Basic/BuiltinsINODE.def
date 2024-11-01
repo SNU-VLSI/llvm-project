@@ -18,7 +18,7 @@ TARGET_BUILTIN(__builtin_INODE_WR_IMCU, "viii", "", "")
 TARGET_BUILTIN(__builtin_INODE_WR_REG, "viii", "", "")
 TARGET_BUILTIN(__builtin_INODE_SET_ADDR_CNT, "vi", "", "")
 
-TARGET_BUILTIN(__builtin_INODE_SETFLAG, "vi", "", "")
+TARGET_BUILTIN(__builtin_INODE_SET_FLAG, "vi", "", "")
 TARGET_BUILTIN(__builtin_INODE_STANDBY, "vii", "", "")
 
 TARGET_BUILTIN(__builtin_INODE_DONE, "v", "", "")

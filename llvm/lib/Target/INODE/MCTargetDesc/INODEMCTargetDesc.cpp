@@ -50,7 +50,7 @@ static MCInstrInfo *createINODEMCInstrInfo() {
 
 static MCRegisterInfo *createINODEMCRegisterInfo(const Triple &TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
-  InitINODEMCRegisterInfo(X, INODE::V1);
+  InitINODEMCRegisterInfo(X, INODE::SReg1);
   return X;
 }
 

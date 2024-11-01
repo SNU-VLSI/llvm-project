@@ -53,7 +53,7 @@ void INODEMCCodeEmitter::expandLongBNE(const MCInst &MI,
 
   // Emit a bne where if not taken, proceed to first JMP_INST, if taken jump to the second.
   MCInst TmpInst =
-      MCInstBuilder(INODE::INODE_BNE_INST).addReg(OutReg).addImm(8).addReg(SrcReg).addImm(SrcImm);
+      MCInstBuilder(INODE::INODE_BNE).addReg(OutReg).addImm(8).addReg(SrcReg).addImm(SrcImm);
   uint32_t Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
   support::endian::write(CB, Binary, llvm::endianness::big);
 

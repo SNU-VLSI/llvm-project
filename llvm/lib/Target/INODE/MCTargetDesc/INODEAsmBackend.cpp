@@ -160,7 +160,7 @@ MCAsmBackend *llvm::createINODEAsmBackend(const Target &T,
 bool INODEAsmBackend::mayNeedRelaxation(const MCInst &Inst,
                         const MCSubtargetInfo &STI) const {
   unsigned Opcode = Inst.getOpcode();
-  return Opcode == INODE::INODE_BNE_INST;
+  return Opcode == INODE::INODE_BNE;
 };
 
 bool INODEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value) const {
@@ -183,7 +183,7 @@ void INODEAsmBackend::relaxInstruction(MCInst &Inst,
   switch (Inst.getOpcode()) {
     default:
       llvm_unreachable("Unexpected instruction to relax");
-    case INODE::INODE_BNE_INST: {
+    case INODE::INODE_BNE: {
       Res.setOpcode(INODE::INODE_LONG_BNE);
       Res.addOperand(Inst.getOperand(0));
       Res.addOperand(Inst.getOperand(1));
