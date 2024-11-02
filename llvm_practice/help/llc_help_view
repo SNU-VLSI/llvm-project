@@ -1,0 +1,8 @@
+  --view-dag-combine-lt-dags                                                 - Pop up a window to show dags before the post legalize types dag combine pass
+  --view-dag-combine1-dags                                                   - Pop up a window to show dags before the first dag combine pass
+  --view-dag-combine2-dags                                                   - Pop up a window to show dags before the second dag combine pass
+  --view-edge-bundles                                                        - Pop up a window to show edge bundle graphs
+  --view-hot-freq-percent=<uint>                                             - An integer in percent used to specify the hot blocks/edges to be displayed in red: a block or edge whose frequency is no less than the max frequency of the function multiplied by this percent.
+  --view-isel-dags                                                           - Pop up a window to show isel dags as they are selected
+  --view-legalize-dags                                                       - Pop up a window to show dags before legalize
+  --view-legalize-types-dags                                                 - Pop up a window to show dags before legalize types
