@@ -23,6 +23,10 @@ def SDT_Call         : SDTypeProfile<0, -1, [SDTCisPtrTy<0>]>;
 def SDT_INODEBrCC    : SDTypeProfile<0, 4, [SDTCisSameAs<0, 1>,
                                             SDTCisVT<2, OtherVT>,
                                             SDTCisVT<3, OtherVT>]>;
+def SDT_INODESelectCC : SDTypeProfile<1, 5, [SDTCisSameAs<1, 2>,
+                                             SDTCisVT<3, OtherVT>,
+                                             SDTCisSameAs<0, 4>,
+                                             SDTCisSameAs<4, 5>]>;
 
 // Selection DAG nodes.
 def call             : SDNode<"INODEISD::CALL", SDT_Call,
@@ -75,6 +79,8 @@ class SImmAsmOperand<int width, string suffix = "">
 class UImmAsmOperand<int width, string suffix = "">
     : ImmAsmOperand<"U", width, suffix> {
 }
+
+def ixlenimm : Operand<i32>;
 
 def ImmZeroAsmOperand : AsmOperandClass {
   let Name = "ImmZero";
@@ -234,6 +240,7 @@ def brtarget : Operand<OtherVT> {
 // ========================================
 def inode_brcc      : SDNode<"INODEISD::BR_CC", SDT_INODEBrCC,
                              [SDNPHasChain]>;
+def inode_selectcc  : SDNode<"INODEISD::SELECT_CC", SDT_INODESelectCC>;
 
 // ========================================
 // instructions
@@ -446,6 +453,38 @@ defm : BccPat<SETEQ, INODE_BEQ>;
 defm : BccPat<SETNE, INODE_BNE>;
 defm : BccPat<SETLT, INODE_BLT>;
 defm : BccPat<SETGE, INODE_BGE>;
+
+def IntCCtoINODECC : SDNodeXForm<inode_selectcc, [{
+  ISD::CondCode CC = cast<CondCodeSDNode>(N->getOperand(2))->get();
+  INODECC::CondCode BrCC = getINODECCForIntCC(CC);
+  return CurDAG->getTargetConstant(BrCC, SDLoc(N), MVT::i32);
+}]>;
+
+def inode_selectcc_frag : PatFrag<(ops node:$lhs, node:$rhs, node:$cc,
+                                       node:$truev, node:$falsev),
+                                  (inode_selectcc node:$lhs, node:$rhs,
+                                                  node:$cc, node:$truev,
+                                                  node:$falsev), [{}],
+                                  IntCCtoINODECC>;
+
+multiclass SelectCC_GPR_rrirr<DAGOperand valty, ValueType vt> {
+  let usesCustomInserter = 1 in
+  def _Using_CC_GPR : Pseudo<(outs valty:$dst),
+                             (ins SGPR:$lhs, SGPR:$rhs, ixlenimm:$cc,
+                              valty:$truev, valty:$falsev),
+                             "",
+                             [(set valty:$dst,
+                               (inode_selectcc_frag:$cc (i32 SGPR:$lhs), SGPR:$rhs, cond,
+                                                        (vt valty:$truev), valty:$falsev))]>;
+  // Explicitly select 0 in the condition to X0. The register coalescer doesn't
+  // always do it.
+  def : Pat<(inode_selectcc_frag:$cc (i32 SGPR:$lhs), 0, cond, (vt valty:$truev),
+                                     valty:$falsev),
+            (!cast<Instruction>(NAME#"_Using_CC_GPR") SGPR:$lhs, (i32 SReg0),
+             (IntCCtoINODECC $cc), valty:$truev, valty:$falsev)>;
+}
+
+defm Select_GPR : SelectCC_GPR_rrirr<SGPR, i32>;
 
 // BI type pattern
 // BNE_UPDATE is selected from custom isel

@@ -126,3 +126,37 @@ void INODEInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
       .addImm(0)
       .addMemOperand(MMO);
 }
+
+INODECC::CondCode INODECC::getOppositeBranchCondition(INODECC::CondCode CC) {
+  switch (CC) {
+  default:
+    llvm_unreachable("Unrecognized conditional branch");
+  case INODECC::COND_EQ:
+    return INODECC::COND_NE;
+  case INODECC::COND_NE:
+    return INODECC::COND_EQ;
+  case INODECC::COND_LT:
+    return INODECC::COND_GE;
+  case INODECC::COND_GE:
+    return INODECC::COND_LT;
+  }
+}
+
+unsigned INODECC::getBrCond(INODECC::CondCode CC, bool Imm) {
+  switch (CC) {
+  default:
+    llvm_unreachable("Unknown condition code!");
+  case INODECC::COND_EQ:
+    return INODE::INODE_BEQ;
+  case INODECC::COND_NE:
+    return INODE::INODE_BNE;
+  case INODECC::COND_LT:
+    return INODE::INODE_BLT;
+  case INODECC::COND_GE:
+    return INODE::INODE_BGE;
+  }
+}
+
+const MCInstrDesc &INODEInstrInfo::getBrCond(INODECC::CondCode CC, bool Imm) const {
+  return get(INODECC::getBrCond(CC, Imm));
+}

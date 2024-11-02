@@ -15,6 +15,7 @@
 
 #include "INODEISelLowering.h"
 #include "INODESubtarget.h"
+#include "INODEInstrInfo.h"
 #include "MCTargetDesc/INODEMCTargetDesc.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/CodeGen/CallingConvLower.h"
@@ -22,8 +23,7 @@
 #include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
 #include "llvm/IR/IntrinsicsINODE.h"
-#include <cstdint>
-
+#include "llvm/ADT/SmallSet.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "INODE-lower"
@@ -48,7 +48,11 @@ INODETargetLowering::INODETargetLowering(const TargetMachine &TM, const INODESub
   setOperationAction(ISD::ADD, MVT::i32, Legal);
   setOperationAction(ISD::ADD, MVT::i16, Legal);
 
-  setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID}, MVT::Other, Custom);
+  setOperationAction(ISD::SELECT, MVT::i32, Custom);
+  setOperationAction(ISD::SELECT_CC, MVT::i32, Custom);
+
+  setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
+                     MVT::Other, Custom);
 }
 
 //===----------------------------------------------------------------------===//
@@ -58,10 +62,10 @@ INODETargetLowering::INODETargetLowering(const TargetMachine &TM, const INODESub
 #include "INODEGenCallingConv.inc"
 
 SDValue INODETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID CallConv,
-                                                 bool IsVarArg,
-                                                 const SmallVectorImpl<ISD::InputArg> &Ins,
-                                                 const SDLoc &DL, SelectionDAG &DAG,
-                                                 SmallVectorImpl<SDValue> &InVals) const {
+                                                  bool IsVarArg,
+                                                  const SmallVectorImpl<ISD::InputArg> &Ins,
+                                                  const SDLoc &DL, SelectionDAG &DAG,
+                                                  SmallVectorImpl<SDValue> &InVals) const {
 
   MachineFunction &MF = DAG.getMachineFunction();
   MachineRegisterInfo &MRI = MF.getRegInfo();
@@ -121,9 +125,9 @@ SDValue INODETargetLowering::LowerFormalArguments(SDValue Chain, CallingConv::ID
 }
 
 SDValue INODETargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv, bool IsVarArg,
-                                        const SmallVectorImpl<ISD::OutputArg> &Outs,
-                                        const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
-                                        SelectionDAG &DAG) const {
+                                         const SmallVectorImpl<ISD::OutputArg> &Outs,
+                                         const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
+                                         SelectionDAG &DAG) const {
 
   // Assign locations to each returned value.
   SmallVector<CCValAssign, 16> RetLocs;
@@ -154,7 +158,7 @@ SDValue INODETargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv
 }
 
 SDValue INODETargetLowering::LowerCall(CallLoweringInfo &CLI,
-                                      SmallVectorImpl<SDValue> &InVals) const {
+                                       SmallVectorImpl<SDValue> &InVals) const {
   SelectionDAG &DAG = CLI.DAG;
   DAG.dump();
   llvm_unreachable("INODE - LowerCall - Not Implemented");
@@ -191,6 +195,25 @@ SDValue INODETargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
     return LowerINTRINSIC_W_CHAIN(Op, DAG);
   case ISD::INTRINSIC_VOID:
     return LowerINTRINSIC_VOID(Op, DAG);
+  case ISD::SELECT_CC: {
+    // This occurs because we custom legalize SETGT and SETUGT for setcc. That
+    // causes LegalizeDAG to think we need to custom legalize select_cc. Expand
+    // into separate SETCC+SELECT just like LegalizeDAG.
+    SDValue Tmp1 = Op.getOperand(0);
+    SDValue Tmp2 = Op.getOperand(1);
+    SDValue True = Op.getOperand(2);
+    SDValue False = Op.getOperand(3);
+    EVT VT = Op.getValueType();
+    SDValue CC = Op.getOperand(4);
+    EVT CmpVT = Tmp1.getValueType();
+    EVT CCVT = getSetCCResultType(DAG.getDataLayout(), *DAG.getContext(), CmpVT);
+    SDLoc DL(Op);
+    SDValue Cond = DAG.getNode(ISD::SETCC, DL, CCVT, Tmp1, Tmp2, CC, Op->getFlags());
+    return DAG.getSelect(DL, VT, Cond, True, False);
+  }
+  case ISD::SELECT: {
+    return lowerSELECT(Op, DAG);
+  }
   }
 }
 
@@ -216,13 +239,15 @@ SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DA
   default:
     break;
   case Intrinsic::INODE_cloop_begin: {
-    assert(Op->getNumOperands() == 4);
+    // reg = cloop_begin(count)
+    // OP : chain(0), ID(1), count(2)
+    assert(Op->getNumOperands() == 3);
     auto onFailure = [&]() {
       // Fall back is to delete the intrinsic in situ
       LLVM_DEBUG(dbgs() << "Replacing cloop begin intrinsic with fallback: "; Op.dump(););
       assert(Op.getOpcode() == ISD::INTRINSIC_W_CHAIN);
-      DAG.ReplaceAllUsesOfValueWith(Op, Op.getOperand(2));
-      DAG.ReplaceAllUsesOfValueWith(SDValue(Op.getNode(), 1), Op.getOperand(0));
+      DAG.ReplaceAllUsesOfValueWith(Op, Op.getOperand(2));                       // count
+      DAG.ReplaceAllUsesOfValueWith(SDValue(Op.getNode(), 1), Op.getOperand(0)); // chain
       return SDValue();
     };
 
@@ -250,9 +275,9 @@ SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DA
       return onFailure();
     }
 
-    if (!isValidCloopMetadata(Op.getOperand(3))) {
-      return onFailure();
-    }
+    // if (!isValidCloopMetadata(Op.getOperand(3))) {
+    //   return onFailure();
+    // }
 
     // Replace the intrinsic with an ISD node. This will update the CopyToReg
     // that copies the induction variable out of the basic block
@@ -264,30 +289,40 @@ SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DA
     //                                  Op.getOperand(2), Op.getOperand(3));
     int count_val = cast<ConstantSDNode>(Op.getOperand(2))->getZExtValue();
     MVT count_val_type = Op.getOperand(2).getValueType().getSimpleVT();
+    // SDValue beginValue = DAG.getNode(INODEISD::CLOOP_BEGIN_VALUE, dl, VTs, originalChain,
+    //                                  DAG.getConstant(count_val, dl, count_val_type, true),
+    //                                  Op.getOperand(3));
     SDValue beginValue = DAG.getNode(INODEISD::CLOOP_BEGIN_VALUE, dl, VTs, originalChain,
-                                     DAG.getConstant(count_val, dl, count_val_type, true), Op.getOperand(3));
+                                     DAG.getConstant(count_val, dl, count_val_type, true));
 
     if (root.getOpcode() == ISD::TokenFactor) {
-      SDValue begin_terminator = DAG.getNode(INODEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other, root,
-                                             beginValue, Op.getOperand(3));
+      // SDValue begin_terminator = DAG.getNode(INODEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other,
+      // root,
+      //                                        beginValue, Op.getOperand(3));
+      SDValue begin_terminator =
+          DAG.getNode(INODEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other, root, beginValue);
       DAG.setRoot(begin_terminator);
     } else {
       assert(root.getOpcode() == ISD::BR);
+      // SDValue begin_terminator = DAG.getNode(INODEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other,
+      //                                        root.getOperand(0), beginValue, Op.getOperand(3));
       SDValue begin_terminator = DAG.getNode(INODEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other,
-                                             root.getOperand(0), beginValue, Op.getOperand(3));
+                                             root.getOperand(0), beginValue);
       DAG.ReplaceAllUsesWith(
           root, DAG.getNode(ISD::BR, dl, MVT::Other, begin_terminator, root.getOperand(1)));
     }
     return beginValue;
   }
   case Intrinsic::INODE_cloop_end: {
+    // val,meet = cloop_end(indvar)
+    // OP : chain(0), ID(1), indvar(2)
     // Expecting an IR sequence:
     // %cloop.end = call i32 @llvm.INODE.cloop.end(i32 %cloop.phi, i32 %meta)
     // %cloop.end.iv = extractvalue {i32, i32} %cloop.end, 0
     // %cloop.end.cc = extractvalue {i32, i32} %cloop.end, 1
     // %cloop.end.cc.trunc = trunc i32 %cloop.end to i1
     // br i1 %cloop.end.cc.trunc, label %t, label %f
-    assert(Op->getNumOperands() == 4);
+    assert(Op->getNumOperands() == 3);
     auto onFailure = [&]() {
       assert(Op.getOpcode() == ISD::INTRINSIC_W_CHAIN);
       LLVM_DEBUG(dbgs() << "Replacing cloop end intrinsic with fallback: "; Op.dump(););
@@ -326,9 +361,9 @@ SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DA
       return onFailure();
     }
 
-    if (!isValidCloopMetadata(Op.getOperand(3))) {
-      return onFailure();
-    }
+    // if (!isValidCloopMetadata(Op.getOperand(3))) {
+    //   return onFailure();
+    // }
 
     // The brcond condition is likely to be an and with 1 from legalisation.
     // If so we want to reach through it.
@@ -350,9 +385,12 @@ SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DA
     // Replace all uses of this by a node that represents the decrement of
     // the loop counter.
     SDVTList VTs = DAG.getVTList(MVT::i32, MVT::Other);
-    SDNode *endValue = DAG.getNode(INODEISD::CLOOP_END_VALUE, dl, VTs, Op.getOperand(0),
-                                   Op.getOperand(2), Op.getOperand(3))
-                           .getNode();
+    SDNode *endValue =
+        DAG.getNode(INODEISD::CLOOP_END_VALUE, dl, VTs, Op.getOperand(0), Op.getOperand(2))
+            .getNode();
+    // SDNode *endValue = DAG.getNode(INODEISD::CLOOP_END_VALUE, dl, VTs, Op.getOperand(0),
+    //                                Op.getOperand(2), Op.getOperand(3))
+    //                        .getNode();
 
     // Replace indvar and cc with the integer returned by CLOOP_END_VALUE
     for (unsigned i = 0; i < 2; i++) {
@@ -365,8 +403,10 @@ SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DA
     // Replace the conditional branch with a specialised version that also
     // takes the integer returned by CLOOP_END_VALUE
     SDValue endBranch =
+        // DAG.getNode(INODEISD::CLOOP_END_BRANCH, SDLoc(brcond), MVT::Other, brcond.getOperand(0),
+        //             brcond.getOperand(2), SDValue(endValue, 0), Op.getOperand(3));
         DAG.getNode(INODEISD::CLOOP_END_BRANCH, SDLoc(brcond), MVT::Other, brcond.getOperand(0),
-                    brcond.getOperand(2), SDValue(endValue, 0), Op.getOperand(3));
+                    brcond.getOperand(2), SDValue(endValue, 0));
 
     // Replace the brcond with a specialised conditional branch
     DAG.ReplaceAllUsesWith(brcond, endBranch);
@@ -378,7 +418,7 @@ SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DA
 }
 
 void INODETargetLowering::ReplaceNodeResults(SDNode *N, SmallVectorImpl<SDValue> &Results,
-                                            SelectionDAG &DAG) const {
+                                             SelectionDAG &DAG) const {
   SDLoc DL(N);
   switch (N->getOpcode()) {
   default:
@@ -403,5 +443,246 @@ void INODETargetLowering::ReplaceNodeResults(SDNode *N, SmallVectorImpl<SDValue>
     }
     }
   }
+  }
+}
+
+// Changes the condition code and swaps operands if necessary, so the SetCC
+// operation matches one of the comparisons supported directly by branches
+// in the RISC-V ISA. May adjust compares to favor compare with 0 over compare
+// with 1/-1.
+static void translateSetCCForBranch(const SDLoc &DL, SDValue &LHS, SDValue &RHS, ISD::CondCode &CC,
+                                    SelectionDAG &DAG) {
+  // If this is a single bit test that can't be handled by ANDI, shift the
+  // bit to be tested to the MSB and perform a signed compare with 0.
+  if (isIntEqualitySetCC(CC) && isNullConstant(RHS) && LHS.getOpcode() == ISD::AND &&
+      LHS.hasOneUse() && isa<ConstantSDNode>(LHS.getOperand(1))) {
+    uint64_t Mask = LHS.getConstantOperandVal(1);
+    if ((isPowerOf2_64(Mask) || isMask_64(Mask)) && !isInt<12>(Mask)) {
+      unsigned ShAmt = 0;
+      if (isPowerOf2_64(Mask)) {
+        CC = CC == ISD::SETEQ ? ISD::SETGE : ISD::SETLT;
+        ShAmt = LHS.getValueSizeInBits() - 1 - Log2_64(Mask);
+      } else {
+        ShAmt = LHS.getValueSizeInBits() - llvm::bit_width(Mask);
+      }
+
+      LHS = LHS.getOperand(0);
+      if (ShAmt != 0)
+        LHS = DAG.getNode(ISD::SHL, DL, LHS.getValueType(), LHS,
+                          DAG.getConstant(ShAmt, DL, LHS.getValueType()));
+      return;
+    }
+  }
+
+  if (auto *RHSC = dyn_cast<ConstantSDNode>(RHS)) {
+    int64_t C = RHSC->getSExtValue();
+    switch (CC) {
+    default:
+      break;
+    case ISD::SETGT:
+      // Convert X > -1 to X >= 0.
+      if (C == -1) {
+        RHS = DAG.getConstant(0, DL, RHS.getValueType());
+        CC = ISD::SETGE;
+        return;
+      }
+      break;
+    case ISD::SETLT:
+      // Convert X < 1 to 0 >= X.
+      if (C == 1) {
+        RHS = LHS;
+        LHS = DAG.getConstant(0, DL, RHS.getValueType());
+        CC = ISD::SETGE;
+        return;
+      }
+      break;
+    }
+  }
+
+  switch (CC) {
+  default:
+    break;
+  case ISD::SETGT:
+  case ISD::SETLE:
+  case ISD::SETUGT:
+  case ISD::SETULE:
+    CC = ISD::getSetCCSwappedOperands(CC);
+    std::swap(LHS, RHS);
+    break;
+  }
+}
+
+SDValue INODETargetLowering::lowerSELECT(SDValue Op, SelectionDAG &DAG) const {
+  SDValue CondV = Op.getOperand(0);
+  SDValue TrueV = Op.getOperand(1);
+  SDValue FalseV = Op.getOperand(2);
+  SDLoc DL(Op);
+  MVT VT = Op.getSimpleValueType();
+  MVT XLenVT = MVT::i32;
+
+  // If the CondV is the output of a SETCC node which operates on XLenVT inputs,
+  // then merge the SETCC node into the lowered INODEISD::SELECT_CC to take
+  // advantage of the integer compare+branch instructions. i.e.:
+  // (select (setcc lhs, rhs, cc), truev, falsev)
+  // -> (riscvisd::select_cc lhs, rhs, cc, truev, falsev)
+  SDValue LHS = CondV.getOperand(0);
+  SDValue RHS = CondV.getOperand(1);
+  ISD::CondCode CCVal = cast<CondCodeSDNode>(CondV.getOperand(2))->get();
+
+  translateSetCCForBranch(DL, LHS, RHS, CCVal, DAG);
+  // 1 < x ? x : 1 -> 0 < x ? x : 1
+  if (isOneConstant(LHS) && (CCVal == ISD::SETLT || CCVal == ISD::SETULT) && RHS == TrueV &&
+      LHS == FalseV) {
+    LHS = DAG.getConstant(0, DL, VT);
+    // 0 <u x is the same as x != 0.
+    if (CCVal == ISD::SETULT) {
+      std::swap(LHS, RHS);
+      CCVal = ISD::SETNE;
+    }
+  }
+
+  // x <s -1 ? x : -1 -> x <s 0 ? x : -1
+  if (isAllOnesConstant(RHS) && CCVal == ISD::SETLT && LHS == TrueV && RHS == FalseV) {
+    RHS = DAG.getConstant(0, DL, VT);
+  }
+
+  SDValue TargetCC = DAG.getCondCode(CCVal);
+
+  if (isa<ConstantSDNode>(TrueV) && !isa<ConstantSDNode>(FalseV)) {
+    // (select (setcc lhs, rhs, CC), constant, falsev)
+    // -> (select (setcc lhs, rhs, InverseCC), falsev, constant)
+    std::swap(TrueV, FalseV);
+    TargetCC = DAG.getCondCode(ISD::getSetCCInverse(CCVal, LHS.getValueType()));
+  }
+
+  SDValue Ops[] = {LHS, RHS, TargetCC, TrueV, FalseV};
+  return DAG.getNode(INODEISD::SELECT_CC, DL, VT, Ops);
+}
+
+static bool isSelectPseudo(MachineInstr &MI) {
+  switch (MI.getOpcode()) {
+  default:
+    return false;
+  case INODE::Select_GPR_Using_CC_GPR:
+    return true;
+  }
+}
+
+static MachineBasicBlock *emitSelectPseudo(MachineInstr &MI,
+                                           MachineBasicBlock *BB,
+                                           const INODESubtarget &Subtarget) {
+
+  // out = select_cc %LHS, %RHS, %CC, %TrueValue, %FalseValue
+  auto Next = next_nodbg(MI.getIterator(), BB->instr_end());
+  Register LHS = MI.getOperand(1).getReg();
+  Register RHS;
+  if (MI.getOperand(2).isReg())
+    RHS = MI.getOperand(2).getReg();
+  auto CC = static_cast<INODECC::CondCode>(MI.getOperand(3).getImm());
+
+  SmallVector<MachineInstr *, 4> SelectDebugValues;
+  SmallSet<Register, 4> SelectDests;
+  SelectDests.insert(MI.getOperand(0).getReg());
+
+  MachineInstr *LastSelectPseudo = &MI;
+  for (auto E = BB->end(), SequenceMBBI = MachineBasicBlock::iterator(MI);
+       SequenceMBBI != E; ++SequenceMBBI) {
+    if (SequenceMBBI->isDebugInstr())
+      continue;
+    if (isSelectPseudo(*SequenceMBBI)) {
+      if (SequenceMBBI->getOperand(1).getReg() != LHS ||
+          !SequenceMBBI->getOperand(2).isReg() ||
+          SequenceMBBI->getOperand(2).getReg() != RHS ||
+          SequenceMBBI->getOperand(3).getImm() != CC ||
+          SelectDests.count(SequenceMBBI->getOperand(4).getReg()) ||
+          SelectDests.count(SequenceMBBI->getOperand(5).getReg()))
+        break;
+      LastSelectPseudo = &*SequenceMBBI;
+      SequenceMBBI->collectDebugValues(SelectDebugValues);
+      SelectDests.insert(SequenceMBBI->getOperand(0).getReg());
+      continue;
+    }
+    if (SequenceMBBI->hasUnmodeledSideEffects() ||
+        SequenceMBBI->mayLoadOrStore() ||
+        SequenceMBBI->usesCustomInsertionHook())
+      break;
+    if (llvm::any_of(SequenceMBBI->operands(), [&](MachineOperand &MO) {
+          return MO.isReg() && MO.isUse() && SelectDests.count(MO.getReg());
+        }))
+      break;
+  }
+
+  const INODEInstrInfo &TII = *Subtarget.getInstrInfo();
+  const BasicBlock *LLVM_BB = BB->getBasicBlock();
+  DebugLoc DL = MI.getDebugLoc();
+  MachineFunction::iterator I = ++BB->getIterator();
+
+  MachineBasicBlock *HeadMBB = BB;
+  MachineFunction *F = BB->getParent();
+  MachineBasicBlock *TailMBB = F->CreateMachineBasicBlock(LLVM_BB);
+  MachineBasicBlock *IfFalseMBB = F->CreateMachineBasicBlock(LLVM_BB);
+
+  F->insert(I, IfFalseMBB);
+  F->insert(I, TailMBB);
+
+  // Set the call frame size on entry to the new basic blocks.
+  unsigned CallFrameSize = TII.getCallFrameSizeAt(*LastSelectPseudo);
+  IfFalseMBB->setCallFrameSize(CallFrameSize);
+  TailMBB->setCallFrameSize(CallFrameSize);
+
+  // Transfer debug instructions associated with the selects to TailMBB.
+  for (MachineInstr *DebugInstr : SelectDebugValues) {
+    TailMBB->push_back(DebugInstr->removeFromParent());
+  }
+
+  // Move all instructions after the sequence to TailMBB.
+  TailMBB->splice(TailMBB->end(), HeadMBB,
+                  std::next(LastSelectPseudo->getIterator()), HeadMBB->end());
+  // Update machine-CFG edges by transferring all successors of the current
+  // block to the new block which will contain the Phi nodes for the selects.
+  TailMBB->transferSuccessorsAndUpdatePHIs(HeadMBB);
+  // Set the successors for HeadMBB.
+  HeadMBB->addSuccessor(IfFalseMBB);
+  HeadMBB->addSuccessor(TailMBB);
+
+  // Insert appropriate branch.
+  BuildMI(HeadMBB, DL, TII.getBrCond(CC))
+      .addReg(LHS)
+      .addReg(RHS)
+      .addMBB(TailMBB);
+
+  // IfFalseMBB just falls through to TailMBB.
+  IfFalseMBB->addSuccessor(TailMBB);
+
+  // Create PHIs for all of the select pseudo-instructions.
+  auto SelectMBBI = MI.getIterator();
+  auto SelectEnd = std::next(LastSelectPseudo->getIterator());
+  auto InsertionPoint = TailMBB->begin();
+  while (SelectMBBI != SelectEnd) {
+    auto Next = std::next(SelectMBBI);
+    if (isSelectPseudo(*SelectMBBI)) {
+      // %Result = phi [ %TrueValue, HeadMBB ], [ %FalseValue, IfFalseMBB ]
+      BuildMI(*TailMBB, InsertionPoint, SelectMBBI->getDebugLoc(),
+              TII.get(INODE::PHI), SelectMBBI->getOperand(0).getReg())
+          .addReg(SelectMBBI->getOperand(4).getReg())
+          .addMBB(HeadMBB)
+          .addReg(SelectMBBI->getOperand(5).getReg())
+          .addMBB(IfFalseMBB);
+      SelectMBBI->eraseFromParent();
+    }
+    SelectMBBI = Next;
+  }
+
+  F->getProperties().reset(MachineFunctionProperties::Property::NoPHIs);
+  return TailMBB;
+}
+
+MachineBasicBlock *INODETargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
+                                                                    MachineBasicBlock *BB) const {
+  switch (MI.getOpcode()) {
+  default:
+    llvm_unreachable("Unexpected instr type to insert");
+  case INODE::Select_GPR_Using_CC_GPR:
+    return emitSelectPseudo(MI, BB, Subtarget);
   }
 }

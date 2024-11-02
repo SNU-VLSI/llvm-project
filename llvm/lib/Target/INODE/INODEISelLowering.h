@@ -44,6 +44,7 @@ enum NodeType : unsigned {
   CLOOP_END_BRANCH,
   CLOOP_GUARD_BRANCH,
   BR_CC,
+  SELECT_CC,
 };
 } // end namespace INODEISD
 
@@ -74,7 +75,11 @@ public:
   SDValue LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerINTRINSIC_VOID(SDValue Op, SelectionDAG &DAG) const;
-  void ReplaceNodeResults(SDNode *N, SmallVectorImpl<SDValue> &Results, SelectionDAG &DAG) const override;
+  SDValue lowerSELECT(SDValue Op, SelectionDAG &DAG) const;
+  void ReplaceNodeResults(SDNode *N, SmallVectorImpl<SDValue> &Results,
+                          SelectionDAG &DAG) const override;
+  MachineBasicBlock *EmitInstrWithCustomInserter(MachineInstr &MI,
+                                                 MachineBasicBlock *BB) const override;
 };
 
 } // end namespace llvm

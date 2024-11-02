@@ -23,12 +23,12 @@ let TargetPrefix = "INODE" in {
 
   def int_INODE_cloop_begin :
     Intrinsic<[llvm_i32_ty],
-              [llvm_i32_ty, llvm_i32_ty],
+              [llvm_i32_ty],
               [IntrHasSideEffects, IntrNoDuplicate]>;
 
   def int_INODE_cloop_end :
     Intrinsic<[llvm_i32_ty, llvm_i32_ty],
-              [llvm_i32_ty, llvm_i32_ty],
+              [llvm_i32_ty],
               [IntrHasSideEffects, IntrNoDuplicate]>;
 
   def int_INODE_HID : Intrinsic<[llvm_i32_ty], [], [IntrHasSideEffects]>;

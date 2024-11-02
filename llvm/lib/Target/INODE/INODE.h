@@ -15,6 +15,7 @@
   LUI. when big constant is used, it is split into two instructions. LUI and ADDI. -> dagtodag isel
   load and store address pattern. if imm is too big, ?
   When using super big imm, how can we handle it? I type instruction, B type instruction
+  select IR lowering
   support function call. frame lowering and frame index elimination
 */
 

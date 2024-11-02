@@ -1,5 +1,5 @@
 int test(int *addr) {
-  int a = 1;
+  int a = addr[3];
 
   // add inst
   int b = a + 1;
@@ -21,30 +21,36 @@ int test(int *addr) {
   addr[2] = 1;
 
   // beq
-  int val = 1;
+  int val = addr[5];
   if(val == 1) {
-    a = 2;
+    a += 2;
   }
 
   // bne
+  val = addr[6];
   if(val != 1) {
-    a = 3;
+    a += 3;
   }
 
   // blt
+  val = addr[7];
   if(val < 1) {
-    a = 4;
+    a += 4;
   }
 
   // bge
+  val = addr[8];
   if(val >= 1) {
-    a = 5;
+    a += 5;
   }
 
   // bne_update with hardware loop
   for(int i=0; i<10; i++) {
     for(int j=0; j<10; j++) {
+      // __builtin_INODE_SEND(a, 1, 1, 1);
       a += 6;
     }
   }
+
+  return a;
 }

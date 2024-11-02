@@ -24,6 +24,21 @@ namespace llvm {
 
 class INODESubtarget;
 
+namespace INODECC {
+
+enum CondCode {
+  COND_EQ,
+  COND_NE,
+  COND_LT,
+  COND_GE,
+  COND_INVALID
+};
+
+CondCode getOppositeBranchCondition(CondCode);
+unsigned getBrCond(CondCode CC, bool Imm = false);
+
+} // end of namespace INODECC
+
 class INODEInstrInfo : public INODEGenInstrInfo {
   const INODERegisterInfo RI;
   INODESubtarget &STI;
@@ -52,8 +67,10 @@ public:
                             int FrameIndex, const TargetRegisterClass *RC,
                             const TargetRegisterInfo *TRI,
                             Register VReg) const override;
+  const MCInstrDesc &getBrCond(INODECC::CondCode CC, bool Imm = false) const;
 };
 
 } // end namespace llvm
+
 
 #endif // LLVM_LIB_TARGET_INODE_INODEINSTRINFO_H
