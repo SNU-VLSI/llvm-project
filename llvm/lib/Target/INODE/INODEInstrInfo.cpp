@@ -71,3 +71,58 @@ void INODEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iter
     llvm_unreachable("copy between different register classes is not possible");
   }
 }
+
+
+void INODEInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
+                                         MachineBasicBlock::iterator I,
+                                         Register SrcReg, bool IsKill, int FI,
+                                         const TargetRegisterClass *RC,
+                                         const TargetRegisterInfo *TRI,
+                                         Register VReg) const {
+
+  MachineFunction *MF = MBB.getParent();
+  MachineFrameInfo &MFI = MF->getFrameInfo();
+
+  unsigned Opcode;
+  if (INODE::SGPRRegClass.hasSubClassEq(RC)) {
+    Opcode =  INODE::INODE_STORE_INST;
+  } else {
+    llvm_unreachable("Can't store this register to stack slot");
+  }
+
+  MachineMemOperand *MMO = MF->getMachineMemOperand(
+      MachinePointerInfo::getFixedStack(*MF, FI), MachineMemOperand::MOStore,
+      MFI.getObjectSize(FI), MFI.getObjectAlign(FI));
+
+  BuildMI(MBB, I, DebugLoc(), get(Opcode))
+      .addReg(SrcReg, getKillRegState(IsKill))
+      .addFrameIndex(FI)
+      .addImm(0)
+      .addMemOperand(MMO);
+}
+
+void INODEInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
+                                          MachineBasicBlock::iterator I,
+                                          Register DstReg, int FI,
+                                          const TargetRegisterClass *RC,
+                                          const TargetRegisterInfo *TRI,
+                                          Register VReg) const {
+  MachineFunction *MF = MBB.getParent();
+  MachineFrameInfo &MFI = MF->getFrameInfo();
+
+  unsigned Opcode;
+  if (INODE::SGPRRegClass.hasSubClassEq(RC)) {
+    Opcode = INODE::INODE_LOAD_INST;
+  } else {
+    llvm_unreachable("Can't load this register from stack slot");
+  }
+
+  MachineMemOperand *MMO = MF->getMachineMemOperand(
+      MachinePointerInfo::getFixedStack(*MF, FI), MachineMemOperand::MOLoad,
+      MFI.getObjectSize(FI), MFI.getObjectAlign(FI));
+
+  BuildMI(MBB, I, DebugLoc(), get(Opcode), DstReg)
+      .addFrameIndex(FI)
+      .addImm(0)
+      .addMemOperand(MMO);
+}

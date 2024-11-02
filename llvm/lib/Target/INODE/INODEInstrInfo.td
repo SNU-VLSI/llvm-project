@@ -194,6 +194,13 @@ def simm14 : Operand<i32>, TImmLeaf<i32, [{return isInt<14>(Imm);}]> {
   let OperandNamespace = "INODEOp";
 }
 
+def ntsimm14 : Operand<i32>, ImmLeaf<i32, [{return isInt<14>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<14>;
+  let DecoderMethod = "decodeSImmOperand<14>";
+  let OperandType = "OPERAND_SIMM14";
+  let OperandNamespace = "INODEOp";
+}
+
 def simm20 : Operand<i32>, TImmLeaf<i32, [{return isInt<20>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<20>;
   let DecoderMethod = "decodeSImmOperand<20>";
@@ -407,8 +414,13 @@ def INODE_PU_INST : InstUType<0b11011, (outs), (ins SGPROpnd:$rs1, simm13:$imm, 
 // I type pattern
 // LUI selected from custom isel
 //TODO: implement SelectAddrRegImm and SelectConstant
+def ConvertToTargetImm : SDNodeXForm<imm, [{
+  return CurDAG->getTargetConstant(N->getSExtValue(), SDLoc(N), N->getValueType(0));
+}]>;
 def : Pat<(add SGPROpnd:$rs1, simm14:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, simm14:$imm)>;
 def : Pat<(mul SGPROpnd:$rs1, simm14:$imm), (INODE_MULI_INST SGPROpnd:$rs1, simm14:$imm)>;
+def : Pat<(add SGPROpnd:$rs1, ntsimm14:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm14:$imm))>;
+def : Pat<(mul SGPROpnd:$rs1, ntsimm14:$imm), (INODE_MULI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm14:$imm))>;
 
 def AddrRegImm : ComplexPattern<iPTR, 2, "SelectAddrRegImm">;
 class LdPat<PatFrag LoadOp, InstINODE Inst>

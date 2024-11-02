@@ -10,6 +10,13 @@
 // INODE back-end.
 //
 //===----------------------------------------------------------------------===//
+//TODO:
+/*
+  LUI. when big constant is used, it is split into two instructions. LUI and ADDI. -> dagtodag isel
+  load and store address pattern. if imm is too big, ?
+  When using super big imm, how can we handle it? I type instruction, B type instruction
+  support function call. frame lowering and frame index elimination
+*/
 
 #ifndef LLVM_LIB_TARGET_INODEK_INODEK_H
 #define LLVM_LIB_TARGET_INODEK_INODEK_H
@@ -29,21 +36,11 @@ FunctionPass *createINODEISelDag(INODETargetMachine &TM, CodeGenOptLevel OptLeve
 void initializeINODEDAGToDAGISelPass(PassRegistry &);
 void initializeINODEDAGToDAGISelLegacyPass(PassRegistry &);
 
-void initializePrintFunctionsPass(PassRegistry &);
-FunctionPass *createPrintFunctionsPass();
-
 void initializeINODELoopConversionPass(PassRegistry &);
 FunctionPass *createINODELoopConversionPass();
 
-void initializePrintFunctionsPass(PassRegistry &);
-FunctionPass *createPrintFunctionsPass(); 
-
 void initializeINODEPrintMachineFunctionPass(PassRegistry &);
 FunctionPass *createINODEPrintMachineFunctionPass(); 
-
-// InstructionSelector *
-// createINODEInstructionSelector(const INODETargetMachine &, const INODESubtarget&,
-//                               const INODERegisterBankInfo &);
 
 void initializeINODECountedLoopMIRPass(PassRegistry &);
 FunctionPass *createINODECountedLoopMIRPass();

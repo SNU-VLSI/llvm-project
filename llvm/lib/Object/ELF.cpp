@@ -188,6 +188,13 @@ StringRef llvm::object::getELFRelocationTypeName(uint32_t Machine,
       break;
     }
     break;
+  case ELF::EM_INODE:
+    switch (Type) {
+#include "llvm/BinaryFormat/ELFRelocs/INODE.def"
+    default:
+      break;
+    }
+    break;
   default:
     break;
   }
@@ -241,6 +248,8 @@ uint32_t llvm::object::getELFRelativeRelocationType(uint32_t Machine) {
   case ELF::EM_LOONGARCH:
     return ELF::R_LARCH_RELATIVE;
   case ELF::EM_IMCE:
+    break;
+  case ELF::EM_INODE:
     break;
   default:
     break;

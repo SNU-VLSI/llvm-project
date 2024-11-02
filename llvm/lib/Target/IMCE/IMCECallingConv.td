@@ -30,4 +30,5 @@ def RetCC_IMCE : CallingConv<[
 
 // IMCE 32-bit ELF C callee saved registers.
 // def CSR_IMCE : CalleeSavedRegs<(add V1, V30, (sequence "V%d", 25, 14), S1, S30, (sequence "S%d", 25, 14))>;
-def CSR_IMCE : CalleeSavedRegs<(add V1, V30, (sequence "V%d", 25, 14))>;
+// def CSR_IMCE : CalleeSavedRegs<(add V1, V30, (sequence "V%d", 25, 14))>;
+def CSR_IMCE : CalleeSavedRegs<(add)>;

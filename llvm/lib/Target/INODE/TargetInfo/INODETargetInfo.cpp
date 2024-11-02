@@ -17,5 +17,5 @@ Target &llvm::getTheINODETarget() {
 }
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeINODETargetInfo() {
-  RegisterTarget<Triple::INODE, /*HasJIT=*/false> X(getTheINODETarget(), "INODE", "INODE", "INODE");
+  RegisterTarget<Triple::INODE, /*HasJIT=*/false> X(getTheINODETarget(), "inode", "INODE Description", "INODE");
 }

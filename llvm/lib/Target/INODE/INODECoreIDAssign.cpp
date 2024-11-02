@@ -72,11 +72,11 @@ static bool runCoreAssign(Function &F) {
     for (auto &I : BB) {
       if (auto *II = dyn_cast<IntrinsicInst>(&I)) {
         if (II->getIntrinsicID() == Intrinsic::INODE_HID) {
-          II->replaceAllUsesWith(ConstantInt::get(Type::getInt16Ty(F.getContext()), CoreHID));
+          II->replaceAllUsesWith(ConstantInt::get(Type::getInt32Ty(F.getContext()), CoreHID));
           instructionsToDelete.push_back(II);
         } else if (II->getIntrinsicID() == Intrinsic::INODE_WID) {
           // replace the result with the core wid
-          II->replaceAllUsesWith(ConstantInt::get(Type::getInt16Ty(F.getContext()), CoreWID));
+          II->replaceAllUsesWith(ConstantInt::get(Type::getInt32Ty(F.getContext()), CoreWID));
           instructionsToDelete.push_back(II);
         }
       }

@@ -24,4 +24,5 @@ def RetCC_INODE : CallingConv<[
 ]>;
 
 // INODE 32-bit ELF C callee saved registers.
-def CSR_INODE : CalleeSavedRegs<(add SReg1, SReg2)>;
+// def CSR_INODE : CalleeSavedRegs<(add SReg1, SReg2)>;
+def CSR_INODE : CalleeSavedRegs<(add)>;

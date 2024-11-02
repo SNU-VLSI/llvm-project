@@ -87,6 +87,7 @@ StringRef Triple::getArchTypeName(ArchType Kind) {
   case xcore:          return "xcore";
   case xtensa:         return "xtensa";
   case IMCE:           return "IMCE";
+  case INODE:           return "INODE";
   }
 
   llvm_unreachable("Invalid ArchType!");
@@ -236,6 +237,8 @@ StringRef Triple::getArchTypePrefix(ArchType Kind) {
   case xtensa:      return "xtensa";
 
   case IMCE:        return "IMCE";
+
+  case INODE:        return "INODE";
   }
 }
 
@@ -462,6 +465,7 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("dxil", dxil)
     .Case("xtensa", xtensa)
     .Case("IMCE", IMCE)
+    .Case("INODE", INODE)
     .Default(UnknownArch);
 }
 
@@ -611,6 +615,7 @@ static Triple::ArchType parseArch(StringRef ArchName) {
                  Triple::dxil)
           .Case("xtensa", Triple::xtensa)
           .Case("IMCE", Triple::IMCE)
+          .Case("INODE", Triple::INODE)
           .Default(Triple::UnknownArch);
 
   // Some architectures require special parsing logic just to compute the
@@ -945,6 +950,7 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::xcore:
   case Triple::xtensa:
   case Triple::IMCE:
+  case Triple::INODE:
     return Triple::ELF;
 
   case Triple::ppc64:
@@ -1637,6 +1643,7 @@ unsigned Triple::getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::xcore:
   case llvm::Triple::xtensa:
   case llvm::Triple::IMCE:
+  case llvm::Triple::INODE:
     return 32;
 
   case llvm::Triple::aarch64:
@@ -1730,6 +1737,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::xcore:
   case Triple::xtensa:
   case Triple::IMCE:
+  case Triple::INODE:
     // Already 32-bit.
     break;
 
@@ -1783,6 +1791,7 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::xcore:
   case Triple::xtensa:
   case Triple::IMCE:
+  case Triple::INODE:
     T.setArch(UnknownArch);
     break;
 
@@ -1891,7 +1900,6 @@ Triple Triple::getBigEndianArchVariant() const {
   // drop any arch suffixes.
   case Triple::arm:
   case Triple::thumb:
-  case Triple::IMCE:
     T.setArch(UnknownArch);
     break;
 
@@ -1945,6 +1953,7 @@ Triple Triple::getLittleEndianArchVariant() const {
   case Triple::sparc:      T.setArch(Triple::sparcel);  break;
   case Triple::tce:        T.setArch(Triple::tcele);    break;
   case Triple::IMCE:       T.setArch(Triple::IMCE);     break;
+  case Triple::INODE:      T.setArch(Triple::INODE);     break;
   default:
     llvm_unreachable("getLittleEndianArchVariant: unknown triple.");
   }
@@ -1999,7 +2008,6 @@ bool Triple::isLittleEndian() const {
   case Triple::x86_64:
   case Triple::xcore:
   case Triple::xtensa:
-  case Triple::IMCE:
     return true;
   default:
     return false;

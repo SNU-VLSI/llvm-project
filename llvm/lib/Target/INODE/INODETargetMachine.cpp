@@ -132,9 +132,7 @@ void INODEPassConfig::addIRPasses() {
 
 bool INODEPassConfig::addPreISel() {
   addPass(createHardwareLoopsLegacyPass());
-  // addPass(createPrintFunctionsPass());
   addPass(createINODELoopConversionPass());
-  // addPass(createPrintFunctionsPass());
   return false;
 }
 
@@ -144,10 +142,9 @@ bool INODEPassConfig::addInstSelector() {
 }
 
 void INODEPassConfig::addPreRegAlloc() {
-  // addPass(createINODEPrintMachineFunctionPass());
   TargetPassConfig::addPreRegAlloc();
   // addPass(&MachineCopyPropagationID);
-  // addPass(createINODEPrintMachineFunctionPass());
+  
 }
 
 void INODEPassConfig::addPreEmitPass() {
@@ -155,11 +152,8 @@ void INODEPassConfig::addPreEmitPass() {
   if (getOptLevel() != CodeGenOptLevel::None) {
     addPass(&FinalizeMachineBundlesID);
   }
-  // addPass(createINODEPrintMachineFunctionPass());
 }
 
 void INODEPassConfig::addMachineLateOptimization() {
-  // addPass(createINODEPrintMachineFunctionPass());
   TargetPassConfig::addMachineLateOptimization();
-  // addPass(createINODEPrintMachineFunctionPass());
 }

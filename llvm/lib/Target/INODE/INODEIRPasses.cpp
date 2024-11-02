@@ -10,51 +10,9 @@
 
 using namespace llvm;
 
-#define PRINT_FUNCTIONS_DEBUG_TYPE "hardware-loops"
-#define PRINT_FUNCTIONS_NAME "print functions"
-
-namespace {
-  class PrintFunctions : public FunctionPass {
-    public:
-      static char ID;
-
-      PrintFunctions() : FunctionPass(ID) {
-        initializePrintFunctionsPass(*PassRegistry::getPassRegistry());
-      }
-
-      bool runOnFunction(Function &F) override;
-  };
-}
-bool PrintFunctions::runOnFunction(Function &F) {
-  // errs() << "Function: " << F.getName() << "\n";
-
-  // // print basic blocks of functions
-  // for (auto &BB : F) {
-  //   errs() << "Basic Block: " << BB.getName() << "\n";
-  //   // print instructions of basic blocks
-  //   for (auto &I : BB) {
-  //     errs() << "Instruction: " << I.getOpcodeName() << "\n";
-  //   }
-  // }
-  errs() << "Print Function Pass Run" << "\n";
-  F.dump();
-  return false;
-}
-
-char PrintFunctions::ID = 0;
-INITIALIZE_PASS_BEGIN(PrintFunctions, PRINT_FUNCTIONS_DEBUG_TYPE, PRINT_FUNCTIONS_NAME, false, false)
-INITIALIZE_PASS_END(PrintFunctions, PRINT_FUNCTIONS_DEBUG_TYPE, PRINT_FUNCTIONS_NAME, false, false)
-
-FunctionPass *llvm::createPrintFunctionsPass() { return new PrintFunctions();}
-
 #define LOOP_CONV_DEBUG_TYPE "INODE-loop-conversion"
 #define LOOP_CONV_PASS_NAME "INODE loop conversion"
 namespace {
-enum class metadata : uint16_t {
-  none = 0,
-  tripCountOKForRpt = 1,
-};
-using md = metadata;
 class INODELoopConversion : public FunctionPass {
   LoopInfo *LI;
   LLVMContext *ctx;
@@ -72,14 +30,9 @@ public:
   }
 
 private:
-  Value *processIterIntr(BasicBlock *BB, IntrinsicInst *II, md Metadata);
+  Value *processIterIntr(BasicBlock *BB, IntrinsicInst *II);
   bool processIntr(BasicBlock *BB, IntrinsicInst *II);
-  // BasicBlock *processLoopGuardIntr(BasicBlock *Predecessor, IntrinsicInst *II);
-  // void processTestSetIntr(BasicBlock *Predecessor, IntrinsicInst *II);
-  // void processTestStartIntr(BasicBlock *Predecessor, IntrinsicInst *II);
   void processSetIntr(BasicBlock *Preheader, IntrinsicInst *II);
-  // void processStartIntr(BasicBlock *BB, IntrinsicInst *II);
-  // void processDecRegIntr(BasicBlock *BB, IntrinsicInst *II);
 };
 } // namespace
 char INODELoopConversion::ID = 0;
@@ -93,10 +46,8 @@ FunctionPass *llvm::createINODELoopConversionPass() {
   return new INODELoopConversion();
 }
 
-Value *INODELoopConversion::processIterIntr(BasicBlock *BB,
-                                               IntrinsicInst *II, md Metadata) {
+Value *INODELoopConversion::processIterIntr(BasicBlock *BB, IntrinsicInst *II) {
   auto I32Ty = Type::getInt32Ty(*ctx);
-  auto metadata = ConstantInt::get(I32Ty, static_cast<uint16_t>(Metadata));
 
   IRBuilder<> SLIIBuilder(II);
   Value *counter = II->getOperand(0);
@@ -104,7 +55,7 @@ Value *INODELoopConversion::processIterIntr(BasicBlock *BB,
   Function *func =
       Intrinsic::getDeclaration(M, Intrinsic::INODE_cloop_begin);
   CallInst *cloopBeginCall =
-      SLIIBuilder.CreateCall(func, {zextTruncCounter, metadata}, "cloop.begin");
+      SLIIBuilder.CreateCall(func, {zextTruncCounter}, "cloop.begin");
   Value *cloopBegin = cloopBeginCall;
   return cast<Value>(cloopBegin);
 }
@@ -136,13 +87,14 @@ bool INODELoopConversion::processIntr(BasicBlock *BB, IntrinsicInst *II) {
   return true;
 }
 
-bool isCallIntrID(const CallInst *CI, Intrinsic::ID IID) {
+bool isINODECallIntrID(const CallInst *CI, Intrinsic::ID IID) {
   return CI != nullptr && CI->getIntrinsicID() == IID;
 }
 
-Instruction *findHwLoopIntrinsic(BasicBlock *BB, Intrinsic::ID IID) {
+Instruction *findINODEHwLoopIntrinsic(BasicBlock *BB, Intrinsic::ID IID) {
   auto isIntIDInst = [&IID](Instruction &I) {
-    return isCallIntrID(dyn_cast<CallInst>(&I), IID);
+    // return dyn_cast<CallInst>(&I) != nullptr && CI->getIntrinsicID() == IID;
+    return isINODECallIntrID(dyn_cast<CallInst>(&I), IID);
   };
   auto Inst = std::find_if(BB->begin(), BB->end(), isIntIDInst);
   return Inst != BB->end() ? &(*Inst) : nullptr;
@@ -151,9 +103,7 @@ Instruction *findHwLoopIntrinsic(BasicBlock *BB, Intrinsic::ID IID) {
 void INODELoopConversion::processSetIntr(BasicBlock *Preheader,
                                             IntrinsicInst *II) {
   auto I32Ty = Type::getInt32Ty(*ctx);
-  Value *counter = processIterIntr(Preheader, II, md::tripCountOKForRpt);
-  auto metadata =
-      ConstantInt::get(I32Ty, static_cast<uint16_t>(md::tripCountOKForRpt));
+  Value *counter = processIterIntr(Preheader, II);
   II->eraseFromParent();
 
   // The preheader successor will be the loop's header.
@@ -164,7 +114,7 @@ void INODELoopConversion::processSetIntr(BasicBlock *Preheader,
 
   auto *LoopDecInstr = [&]() -> Instruction* {
     for (BasicBlock *LoopBB : ExitingBlocks) {
-      if (auto *Inst = findHwLoopIntrinsic(LoopBB, Intrinsic::loop_decrement))
+      if (auto *Inst = findINODEHwLoopIntrinsic(LoopBB, Intrinsic::loop_decrement))
         return Inst;
     }
     return nullptr;
@@ -186,7 +136,7 @@ void INODELoopConversion::processSetIntr(BasicBlock *Preheader,
   Value *zextTruncPhi = DecBuilder.CreateZExtOrTrunc(loopPhi, I32Ty);
   CallInst *cloopEnd = DecBuilder.CreateCall(
       Intrinsic::getDeclaration(M, Intrinsic::INODE_cloop_end),
-      {zextTruncPhi, metadata}, "cloop.end");
+      {zextTruncPhi}, "cloop.end");
 
   Value *indVar =
       DecBuilder.CreateExtractValue(cloopEnd, 0, "cloop.end.iv");

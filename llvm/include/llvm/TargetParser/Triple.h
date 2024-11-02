@@ -109,7 +109,7 @@ public:
     ve,             // NEC SX-Aurora Vector Engine
     IMCE,
     INODE,
-    LastArchType = ve
+    LastArchType = INODE
   };
   enum SubArchType {
     NoSubArch,

@@ -117,8 +117,16 @@ bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base,
 
   if (Addr.getOpcode() == ISD::ADD) { //TODO: need to use inode specific add node for address calculation?
     Base = Addr.getOperand(0);
-    Offset = Addr.getOperand(1);
+
+    // change to target constant
+    if (auto *C = dyn_cast<ConstantSDNode>(Addr.getOperand(1))) {
+      Offset = CurDAG->getTargetConstant(C->getSExtValue(), DL, VT);
+    } else {
+      llvm_unreachable("Unhandled ADD operand");
+    }
     return true;
+  } else {
+    llvm_unreachable("Unhandled address operand");
   }
 
   // int64_t RV32ZdinxRange = IsINX ? 4 : 0;

@@ -22363,6 +22363,10 @@ Value *CodeGenFunction::EmitINODEBuiltinExpr(unsigned BuiltinID,
     ID = Intrinsic::INODE_INTRT;
     break;
   }
+  case INODE::BI__builtin_INODE_PU: {
+    ID = Intrinsic::INODE_PU;
+    break;
+  }
   case INODE::BI__builtin_INODE_GET_CORE_HID: {
     ID = Intrinsic::INODE_HID;
     break;
