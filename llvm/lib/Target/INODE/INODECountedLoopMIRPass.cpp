@@ -596,6 +596,7 @@ bool INODECountedLoopMIR::cleanPrologs(MachineBasicBlock *Preheader,
 // the inner loops unlike traverseLoop).
 void INODECountedLoopMIR::gatherPreheaders(MachineLoop &L,
                                           MachineBasicBlock *ParentPreheader) {
+  // find preheader having CLOOP_BEGIN_TERMINATOR
   MachineBasicBlock *Preheader = L.getLoopPreheader();
   if (!containsPseudos(Preheader, {INODE::CLOOP_BEGIN_TERMINATOR})) {
     Preheader = nullptr;
@@ -615,6 +616,7 @@ void INODECountedLoopMIR::gatherPreheaders(MachineLoop &L,
     }
   }
 
+  // if Preheader is found, add it to the map.
   if (Preheader)
     PreheaderMap.insert(std::make_pair(&L, Preheader));
 
@@ -674,29 +676,32 @@ bool INODECountedLoopMIR::traverseLoop(MachineLoop &L) {
   // loop, bail out.
   if (numFoundBranchPseudos > 1) {
     // Bail out.
-    for (MachineBasicBlock *MBB : Latches) {
-      changed |= eliminatePseudos(MBB, *TII);
-    }
-    changed |= eliminatePseudos(Preheader, *TII);
-    return changed;
+    llvm_unreachable("Multiple loop latches with CLOOP_END_BRANCH");
+    // for (MachineBasicBlock *MBB : Latches) {
+    //   changed |= eliminatePseudos(MBB, *TII);
+    // }
+    // changed |= eliminatePseudos(Preheader, *TII);
+    // return changed;
   }
 
   // Some pass(es) may cause the branch to exist in the header. If that's the
   // case, bail out.
   if (!EndBranchBB) {
-    EndBranchBB = L.getHeader();
-    if (!containsPseudos(EndBranchBB,
-                         {INODE::CLOOP_END_VALUE, INODE::CLOOP_END_BRANCH})) {
-      changed |= eliminatePseudos(Preheader, *TII);
-      changed |= eliminatePseudos(EndBranchBB, *TII);
-      return changed;
-    }
+    llvm_unreachable("No loop latch with CLOOP_END_BRANCH");
+    // EndBranchBB = L.getHeader();
+    // if (!containsPseudos(EndBranchBB,
+    //                      {INODE::CLOOP_END_VALUE, INODE::CLOOP_END_BRANCH})) {
+    //   changed |= eliminatePseudos(Preheader, *TII);
+    //   changed |= eliminatePseudos(EndBranchBB, *TII);
+    //   return changed;
+    // }
   }
 
   // If preheader doesn't exists, bail out.
   if (!Preheader) {
-    changed |= eliminatePseudos(EndBranchBB, *TII);
-    return changed;
+    llvm_unreachable("No preheader with CLOOP_BEGIN_TERMINATOR");
+    // changed |= eliminatePseudos(EndBranchBB, *TII);
+    // return changed;
   }
 
   auto bodyEndValue =
