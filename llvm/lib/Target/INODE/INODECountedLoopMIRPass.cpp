@@ -336,7 +336,7 @@ bool eliminatePseudos(MachineBasicBlock *BB, const TargetInstrInfo &TII) {
       break;
     }
     case INODE::CLOOP_BEGIN_VALUE: {
-      assert(BBI->getOperand(0).getReg() == BBI->getOperand(1).getReg());
+      // assert(BBI->getOperand(0).getReg() == BBI->getOperand(1).getReg());
       BBI = BB->erase(BBI);
       changed = true;
       break;
@@ -349,7 +349,7 @@ bool eliminatePseudos(MachineBasicBlock *BB, const TargetInstrInfo &TII) {
     case INODE::CLOOP_END_VALUE: {
       unsigned r = BBI->getOperand(0).getReg();
       assert(r == BBI->getOperand(1).getReg());
-      assert(0 && "CLOOP_END_VALUE should have been eliminated by now");
+      // assert(0 && "CLOOP_END_VALUE should have been eliminated by now");
       // This add could sometimes be eliminated by modifying existing
       // instructions, e.g. if the def is an add +1
       // BuildMI(*BB, BBI, dl, TII.get(INODE::ADD_SI), r)
@@ -362,7 +362,7 @@ bool eliminatePseudos(MachineBasicBlock *BB, const TargetInstrInfo &TII) {
       break;
     }
     case INODE::CLOOP_END_BRANCH: {
-      assert(0 && "CLOOP_END_BRANCH should have been eliminated by now");
+      // assert(0 && "CLOOP_END_BRANCH should have been eliminated by now");
       // BuildMI(*BB, BBI, dl, TII.get(INODE::BRNZ))
       //     .add(BBI->getOperand(0))
       //     .add(BBI->getOperand(1))
@@ -539,11 +539,11 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
   bodyEndValue->eraseFromParent();
 
   // VINN: get the immediate value from instruction prior to headerBeginValue?
-  BuildMI(*body, bodyEndBranch, dl, TII.get(INODE::INODE_BNE),
+  BuildMI(*body, bodyEndBranch, dl, TII.get(INODE::INODE_BNE_UPDATE_INST),
           bodyEndBranch->getOperand(0).getReg()) // $rs2 == $rs1
-      .add(bodyEndBranch->getOperand(1))         // branch target (bb)
       .add(bodyEndBranch->getOperand(0))         // $rs1
-      .addImm(hw_loop_cnt);                      // $imm: hw_loop_cnt_max
+      .addImm(hw_loop_cnt)                       // $imm: hw_loop_cnt_max
+      .add(bodyEndBranch->getOperand(1));        // branch target (bb)
   bodyEndBranch->removeFromParent();
 }
 

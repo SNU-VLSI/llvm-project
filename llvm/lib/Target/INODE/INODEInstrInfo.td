@@ -49,7 +49,7 @@ def INODECloopEndValue :
          [SDNPHasChain]>;
 def INODECloopEndBranch :
   SDNode<"INODEISD::CLOOP_END_BRANCH",
-         SDTypeProfile<0, 2, [SDTCisVT<0, i32>]>, // loop_indvar, br_target
+         SDTypeProfile<0, 2, [SDTCisVT<1, i32>]>, // br_target, loop_indvar
          [SDNPHasChain]>;
 
 // ===================================================
@@ -522,4 +522,4 @@ def i32MR : PatLeaf<(i32 SGPROpnd:$R)>;
 def : Pat<(i32 (INODECloopBeginValue uimm32:$op0)), (i32 (CLOOP_BEGIN_VALUE uimm32:$op0))>;
 def : Pat<(INODECloopBeginTerminator i32MR:$op0), (CLOOP_BEGIN_TERMINATOR i32MR:$op0)>;
 def : Pat<(i32 (INODECloopEndValue i32MR:$op0)), (i32 (CLOOP_END_VALUE i32MR:$op0))>;
-def : Pat<(INODECloopEndBranch i32MR:$op1, bb:$op0), (CLOOP_END_BRANCH i32MR:$op1, bb:$op0)>;
+def : Pat<(INODECloopEndBranch bb:$op0, i32MR:$op1), (CLOOP_END_BRANCH i32MR:$op1, bb:$op0)>;
