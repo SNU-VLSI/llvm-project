@@ -713,6 +713,7 @@ bool INODECountedLoopMIR::traverseLoop(MachineLoop &L) {
     // Some pass(es) may have split BEGIN_VALUE and BEGIN_TERMINATOR so find the
     // associated BEGIN_VALUE if we know BEGIN_TERMINATOR in Preheader and
     // delete the BEGIN_VALUE.
+
     auto BeginTerm =
         findBySearchingFromTerminator(Preheader, INODE::CLOOP_BEGIN_TERMINATOR);
     if (BeginTerm != Preheader->instr_end())

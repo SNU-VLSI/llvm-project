@@ -215,6 +215,7 @@ SDValue IMCETargetLowering::LowerINTRINSIC_VOID(SDValue Op, SelectionDAG &DAG) c
 }
 
 SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG) const {
+  static int NumBeginValue = 0;
 
   auto isValidCloopMetadata = [&](SDValue x) {
     auto metadata = dyn_cast<ConstantSDNode>(x);
@@ -309,8 +310,10 @@ SDValue IMCETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG
     //                                  Op.getOperand(2), Op.getOperand(3));
     int count_val = cast<ConstantSDNode>(Op.getOperand(2))->getZExtValue();
     MVT count_val_type = Op.getOperand(2).getValueType().getSimpleVT();
+    // SDValue beginValue = DAG.getNode(IMCEISD::CLOOP_BEGIN_VALUE, dl, VTs, originalChain,
+    //                                  DAG.getConstant(count_val, dl, count_val_type, true), Op.getOperand(3));
     SDValue beginValue = DAG.getNode(IMCEISD::CLOOP_BEGIN_VALUE, dl, VTs, originalChain,
-                                     DAG.getConstant(count_val, dl, count_val_type, true), Op.getOperand(3));
+                                     DAG.getConstant(count_val, dl, count_val_type, true), DAG.getConstant(NumBeginValue++, dl, Op.getOperand(3).getSimpleValueType()));
 
     if (root.getOpcode() == ISD::TokenFactor) {
       SDValue begin_terminator = DAG.getNode(IMCEISD::CLOOP_BEGIN_TERMINATOR, dl, MVT::Other, root,

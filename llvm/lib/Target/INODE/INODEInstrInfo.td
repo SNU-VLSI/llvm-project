@@ -37,7 +37,7 @@ def retglue          : SDNode<"INODEISD::RET_GLUE", SDTNone,
 
 def INODECloopBeginValue :
   SDNode<"INODEISD::CLOOP_BEGIN_VALUE",
-         SDTypeProfile<1, 1, [SDTCisVT<0, i32>, SDTCisVT<1, i32>]>, // loop_indvar_reg, loop_bound_constant 
+         SDTypeProfile<1, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>, SDTCisVT<2, i32>]>, // loop_indvar_reg, loop_bound_constant, meta_id 
          [SDNPHasChain]>;
 def INODECloopBeginTerminator :
   SDNode<"INODEISD::CLOOP_BEGIN_TERMINATOR",
@@ -259,8 +259,8 @@ let mayLoad = 0, mayStore = 0 in {
 // between their location and the terminators
 // Metadata limit of imm16zi could be increased by implementing imm32
   let hasSideEffects = 0, isAsCheapAsAMove = 1 in {
-    def CLOOP_BEGIN_VALUE : Pseudo<(outs SGPROpnd:$loop_indvar), (ins uimm32:$loop_cnt),
-                               "# CLOOP_BEGIN_VALUE $loop_indvar, $loop_cnt",
+    def CLOOP_BEGIN_VALUE : Pseudo<(outs SGPROpnd:$loop_indvar), (ins uimm32:$loop_cnt, uimm32:$meta_id),
+                               "# CLOOP_BEGIN_VALUE $loop_indvar, $loop_cnt $meta_id",
                                []>;
 
     def CLOOP_END_VALUE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i),
@@ -519,7 +519,7 @@ def : Pat<(br (bb:$imm)), (INODE_JMP_INST jumptarget:$imm)>;
 def : Pat<(int_INODE_PU SGPROpnd:$rs1, simm13:$imm, SGPROpnd:$entry_addr, uimm4:$node_col_id), (INODE_PU_INST SGPROpnd:$rs1, simm13:$imm, SGPROpnd:$entry_addr, uimm4:$node_col_id)>;
 
 def i32MR : PatLeaf<(i32 SGPROpnd:$R)>;
-def : Pat<(i32 (INODECloopBeginValue uimm32:$op0)), (i32 (CLOOP_BEGIN_VALUE uimm32:$op0))>;
+def : Pat<(i32 (INODECloopBeginValue uimm32:$op0, uimm32:$meta)), (i32 (CLOOP_BEGIN_VALUE uimm32:$op0, uimm32:$meta))>;
 def : Pat<(INODECloopBeginTerminator i32MR:$op0), (CLOOP_BEGIN_TERMINATOR i32MR:$op0)>;
 def : Pat<(i32 (INODECloopEndValue i32MR:$op0)), (i32 (CLOOP_END_VALUE i32MR:$op0))>;
 def : Pat<(INODECloopEndBranch bb:$op0, i32MR:$op1), (CLOOP_END_BRANCH i32MR:$op1, bb:$op0)>;
