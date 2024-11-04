@@ -33,6 +33,7 @@ enum OperandType : unsigned {
   OPERAND_UIMM6,
   OPERAND_UIMM7,
   OPERAND_UIMM8,
+  OPERAND_UIMM12,
   OPERAND_UIMM13,
   OPERAND_UIMM14,
   OPERAND_UIMM16,
@@ -42,6 +43,7 @@ enum OperandType : unsigned {
   OPERAND_SIMM13,
   OPERAND_SIMM14,
   OPERAND_SIMM20,
+  OPERAND_SIMM32,
 };
 } // namespace INODEOp
 } // namespace llvm

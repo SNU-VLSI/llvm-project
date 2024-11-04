@@ -151,6 +151,13 @@ def uimm8 : Operand<i32>, TImmLeaf<i32, [{return isUInt<8>(Imm);}]> {
   let OperandNamespace = "INODEOp";
 }
 
+def uimm12 : Operand<i32>, TImmLeaf<i32, [{return isUInt<12>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<12>;
+  let DecoderMethod = "decodeUImmOperand<12>";
+  let OperandType = "OPERAND_UIMM12";
+  let OperandNamespace = "INODEOp";
+}
+
 def uimm13 : Operand<i32>, TImmLeaf<i32, [{return isUInt<13>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<13>;
   let DecoderMethod = "decodeUImmOperand<13>";
@@ -204,6 +211,20 @@ def ntsimm14 : Operand<i32>, ImmLeaf<i32, [{return isInt<14>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<14>;
   let DecoderMethod = "decodeSImmOperand<14>";
   let OperandType = "OPERAND_SIMM14";
+  let OperandNamespace = "INODEOp";
+}
+
+def ntsimm20 : Operand<i32>, ImmLeaf<i32, [{return isInt<20>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<20>;
+  let DecoderMethod = "decodeSImmOperand<20>";
+  let OperandType = "OPERAND_SIMM20";
+  let OperandNamespace = "INODEOp";
+}
+
+def ntsimm_over20 : Operand<i32>, ImmLeaf<i32, [{return isInt<32>(Imm) & !isInt<20>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<20, "over">;
+  let DecoderMethod = "decodeSImmOperand<32>";
+  let OperandType = "OPERAND_SIMM32";
   let OperandNamespace = "INODEOp";
 }
 
@@ -287,17 +308,20 @@ let mayLoad = 0, mayStore = 0 in {
 }
 
 // I type
-class IInst<string opname, int opcode> : InstIType<opcode, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm14:$imm), opname, "$rd $rs1 $imm", []>;
+class IInst<string opname, int opcode> : InstIType<opcode, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm20:$imm), opname, "$rd $rs1 $imm", []>;
 let mayLoad=0, mayStore=0 in {
   def INODE_ADDI_INST   : IInst<"addi"  , 0b10001>;
   def INODE_MULI_INST : IInst<"muli", 0b10010>;
-  def INODE_LUI_INST : IInst<"lui", 0b10011>;
 }
-def INODE_LOAD_INST : InstIType<0b101, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm14:$imm), "load", "$rd, $rs1, $imm", []> {
+def INODE_LUI_INST : InstIType<0b10011, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, uimm12:$imm), "lui", "$rd $rs1 $imm", []> {
+  let mayLoad = 0;
+  let mayStore = 0;
+}
+def INODE_LOAD_INST : InstIType<0b101, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm20:$imm), "load", "$rd, $rs1, $imm", []> {
   let mayLoad = 1;
   let hasSideEffects = 1;
 }
-def INODE_STORE_INST : InstIType<0b110, (outs), (ins SGPROpnd:$rd, simm14:$imm, SGPROpnd:$rs1), "store", "$rd, $imm, $rs1", []> {
+def INODE_STORE_INST : InstIType<0b110, (outs), (ins SGPROpnd:$rd, simm20:$imm, SGPROpnd:$rs1), "store", "$rd, $imm, $rs1", []> {
   let mayStore = 1;
   let hasSideEffects = 1;
 }
@@ -424,29 +448,31 @@ def INODE_PU_INST : InstUType<0b11011, (outs), (ins SGPROpnd:$rs1, simm13:$imm, 
 def ConvertToTargetImm : SDNodeXForm<imm, [{
   return CurDAG->getTargetConstant(N->getSExtValue(), SDLoc(N), N->getValueType(0));
 }]>;
-def : Pat<(add SGPROpnd:$rs1, simm14:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, simm14:$imm)>;
-def : Pat<(mul SGPROpnd:$rs1, simm14:$imm), (INODE_MULI_INST SGPROpnd:$rs1, simm14:$imm)>;
-def : Pat<(add SGPROpnd:$rs1, ntsimm14:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm14:$imm))>;
-def : Pat<(mul SGPROpnd:$rs1, ntsimm14:$imm), (INODE_MULI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm14:$imm))>;
+def : Pat<(add SGPROpnd:$rs1, simm20:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, simm20:$imm)>;
+def : Pat<(mul SGPROpnd:$rs1, simm20:$imm), (INODE_MULI_INST SGPROpnd:$rs1, simm20:$imm)>;
+def : Pat<(add SGPROpnd:$rs1, ntsimm20:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm20:$imm))>;
+def : Pat<(mul SGPROpnd:$rs1, ntsimm20:$imm), (INODE_MULI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm20:$imm))>;
+// def : Pat<(add SGPROpnd:$rs1, ntsimm_over20:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm_over20:$imm))>;
+// def : Pat<(mul SGPROpnd:$rs1, ntsimm_over20:$imm), (INODE_MULI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm_over20:$imm))>;
 
 def AddrRegImm : ComplexPattern<iPTR, 2, "SelectAddrRegImm">;
 class LdPat<PatFrag LoadOp, InstINODE Inst>
-    : Pat<(i32 (LoadOp (AddrRegImm (i32 SGPROpnd:$rs1), simm14:$imm14))),
-          (Inst SGPROpnd:$rs1, simm14:$imm14)>;
+    : Pat<(i32 (LoadOp (AddrRegImm (i32 SGPROpnd:$rs1), simm20:$imm20))),
+          (Inst SGPROpnd:$rs1, simm20:$imm20)>;
 def : LdPat<load, INODE_LOAD_INST>;
 
 class StPat<PatFrag StoreOp, InstINODE Inst>
-    : Pat<(StoreOp (i32 SGPROpnd:$rs1), (AddrRegImm (i32 SGPROpnd:$rd), simm14:$imm14)),
-          (Inst SGPROpnd:$rd, simm14:$imm14, SGPROpnd:$rs1)>;
+    : Pat<(StoreOp (i32 SGPROpnd:$rs1), (AddrRegImm (i32 SGPROpnd:$rd), simm20:$imm20)),
+          (Inst SGPROpnd:$rd, simm20:$imm20, SGPROpnd:$rs1)>;
 def : StPat<store, INODE_STORE_INST>;
 
 // B type pattern
 multiclass BccPat<CondCode Cond, InstINODE Inst> {
-  def : Pat<(inode_brcc (i32 SGPROpnd:$rs1), SGPROpnd:$rs2, Cond, bb:$imm14),
-            (Inst SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm14)>;
+  def : Pat<(inode_brcc (i32 SGPROpnd:$rs1), SGPROpnd:$rs2, Cond, bb:$imm20),
+            (Inst SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm20)>;
   // Explicitly select 0 to X0. The register coalescer doesn't always do it.
-  def : Pat<(inode_brcc (i32 SGPROpnd:$rs1), 0, Cond, bb:$imm14),
-            (Inst SGPROpnd:$rs1, (i32 SReg0), brtarget:$imm14)>;
+  def : Pat<(inode_brcc (i32 SGPROpnd:$rs1), 0, Cond, bb:$imm20),
+            (Inst SGPROpnd:$rs1, (i32 SReg0), brtarget:$imm20)>;
 }
 
 defm : BccPat<SETEQ, INODE_BEQ>;

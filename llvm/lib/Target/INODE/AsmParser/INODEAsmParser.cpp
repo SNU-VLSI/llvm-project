@@ -208,6 +208,14 @@ public:
     return false;
   }
 
+  bool isUImm12() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isUInt<12>(CE->getValue());
+    return false;
+  }
+
   bool isUImm13() const {
     if (!isImm())
       return false;
@@ -277,6 +285,14 @@ public:
       return false;
     if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
       return isInt<20>(CE->getValue());
+    return false;
+  }
+
+  bool isSImm20over() const {
+    if (!isImm())
+      return false;
+    if (auto *CE = dyn_cast<MCConstantExpr>(getImm()))
+      return isInt<32>(CE->getValue()) & !isInt<20>(CE->getValue());
     return false;
   }
 
