@@ -45,18 +45,27 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   case FK_Data_4:
   case FK_Data_8:
     break;
-  case INODE::fixup_INODE_PC9: 
+  case INODE::fixup_INODE_PC9: {
+    // The displacement is then divided by 4 to give us an 8 bit
+    // address range. Forcing a signed division because Value can be negative.
+    Value = (int64_t)Value / 4;
+    // We now check if Value can be encoded as a 6-bit signed immediate.
+    if (!isInt<9>(Value)) {
+      Ctx.reportError(Fixup.getLoc(), "out of range PC9 fixup");
+      return 0;
+    }
+    break;
+  }
   case INODE::fixup_INODE_PC20: {
     // The displacement is then divided by 4 to give us an 8 bit
     // address range. Forcing a signed division because Value can be negative.
     Value = (int64_t)Value / 4;
     // We now check if Value can be encoded as a 6-bit signed immediate.
-    if (!isInt<6>(Value)) {
-      Ctx.reportError(Fixup.getLoc(), "out of range PC6 fixup");
+    if (!isInt<20>(Value)) {
+      Ctx.reportError(Fixup.getLoc(), "out of range PC20 fixup");
       return 0;
     }
     break;
-
   }
   case INODE::fixup_INODE_target_26:
   case INODE::fixup_INODE_26: {
@@ -71,20 +80,22 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   return Value;
 }
 
-std::unique_ptr<MCObjectTargetWriter> INODEAsmBackend::createObjectTargetWriter() const {
+std::unique_ptr<MCObjectTargetWriter>
+INODEAsmBackend::createObjectTargetWriter() const {
   return createINODEELFObjectWriter(OSABI, Is64Bit);
 }
 
-const MCFixupKindInfo &INODEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
+const MCFixupKindInfo &
+INODEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
   const static MCFixupKindInfo Infos[] = {
       // This table *must* be in the order that the fixup_* kinds are defined in
       // INODEFixupKinds.h. the offset and bits are in big endian.
       //
       // name              offset bits  flags
-      { "fixup_INODE_PC9",       23,  9, MCFixupKindInfo::FKF_IsPCRel  },
-      { "fixup_INODE_PC20",      12, 20, MCFixupKindInfo::FKF_IsPCRel  },
-      { "fixup_INODE_target_26", 6,  26, MCFixupKindInfo::FKF_IsTarget },
-      { "fixup_INODE_26",        6,  26, 0 },
+      {"fixup_INODE_PC9", 23, 9, MCFixupKindInfo::FKF_IsPCRel},
+      {"fixup_INODE_PC20", 12, 20, MCFixupKindInfo::FKF_IsPCRel},
+      {"fixup_INODE_target_26", 6, 26, MCFixupKindInfo::FKF_IsTarget},
+      {"fixup_INODE_26", 6, 26, 0},
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -112,10 +123,10 @@ bool INODEAsmBackend::evaluateTargetFixup(const MCAssembler &Asm,
 /// data fragment, at the offset specified by the fixup and following the
 /// fixup kind as appropriate.
 void INODEAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
-                                const MCValue &Target,
-                                MutableArrayRef<char> Data, uint64_t Value,
-                                bool IsResolved,
-                                const MCSubtargetInfo *STI) const {
+                                 const MCValue &Target,
+                                 MutableArrayRef<char> Data, uint64_t Value,
+                                 bool IsResolved,
+                                 const MCSubtargetInfo *STI) const {
   MCFixupKind Kind = Fixup.getKind();
   MCContext &Ctx = Asm.getContext();
   Value = adjustFixupValue(Fixup, Value, Ctx);
@@ -126,7 +137,7 @@ void INODEAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
   // Shift the value into position.
   Value <<= TargetOffset;
   // Mask out the MSBs that don't fit in the fixup.
-  Value &= (1 << (TargetSize + TargetOffset)) - 1;
+  Value &= ((uint64_t)1 << (TargetSize + TargetOffset)) - 1;
 
   if (!Value)
     return; // Doesn't change encoding.
@@ -149,28 +160,31 @@ void INODEAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
 }
 
 bool INODEAsmBackend::writeNopData(raw_ostream &OS, uint64_t Count,
-                                  const MCSubtargetInfo *STI) const {
+                                   const MCSubtargetInfo *STI) const {
   // // return true;
-  assert(Count==0 && "Not implemented yet");
+  assert(Count == 0 && "Not implemented yet");
   return true;
 }
 
 MCAsmBackend *llvm::createINODEAsmBackend(const Target &T,
-                                         const MCSubtargetInfo &STI,
-                                         const MCRegisterInfo &MRI,
-                                         const MCTargetOptions &Options) {
+                                          const MCSubtargetInfo &STI,
+                                          const MCRegisterInfo &MRI,
+                                          const MCTargetOptions &Options) {
   const Triple &TT = STI.getTargetTriple();
   uint8_t OSABI = MCELFObjectTargetWriter::getOSABI(TT.getOS());
   return new INODEAsmBackend(STI, OSABI, TT.isArch64Bit(), Options);
 }
 
 bool INODEAsmBackend::mayNeedRelaxation(const MCInst &Inst,
-                        const MCSubtargetInfo &STI) const {
+                                        const MCSubtargetInfo &STI) const {
   unsigned Opcode = Inst.getOpcode();
-  return Opcode == INODE::INODE_BNE;
+  return (Opcode == INODE::INODE_BNE) | (Opcode == INODE::INODE_BEQ) |
+         (Opcode == INODE::INODE_BGE) | (Opcode == INODE::INODE_BLT) |
+         (Opcode == INODE::INODE_BNE_UPDATE_INST);
 };
 
-bool INODEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value) const {
+bool INODEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
+                                           uint64_t Value) const {
   int64_t Offset = int64_t(Value);
   unsigned Kind = Fixup.getTargetKind();
   switch (Kind) {
@@ -184,40 +198,40 @@ bool INODEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value)
 };
 
 void INODEAsmBackend::relaxInstruction(MCInst &Inst,
-                      const MCSubtargetInfo &STI) const {
+                                       const MCSubtargetInfo &STI) const {
   MCInst Res;
   switch (Inst.getOpcode()) {
-    default:
-      llvm_unreachable("Unexpected instruction to relax");
-    case INODE::INODE_BNE: {
-      Res.setOpcode(INODE::INODE_LONG_BNE);
-      Res.addOperand(Inst.getOperand(0));
-      Res.addOperand(Inst.getOperand(1));
-      Res.addOperand(Inst.getOperand(2));
-      Res.addOperand(Inst.getOperand(3));
-      break;
-    }
-    case INODE::INODE_BEQ: {
-      Res.setOpcode(INODE::INODE_LONG_BEQ);
-      Res.addOperand(Inst.getOperand(0));
-      Res.addOperand(Inst.getOperand(1));
-      Res.addOperand(Inst.getOperand(2));
-      break;
-    }
-    case INODE::INODE_BGE: {
-      Res.setOpcode(INODE::INODE_LONG_BGE);
-      Res.addOperand(Inst.getOperand(0));
-      Res.addOperand(Inst.getOperand(1));
-      Res.addOperand(Inst.getOperand(2));
-      break;
-    }
-    case INODE::INODE_BLT: {
-      Res.setOpcode(INODE::INODE_LONG_BLT);
-      Res.addOperand(Inst.getOperand(0));
-      Res.addOperand(Inst.getOperand(1));
-      Res.addOperand(Inst.getOperand(2));
-      break;
-    }
+  default:
+    llvm_unreachable("Unexpected instruction to relax");
+  case INODE::INODE_BNE: {
+    Res.setOpcode(INODE::INODE_LONG_BNE);
+    Res.addOperand(Inst.getOperand(0));
+    Res.addOperand(Inst.getOperand(1));
+    Res.addOperand(Inst.getOperand(2));
+    Res.addOperand(Inst.getOperand(3));
+    break;
+  }
+  case INODE::INODE_BEQ: {
+    Res.setOpcode(INODE::INODE_LONG_BEQ);
+    Res.addOperand(Inst.getOperand(0));
+    Res.addOperand(Inst.getOperand(1));
+    Res.addOperand(Inst.getOperand(2));
+    break;
+  }
+  case INODE::INODE_BGE: {
+    Res.setOpcode(INODE::INODE_LONG_BGE);
+    Res.addOperand(Inst.getOperand(0));
+    Res.addOperand(Inst.getOperand(1));
+    Res.addOperand(Inst.getOperand(2));
+    break;
+  }
+  case INODE::INODE_BLT: {
+    Res.setOpcode(INODE::INODE_LONG_BLT);
+    Res.addOperand(Inst.getOperand(0));
+    Res.addOperand(Inst.getOperand(1));
+    Res.addOperand(Inst.getOperand(2));
+    break;
+  }
   }
   Inst = std::move(Res);
 };

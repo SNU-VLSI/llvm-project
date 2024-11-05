@@ -42,18 +42,21 @@ MCCodeEmitter *createINODEMCCodeEmitter(const MCInstrInfo &MCII, MCContext &Ctx)
 } // namespace llvm
 
 // Expand INODE_LONG_BNE to a BNE, JMP, JUMP instruction sequence.
-void INODEMCCodeEmitter::expandLongBNE(const MCInst &MI,
+  void INODEMCCodeEmitter::expandLongBNEUpdate(const MCInst &MI,
                                           SmallVectorImpl<char> &CB,
                                           SmallVectorImpl<MCFixup> &Fixups,
                                           const MCSubtargetInfo &STI) const {
   MCRegister OutReg = MI.getOperand(0).getReg();
-  MCOperand SrcSymbol = MI.getOperand(1);
-  MCRegister SrcReg = MI.getOperand(2).getReg();
-  int64_t SrcImm = MI.getOperand(3).getImm();
+  MCRegister SrcReg = MI.getOperand(1).getReg();
+  int64_t SrcImm = MI.getOperand(2).getImm();
+  MCOperand SrcSymbol = MI.getOperand(3);
 
   // Emit a bne where if not taken, proceed to first JMP_INST, if taken jump to the second.
-  MCInst TmpInst =
-      MCInstBuilder(INODE::INODE_BNE).addReg(OutReg).addImm(8).addReg(SrcReg).addImm(SrcImm);
+  MCInst TmpInst = MCInstBuilder(INODE::INODE_BNE_UPDATE_INST)
+                       .addReg(OutReg)
+                       .addImm(8)
+                       .addReg(SrcReg)
+                       .addImm(SrcImm);
   uint32_t Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
   support::endian::write(CB, Binary, llvm::endianness::big);
 
