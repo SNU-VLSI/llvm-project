@@ -1,0 +1,6 @@
+../test_cpp/inode/test_arith.cpp
+../test_cpp/inode/test_big_arith.cpp
+../test_cpp/inode/test_br.cpp
+../test_cpp/inode/test_builtins.cpp
+../test_cpp/inode/test_loop.cpp
+../test_cpp/inode/test_load_store.cpp

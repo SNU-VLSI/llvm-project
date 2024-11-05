@@ -18,8 +18,3 @@ int test2(int a) {
 //   b = a - (1 << 20);
 //   return b;
 // }
-
-int test4(int *a) {
-  a[0] = (1 << 20);
-  return 0;
-}

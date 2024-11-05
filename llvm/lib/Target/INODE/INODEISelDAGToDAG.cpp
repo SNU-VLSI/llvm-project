@@ -354,6 +354,7 @@ bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base,
       int OffsetValue = C->getSExtValue();
       if (OffsetValue <= ((1 << 19) - 1) && OffsetValue >= -(1 << 19)) {
         Offset = CurDAG->getTargetConstant(OffsetValue, DL, VT);
+        return true;
       } else {
         bool IsPositive = OffsetValue >= 0;
         int MaxAbsValue = IsPositive ? (1 << 19) - 1 : 1 << 19;
@@ -379,16 +380,22 @@ bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base,
 
         Base = Result;
         Offset = CurDAG->getTargetConstant(Remainder, DL, VT);
+        return true;
       }
     } else {
       llvm_unreachable("Unhandled ADD operand");
     }
-    return true;
   } else {
     // maybe only register?
-    Base = Addr.getOperand(0);
-    Offset = CurDAG->getTargetConstant(0, DL, VT);
-    // llvm_unreachable("Unhandled address operand");
+    if (Addr.getOpcode() == ISD::CopyFromReg ||
+        Addr.getOpcode() == ISD::CopyToReg ||
+        Addr.getOpcode() == ISD::Register) {
+      Base = Addr;
+      Offset = CurDAG->getTargetConstant(0, DL, VT);
+      return true;
+    } else {
+      llvm_unreachable("Unhandled address operand");
+    }
   }
 }
 

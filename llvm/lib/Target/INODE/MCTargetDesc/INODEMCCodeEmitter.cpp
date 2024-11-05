@@ -115,7 +115,7 @@ void INODEMCCodeEmitter::encodeInstruction(const MCInst &MI,
   default:
     break;
   case INODE::INODE_LONG_BNE_UPDATE:
-    expandLongBR(MI, CB, Fixups, STI, true, INODE::INODE_LONG_BNE);
+    expandLongBR(MI, CB, Fixups, STI, true, INODE::INODE_BNE_UPDATE_INST);
     MCNumEmitted += 3;
     return;
   case INODE::INODE_LONG_BNE:

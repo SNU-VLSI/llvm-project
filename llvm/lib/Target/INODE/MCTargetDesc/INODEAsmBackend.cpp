@@ -192,10 +192,10 @@ bool INODEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
     return false;
   case INODE::fixup_INODE_PC9:
     // return Offset > 1023 || Offset < -1024;
-    return Offset > 3 || Offset < -4;
+    return Offset > 15 || Offset < -16;
   case INODE::fixup_INODE_PC20:
     // return Offset > 2097151 || Offset < -2097152;
-    return Offset > 3 || Offset < -4;
+    return Offset > 15 || Offset < -16;
   }
 };
 
