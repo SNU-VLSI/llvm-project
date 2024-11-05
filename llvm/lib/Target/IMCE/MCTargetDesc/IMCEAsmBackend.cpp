@@ -172,8 +172,8 @@ bool IMCEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value) 
   case IMCE::fixup_imce_PC6:
     // For BNE instruction the immediate (simm6) must be
     // in the range [-32, 31], thus Offset in range [-128, 127]
-    // return Offset > 127 || Offset < -128;
-    return Offset > 31 || Offset < -32;
+    return Offset > 127 || Offset < -128;
+    // return Offset > 31 || Offset < -32;
   }
 };
 

@@ -256,6 +256,14 @@ def brtarget : Operand<OtherVT> {
   let PrintMethod = "printBranchOperand";
 }
 
+def brtarget9 : Operand<OtherVT> {
+  let EncoderMethod = "getBranchTargetOpValue9";
+  let OperandType = "OPERAND_PCREL";
+  let DecoderMethod = "decodeBranchTarget";
+  let ParserMatchClass = JumpTargetAsmOperand;
+  let PrintMethod = "printBranchOperand";
+}
+
 // ========================================
 // SDNodes
 // ========================================
@@ -342,7 +350,7 @@ let isBarrier = 1, isBranch = 1, hasSideEffects = 0, mayStore = 0, mayLoad = 0, 
   def INODE_LONG_BGE : Pseudo<(outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm), "# LONG_BGE $rs1, $rs2, $imm", []>;
 }
 
-class BIInst<string opname, int opcode> : InstBIType<opcode, (outs SGPROpnd:$indvar_o), (ins SGPROpnd:$rs1, uimm14:$imm, brtarget:$offset), opname, "$rs1 $imm $offset", []>;
+class BIInst<string opname, int opcode> : InstBIType<opcode, (outs SGPROpnd:$indvar_o), (ins SGPROpnd:$rs1, uimm14:$imm, brtarget9:$offset), opname, "$rs1 $imm $offset", []>;
 def INODE_BNE_UPDATE_INST : BIInst<"bne_update", 0b1011> {
   let mayLoad=0;
   let mayStore=0;
@@ -350,7 +358,7 @@ def INODE_BNE_UPDATE_INST : BIInst<"bne_update", 0b1011> {
   let isTerminator = 1;
   let Constraints = "$indvar_o = $rs1";
 }
-def INODE_LONG_BNE_UPDATE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i, uimm14:$loop_cnt, brtarget:$imm),
+def INODE_LONG_BNE_UPDATE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$indvar_i, uimm14:$loop_cnt, brtarget9:$imm),
                           "# LONG_BNE_UPDATE $indvar_i, $loop_cnt, $imm", []> {
   let isBarrier = 1;
   let isBranch = 1;

@@ -49,7 +49,7 @@ void INODEMCCodeEmitter::expandLongBNE(const MCInst &MI,
   MCRegister OutReg = MI.getOperand(0).getReg();
   MCOperand SrcSymbol = MI.getOperand(1);
   MCRegister SrcReg = MI.getOperand(2).getReg();
-  MCRegister SrcImm = MI.getOperand(3).getImm();
+  int64_t SrcImm = MI.getOperand(3).getImm();
 
   // Emit a bne where if not taken, proceed to first JMP_INST, if taken jump to the second.
   MCInst TmpInst =
@@ -146,7 +146,25 @@ getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
 
   const MCExpr *Expr = MO.getExpr();
   Fixups.push_back(MCFixup::create(0, Expr,
-                                   MCFixupKind(INODE::fixup_INODE_PC6)));
+                                   MCFixupKind(INODE::fixup_INODE_PC20)));
+  return 0;
+}
+
+unsigned INODEMCCodeEmitter::
+getBranchTargetOpValue9(const MCInst &MI, unsigned OpNo,
+                       SmallVectorImpl<MCFixup> &Fixups,
+                       const MCSubtargetInfo &STI) const {
+  const MCOperand &MO = MI.getOperand(OpNo);
+
+  // If the destination is an immediate, divide by 4.
+  if (MO.isImm()) return MO.getImm() >> 2;
+
+  assert(MO.isExpr() &&
+         "getBranchTargetOpValue expects only expressions or immediates");
+
+  const MCExpr *Expr = MO.getExpr();
+  Fixups.push_back(MCFixup::create(0, Expr,
+                                   MCFixupKind(INODE::fixup_INODE_PC9)));
   return 0;
 }
 

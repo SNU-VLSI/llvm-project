@@ -5,5 +5,7 @@
 
 ELF_RELOC(R_INODE_NONE,               0)
 ELF_RELOC(R_INODE_PC6,                1)
-ELF_RELOC(R_INODE_TARGET_26,          2)
-ELF_RELOC(R_INODE_26,                 3)
+ELF_RELOC(R_INODE_PC9,                2)
+ELF_RELOC(R_INODE_PC20,               3)
+ELF_RELOC(R_INODE_TARGET_26,          4)
+ELF_RELOC(R_INODE_26,                 5)

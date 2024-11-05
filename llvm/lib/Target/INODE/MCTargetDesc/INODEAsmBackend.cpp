@@ -45,7 +45,8 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   case FK_Data_4:
   case FK_Data_8:
     break;
-  case INODE::fixup_INODE_PC6:
+  case INODE::fixup_INODE_PC9: 
+  case INODE::fixup_INODE_PC20: {
     // The displacement is then divided by 4 to give us an 8 bit
     // address range. Forcing a signed division because Value can be negative.
     Value = (int64_t)Value / 4;
@@ -55,13 +56,16 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
       return 0;
     }
     break;
+
+  }
   case INODE::fixup_INODE_target_26:
-  case INODE::fixup_INODE_26:
+  case INODE::fixup_INODE_26: {
     // So far we are only using this type for jumps.
     // The displacement is then divided by 4 to give us an 28 bit
     // address range.
     Value >>= 2;
     break;
+  }
   }
 
   return Value;
@@ -77,7 +81,8 @@ const MCFixupKindInfo &INODEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const
       // INODEFixupKinds.h. the offset and bits are in big endian.
       //
       // name              offset bits  flags
-      { "fixup_INODE_PC6",       6,   6, MCFixupKindInfo::FKF_IsPCRel  },
+      { "fixup_INODE_PC9",       23,  9, MCFixupKindInfo::FKF_IsPCRel  },
+      { "fixup_INODE_PC20",      12, 20, MCFixupKindInfo::FKF_IsPCRel  },
       { "fixup_INODE_target_26", 6,  26, MCFixupKindInfo::FKF_IsTarget },
       { "fixup_INODE_26",        6,  26, 0 },
   };
@@ -145,6 +150,8 @@ void INODEAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
 
 bool INODEAsmBackend::writeNopData(raw_ostream &OS, uint64_t Count,
                                   const MCSubtargetInfo *STI) const {
+  // // return true;
+  assert(Count==0 && "Not implemented yet");
   return true;
 }
 
@@ -169,11 +176,10 @@ bool INODEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value)
   switch (Kind) {
   default:
     return false;
-  case INODE::fixup_INODE_PC6:
-    // For BNE instruction the immediate (simm6) must be
-    // in the range [-32, 31], thus Offset in range [-128, 127]
-    // return Offset > 127 || Offset < -128;
-    return Offset > 31 || Offset < -32;
+  case INODE::fixup_INODE_PC9:
+    return Offset > 255 || Offset < -256;
+  case INODE::fixup_INODE_PC20:
+    return Offset > 1048575 || Offset < -1048576;
   }
 };
 
@@ -189,6 +195,27 @@ void INODEAsmBackend::relaxInstruction(MCInst &Inst,
       Res.addOperand(Inst.getOperand(1));
       Res.addOperand(Inst.getOperand(2));
       Res.addOperand(Inst.getOperand(3));
+      break;
+    }
+    case INODE::INODE_BEQ: {
+      Res.setOpcode(INODE::INODE_LONG_BEQ);
+      Res.addOperand(Inst.getOperand(0));
+      Res.addOperand(Inst.getOperand(1));
+      Res.addOperand(Inst.getOperand(2));
+      break;
+    }
+    case INODE::INODE_BGE: {
+      Res.setOpcode(INODE::INODE_LONG_BGE);
+      Res.addOperand(Inst.getOperand(0));
+      Res.addOperand(Inst.getOperand(1));
+      Res.addOperand(Inst.getOperand(2));
+      break;
+    }
+    case INODE::INODE_BLT: {
+      Res.setOpcode(INODE::INODE_LONG_BLT);
+      Res.addOperand(Inst.getOperand(0));
+      Res.addOperand(Inst.getOperand(1));
+      Res.addOperand(Inst.getOperand(2));
       break;
     }
   }

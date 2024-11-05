@@ -63,6 +63,10 @@ public:
                                   SmallVectorImpl<MCFixup> &Fixups,
                                   const MCSubtargetInfo &STI) const;
 
+  unsigned getBranchTargetOpValue9(const MCInst &MI, unsigned OpNo,
+                                  SmallVectorImpl<MCFixup> &Fixups,
+                                  const MCSubtargetInfo &STI) const;
+
 
   /// \brief Return the binary encoding of operand. If the machine
   /// operand requires relocation, record the relocation and return zero.

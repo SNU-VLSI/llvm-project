@@ -263,15 +263,49 @@ void INODEDAGToDAGISel::Select(SDNode *Node) {
     ReplaceNode(Node, Result.getNode());
     return;
   }
+  case ISD::SHL: {
+    // convert SHL to MUL
+    if(!dyn_cast<ConstantSDNode>(Node->getOperand(1))) {
+      llvm_unreachable("Second operand should be constant");
+    }
+
+    int64_t Imm = 1 << cast<ConstantSDNode>(Node->getOperand(1))->getSExtValue();
+
+    SDValue Result;
+    if(Imm <= ((1<<19)-1) && Imm >= -(1<<19)) {
+      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT, {Node->getOperand(0), CurDAG->getTargetConstant(Imm, DL, VT)}), 0);
+      ReplaceNode(Node, Result.getNode());
+      return;
+    }
+
+    // big constant case
+    // factorize the constant into 2^x * 3^y * 5^z and get the product factor which is smaller than 2^19
+    // if constant is negative, multiply positive constant and negate the result
+    bool IsPositive = Imm >= 0;
+    std::vector<int> Factors = getBigMulFactors(IsPositive ? Imm : -Imm);
+
+    SDValue New = Node->getOperand(0);
+    for(int i=0; i<Factors.size(); i++) {
+      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT,
+                                                  {New, CurDAG->getTargetConstant(Factors[i], DL, VT)}), 0);
+      New = Result;
+    }
+
+    if(!IsPositive) {
+      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT,
+                                                  {New, CurDAG->getTargetConstant(-1, DL, VT)}), 0);
+    }
+
+    ReplaceNode(Node, Result.getNode());
+    return;
+
+  }
   }
 
   SelectCode(Node);
 }
 
 bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base, SDValue &Offset, bool IsINX) {
-  // if (SelectAddrFrameIndex(Addr, Base, Offset))
-  //   return true;
-
   SDLoc DL(Addr);
   MVT VT = Addr.getSimpleValueType();
 
@@ -281,7 +315,28 @@ bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base, SDValue &O
 
     // change to target constant
     if (auto *C = dyn_cast<ConstantSDNode>(Addr.getOperand(1))) {
-      Offset = CurDAG->getTargetConstant(C->getSExtValue(), DL, VT);
+      int OffsetValue = C->getSExtValue();
+      if(OffsetValue <= ((1<<19)-1) && OffsetValue >= -(1<<19)) {
+        Offset = CurDAG->getTargetConstant(OffsetValue, DL, VT);
+      } else {
+        bool IsPositive = OffsetValue >= 0;
+        int MaxAbsValue = IsPositive ? (1<<19)-1 : 1<<19;
+        int Count = IsPositive ? (OffsetValue / MaxAbsValue) : (-OffsetValue / MaxAbsValue);
+        int MaxValue = IsPositive ? (1<<19)-1 : -(1<<19);
+        int Remainder = IsPositive ? (OffsetValue % MaxAbsValue) : -(-OffsetValue % MaxAbsValue);
+
+        SDValue Result;
+        SDValue New = SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT,
+                                                      {Base, CurDAG->getTargetConstant(0, DL, VT)}), 0);
+        for(int i=0; i<Count; i++) {
+          Result = SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT,
+                                                      {New, CurDAG->getTargetConstant(MaxValue, DL, VT)}), 0);
+          New = Result;
+        }
+
+        Base = Result;
+        Offset = CurDAG->getTargetConstant(Remainder, DL, VT);
+      }
     } else {
       llvm_unreachable("Unhandled ADD operand");
     }

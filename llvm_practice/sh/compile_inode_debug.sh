@@ -26,13 +26,13 @@ llc --march=inode output/$fn_no_ext.ll -o ./output/$fn_no_ext.s \
   -print-after-all
 
 # # generate .o with debug flag
-# llc --march=INODE output/$fn_no_ext.ll -o ./output/$fn_no_ext.o \
-#   -force-hardware-loops \
-#   -force-nested-hardware-loop \
-#   -filetype=obj \
-#   -debug \
-#   --debug-pass=Details \
-#   -print-after-all
+llc --march=inode output/$fn_no_ext.ll -o ./output/$fn_no_ext.o \
+  -force-hardware-loops \
+  -force-nested-hardware-loop \
+  -filetype=obj \
+  -debug \
+  --debug-pass=Details \
+  -print-after-all
 
 # # create binary using ld.lld
 # ld.lld -e 0 -Ttext 0x0 --verbose -o output/$fn_no_ext output/$fn_no_ext.o

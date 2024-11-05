@@ -51,8 +51,10 @@ unsigned INODEELFObjectWriter::getRelocType(MCContext &Ctx,
     default:
       Ctx.reportError(Fixup.getLoc(), "unsupported relocation type");
       return ELF::R_INODE_NONE;
-    case INODE::fixup_INODE_PC6:
-      return ELF::R_INODE_PC6;
+    case INODE::fixup_INODE_PC9:
+      return ELF::R_INODE_PC9;
+    case INODE::fixup_INODE_PC20:
+      return ELF::R_INODE_PC20;
     }
   }
 

@@ -16,8 +16,8 @@
 
 namespace llvm::INODE {
 enum Fixups {
-  // PC relative 6-bit fixup for branch resulting in - R_INODE_PC6
-  fixup_INODE_PC6 = FirstTargetFixupKind,
+  fixup_INODE_PC9 = FirstTargetFixupKind,
+  fixup_INODE_PC20,
 
   // target-dependent 26-bit fixup for jump resulting in - R_INODE_TARGET_26
   fixup_INODE_target_26,
