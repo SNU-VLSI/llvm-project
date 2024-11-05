@@ -1,0 +1,26 @@
+{
+  "configurations": [
+    {
+      "name": "CLANG_LLVM",
+      "includePath": [
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/lib/Target",
+        "${workspaceFolder}/lib/Target/IMCE",
+        "${workspaceFolder}/lib/Target/INODE",
+        "${workspaceFolder}/lib/Target/RISCV",
+        "${workspaceFolder}/../clang/include",
+        "${workspaceFolder}/../clang/lib",
+        "${workspaceFolder}/../builddir/lib/Target/INODE",
+        "${workspaceFolder}/../builddir/lib/Target/RISCV",
+        "${workspaceFolder}/../builddir/lib/Target/IMCE",
+        "${workspaceFolder}/../builddir/include",
+        "${workspaceFolder}/../builddir/tools/clang/include",
+      ],
+      "cStandard": "c17",
+      "cppStandard": "gnu++17",
+      "intelliSenseMode": "linux-gcc-x64",
+      "defines": []
+    }
+  ],
+  "version": 4
+}
