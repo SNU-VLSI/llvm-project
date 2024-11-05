@@ -17,11 +17,11 @@
 #include "INODE.h"
 #include "INODETargetMachine.h"
 #include "MCTargetDesc/INODEMCTargetDesc.h"
+#include "cmath"
 #include "llvm/CodeGen/SelectionDAGISel.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Debug.h"
-#include "cmath"
 
 using namespace llvm;
 
@@ -31,7 +31,8 @@ using namespace llvm;
 class INODEDAGToDAGISelLegacy : public SelectionDAGISelLegacy {
 public:
   static char ID;
-  explicit INODEDAGToDAGISelLegacy(INODETargetMachine &TargetMachine, CodeGenOptLevel OptLevel);
+  explicit INODEDAGToDAGISelLegacy(INODETargetMachine &TargetMachine,
+                                   CodeGenOptLevel OptLevel);
 };
 
 char INODEDAGToDAGISelLegacy::ID = 0;
@@ -47,16 +48,18 @@ public:
 
   // Override SelectionDAGISel.
   void Select(SDNode *Node) override;
-  bool SelectAddrRegImm(SDValue Addr, SDValue &Base, SDValue &Offset, bool IsINX = false);
+  bool SelectAddrRegImm(SDValue Addr, SDValue &Base, SDValue &Offset,
+                        bool IsINX = false);
   static INODECC::CondCode getINODECCForIntCC(ISD::CondCode CC);
 
   bool isRegisterEquivalent(SDValue val) {
     // If it's a CopyFromReg, it's a register.
-    if ((val.getOpcode() == ISD::CopyFromReg) || (val.getOpcode() == ISD::CopyToReg)) {
+    if ((val.getOpcode() == ISD::CopyFromReg) ||
+        (val.getOpcode() == ISD::CopyToReg)) {
       return true;
     } else {
       bool isReg = true;
-      for(int i=0; i<val->getNumOperands(); i++) {
+      for (int i = 0; i < val->getNumOperands(); i++) {
         isReg &= isRegisterEquivalent(val.getOperand(i));
       }
       return isReg;
@@ -73,30 +76,33 @@ char INODEDAGToDAGISel::ID = 0;
 
 INITIALIZE_PASS(INODEDAGToDAGISel, DEBUG_TYPE, PASS_NAME, false, false)
 
-INODEDAGToDAGISelLegacy::INODEDAGToDAGISelLegacy(INODETargetMachine &TM, CodeGenOptLevel OptLevel)
-    : SelectionDAGISelLegacy(ID, std::make_unique<INODEDAGToDAGISel>(TM, OptLevel)) {}
+INODEDAGToDAGISelLegacy::INODEDAGToDAGISelLegacy(INODETargetMachine &TM,
+                                                 CodeGenOptLevel OptLevel)
+    : SelectionDAGISelLegacy(
+          ID, std::make_unique<INODEDAGToDAGISel>(TM, OptLevel)) {}
 
 INITIALIZE_PASS(INODEDAGToDAGISelLegacy, DEBUG_TYPE, PASS_NAME, false, false)
 
-FunctionPass *llvm::createINODEISelDag(INODETargetMachine &TM, CodeGenOptLevel OptLevel) {
+FunctionPass *llvm::createINODEISelDag(INODETargetMachine &TM,
+                                       CodeGenOptLevel OptLevel) {
   return new INODEDAGToDAGISelLegacy(TM, OptLevel);
 }
 
-static std::map<int,int> factorize(int n) {
-  std::map<int,int> factors;
+static std::map<int, int> factorize(int n) {
+  std::map<int, int> factors;
   while (n % 2 == 0) {
     factors[2]++;
     n /= 2;
   }
 
-  for(int i=3; i<=int(sqrt(n));i+=2) {
-    while(n % i == 0) {
+  for (int i = 3; i <= int(sqrt(n)); i += 2) {
+    while (n % i == 0) {
       factors[i]++;
       n /= i;
     }
   }
 
-  if(n > 2) {
+  if (n > 2) {
     factors[n]++;
   }
 
@@ -106,17 +112,17 @@ static std::map<int,int> factorize(int n) {
 static std::vector<int> getBigMulFactors(int n) {
   std::vector<int> factors;
   std::vector<int> MergedFactors;
-  std::map<int,int> factorMap = factorize(n);
+  std::map<int, int> factorMap = factorize(n);
 
-  for(auto factor : factorMap) {
-    for(int i=0; i<factor.second; i++) {
+  for (auto factor : factorMap) {
+    for (int i = 0; i < factor.second; i++) {
       factors.push_back(factor.first);
     }
   }
 
   int CurrentFactor = 1;
-  for(int factor : factors) {
-    if(CurrentFactor * factor < (1<<19)) {
+  for (int factor : factors) {
+    if (CurrentFactor * factor < (1 << 19)) {
       CurrentFactor *= factor;
     } else {
       MergedFactors.push_back(CurrentFactor);
@@ -124,8 +130,8 @@ static std::vector<int> getBigMulFactors(int n) {
     }
   }
 
-  if(CurrentFactor != 1) {
-    if(CurrentFactor < (1<<19)) {
+  if (CurrentFactor != 1) {
+    if (CurrentFactor < (1 << 19)) {
       MergedFactors.push_back(CurrentFactor);
     } else {
       llvm_unreachable("Big constant factorization failed");
@@ -152,39 +158,48 @@ void INODEDAGToDAGISel::Select(SDNode *Node) {
   case ISD::Constant: {
     auto *ConstNode = cast<ConstantSDNode>(Node);
     if (ConstNode->isZero()) {
-      SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, INODE::SReg0, VT);
+      SDValue New =
+          CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, INODE::SReg0, VT);
       ReplaceNode(Node, New.getNode());
       return;
     } else {
       int64_t Imm = ConstNode->getSExtValue();
       bool NeedLUI = (Imm >= (1 << 19)) || Imm < -(1 << 19);
       if (!NeedLUI) {
-        SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, INODE::SReg0, VT);
-        SDValue Add = SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT,
-                                                     {New, CurDAG->getTargetConstant(Imm, DL, VT)}),
-                              0);
+        SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL,
+                                             INODE::SReg0, VT);
+        SDValue Add =
+            SDValue(CurDAG->getMachineNode(
+                        INODE::INODE_ADDI_INST, DL, VT,
+                        {New, CurDAG->getTargetConstant(Imm, DL, VT)}),
+                    0);
         ReplaceNode(Node, Add.getNode());
         return;
       } else {
         int unsigned ImmUpper = ((int unsigned)Imm >> 20) & 0xfff;
         int unsigned SignExtend = ((Imm & 0x80000) >> 19) ? 0xfff00000 : 0;
         int ImmLower = SignExtend | (Imm & 0xfffff);
-        SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, INODE::SReg0, VT);
+        SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL,
+                                             INODE::SReg0, VT);
         SDValue Add =
-            SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT,
-                                           {New, CurDAG->getTargetConstant(ImmLower, DL, VT)}),
+            SDValue(CurDAG->getMachineNode(
+                        INODE::INODE_ADDI_INST, DL, VT,
+                        {New, CurDAG->getTargetConstant(ImmLower, DL, VT)}),
                     0);
         SDValue LUI =
-            SDValue(CurDAG->getMachineNode(INODE::INODE_LUI_INST, DL, VT,
-                                           {Add, CurDAG->getTargetConstant(ImmUpper, DL, VT)}),
+            SDValue(CurDAG->getMachineNode(
+                        INODE::INODE_LUI_INST, DL, VT,
+                        {Add, CurDAG->getTargetConstant(ImmUpper, DL, VT)}),
                     0);
         ReplaceNode(Node, LUI.getNode());
         return;
       }
       // if(isInt<14>(Imm)) {
-      //   SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, INODE::SReg0, VT);
-      //   SDValue Add = SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT, {New,
-      //   CurDAG->getTargetConstant(Imm, DL, VT)}), 0); ReplaceNode(Node, Add.getNode()); return;
+      //   SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL,
+      //   INODE::SReg0, VT); SDValue Add =
+      //   SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT, {New,
+      //   CurDAG->getTargetConstant(Imm, DL, VT)}), 0); ReplaceNode(Node,
+      //   Add.getNode()); return;
       // }
     }
     break;
@@ -195,33 +210,37 @@ void INODEDAGToDAGISel::Select(SDNode *Node) {
     // if(!isRegisterEquivalent(Node->getOperand(0))) {
     //   llvm_unreachable("First operand should be register");
     // }
-    if(!dyn_cast<ConstantSDNode>(Node->getOperand(1))) {
+    if (!dyn_cast<ConstantSDNode>(Node->getOperand(1))) {
       llvm_unreachable("Second operand should be constant");
     }
 
     int64_t Imm = cast<ConstantSDNode>(Node->getOperand(1))->getSExtValue();
     // small immediate will be handled by tblgen pattern
-    if(Imm <= ((1<<19)-1) && Imm >= -(1<<19)) {
+    if (Imm <= ((1 << 19) - 1) && Imm >= -(1 << 19)) {
       break;
     }
 
     // big constant case
     bool IsPositive = Imm >= 0;
-    int MaxAbsValue = IsPositive ? (1<<19)-1 : 1<<19;
+    int MaxAbsValue = IsPositive ? (1 << 19) - 1 : 1 << 19;
     int Count = IsPositive ? (Imm / MaxAbsValue) : (-Imm / MaxAbsValue);
-    int MaxValue = IsPositive ? (1<<19)-1 : -(1<<19);
+    int MaxValue = IsPositive ? (1 << 19) - 1 : -(1 << 19);
     int Remainder = IsPositive ? (Imm % MaxAbsValue) : -(-Imm % MaxAbsValue);
 
     SDValue Result;
     SDValue New = Node->getOperand(0);
-    for(int i=0; i<Count; i++) {
-      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT,
-                                                  {New, CurDAG->getTargetConstant(MaxValue, DL, VT)}), 0);
+    for (int i = 0; i < Count; i++) {
+      Result = SDValue(CurDAG->getMachineNode(
+                           INODE::INODE_ADDI_INST, DL, VT,
+                           {New, CurDAG->getTargetConstant(MaxValue, DL, VT)}),
+                       0);
       New = Result;
     }
 
-    Result = SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT,
-                                                  {New, CurDAG->getTargetConstant(Remainder, DL, VT)}), 0);
+    Result = SDValue(CurDAG->getMachineNode(
+                         INODE::INODE_ADDI_INST, DL, VT,
+                         {New, CurDAG->getTargetConstant(Remainder, DL, VT)}),
+                     0);
 
     ReplaceNode(Node, Result.getNode());
     return;
@@ -231,33 +250,39 @@ void INODEDAGToDAGISel::Select(SDNode *Node) {
     // if(!isRegisterEquivalent(Node->getOperand(0))) {
     //   llvm_unreachable("First operand should be register");
     // }
-    if(!dyn_cast<ConstantSDNode>(Node->getOperand(1))) {
+    if (!dyn_cast<ConstantSDNode>(Node->getOperand(1))) {
       llvm_unreachable("Second operand should be constant");
     }
 
     int64_t Imm = cast<ConstantSDNode>(Node->getOperand(1))->getSExtValue();
     // small immediate will be handled by tblgen pattern
-    if(Imm <= ((1<<19)-1) && Imm >= -(1<<19)) {
+    if (Imm <= ((1 << 19) - 1) && Imm >= -(1 << 19)) {
       break;
     }
 
     // big constant case
-    // factorize the constant into 2^x * 3^y * 5^z and get the product factor which is smaller than 2^19
-    // if constant is negative, multiply positive constant and negate the result
+    // factorize the constant into 2^x * 3^y * 5^z and get the product factor
+    // which is smaller than 2^19 if constant is negative, multiply positive
+    // constant and negate the result
     bool IsPositive = Imm >= 0;
     std::vector<int> Factors = getBigMulFactors(IsPositive ? Imm : -Imm);
 
     SDValue Result;
     SDValue New = Node->getOperand(0);
-    for(int i=0; i<Factors.size(); i++) {
-      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT,
-                                                  {New, CurDAG->getTargetConstant(Factors[i], DL, VT)}), 0);
+    for (int i = 0; i < Factors.size(); i++) {
+      Result =
+          SDValue(CurDAG->getMachineNode(
+                      INODE::INODE_MULI_INST, DL, VT,
+                      {New, CurDAG->getTargetConstant(Factors[i], DL, VT)}),
+                  0);
       New = Result;
     }
 
-    if(!IsPositive) {
-      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT,
-                                                  {New, CurDAG->getTargetConstant(-1, DL, VT)}), 0);
+    if (!IsPositive) {
+      Result = SDValue(
+          CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT,
+                                 {New, CurDAG->getTargetConstant(-1, DL, VT)}),
+          0);
     }
 
     ReplaceNode(Node, Result.getNode());
@@ -265,72 +290,90 @@ void INODEDAGToDAGISel::Select(SDNode *Node) {
   }
   case ISD::SHL: {
     // convert SHL to MUL
-    if(!dyn_cast<ConstantSDNode>(Node->getOperand(1))) {
+    if (!dyn_cast<ConstantSDNode>(Node->getOperand(1))) {
       llvm_unreachable("Second operand should be constant");
     }
 
-    int64_t Imm = 1 << cast<ConstantSDNode>(Node->getOperand(1))->getSExtValue();
+    int64_t Imm =
+        1 << cast<ConstantSDNode>(Node->getOperand(1))->getSExtValue();
 
     SDValue Result;
-    if(Imm <= ((1<<19)-1) && Imm >= -(1<<19)) {
-      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT, {Node->getOperand(0), CurDAG->getTargetConstant(Imm, DL, VT)}), 0);
+    if (Imm <= ((1 << 19) - 1) && Imm >= -(1 << 19)) {
+      Result = SDValue(
+          CurDAG->getMachineNode(
+              INODE::INODE_MULI_INST, DL, VT,
+              {Node->getOperand(0), CurDAG->getTargetConstant(Imm, DL, VT)}),
+          0);
       ReplaceNode(Node, Result.getNode());
       return;
     }
 
     // big constant case
-    // factorize the constant into 2^x * 3^y * 5^z and get the product factor which is smaller than 2^19
-    // if constant is negative, multiply positive constant and negate the result
+    // factorize the constant into 2^x * 3^y * 5^z and get the product factor
+    // which is smaller than 2^19 if constant is negative, multiply positive
+    // constant and negate the result
     bool IsPositive = Imm >= 0;
     std::vector<int> Factors = getBigMulFactors(IsPositive ? Imm : -Imm);
 
     SDValue New = Node->getOperand(0);
-    for(int i=0; i<Factors.size(); i++) {
-      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT,
-                                                  {New, CurDAG->getTargetConstant(Factors[i], DL, VT)}), 0);
+    for (int i = 0; i < Factors.size(); i++) {
+      Result =
+          SDValue(CurDAG->getMachineNode(
+                      INODE::INODE_MULI_INST, DL, VT,
+                      {New, CurDAG->getTargetConstant(Factors[i], DL, VT)}),
+                  0);
       New = Result;
     }
 
-    if(!IsPositive) {
-      Result = SDValue(CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT,
-                                                  {New, CurDAG->getTargetConstant(-1, DL, VT)}), 0);
+    if (!IsPositive) {
+      Result = SDValue(
+          CurDAG->getMachineNode(INODE::INODE_MULI_INST, DL, VT,
+                                 {New, CurDAG->getTargetConstant(-1, DL, VT)}),
+          0);
     }
 
     ReplaceNode(Node, Result.getNode());
     return;
-
   }
   }
 
   SelectCode(Node);
 }
 
-bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base, SDValue &Offset, bool IsINX) {
+bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base,
+                                         SDValue &Offset, bool IsINX) {
   SDLoc DL(Addr);
   MVT VT = Addr.getSimpleValueType();
 
-  if (Addr.getOpcode() ==
-      ISD::ADD) { // TODO: need to use inode specific add node for address calculation?
+  if (Addr.getOpcode() == ISD::ADD) { // TODO: need to use inode specific add
+                                      // node for address calculation?
     Base = Addr.getOperand(0);
 
     // change to target constant
     if (auto *C = dyn_cast<ConstantSDNode>(Addr.getOperand(1))) {
       int OffsetValue = C->getSExtValue();
-      if(OffsetValue <= ((1<<19)-1) && OffsetValue >= -(1<<19)) {
+      if (OffsetValue <= ((1 << 19) - 1) && OffsetValue >= -(1 << 19)) {
         Offset = CurDAG->getTargetConstant(OffsetValue, DL, VT);
       } else {
         bool IsPositive = OffsetValue >= 0;
-        int MaxAbsValue = IsPositive ? (1<<19)-1 : 1<<19;
-        int Count = IsPositive ? (OffsetValue / MaxAbsValue) : (-OffsetValue / MaxAbsValue);
-        int MaxValue = IsPositive ? (1<<19)-1 : -(1<<19);
-        int Remainder = IsPositive ? (OffsetValue % MaxAbsValue) : -(-OffsetValue % MaxAbsValue);
+        int MaxAbsValue = IsPositive ? (1 << 19) - 1 : 1 << 19;
+        int Count = IsPositive ? (OffsetValue / MaxAbsValue)
+                               : (-OffsetValue / MaxAbsValue);
+        int MaxValue = IsPositive ? (1 << 19) - 1 : -(1 << 19);
+        int Remainder = IsPositive ? (OffsetValue % MaxAbsValue)
+                                   : -(-OffsetValue % MaxAbsValue);
 
         SDValue Result;
-        SDValue New = SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT,
-                                                      {Base, CurDAG->getTargetConstant(0, DL, VT)}), 0);
-        for(int i=0; i<Count; i++) {
-          Result = SDValue(CurDAG->getMachineNode(INODE::INODE_ADDI_INST, DL, VT,
-                                                      {New, CurDAG->getTargetConstant(MaxValue, DL, VT)}), 0);
+        SDValue New = SDValue(CurDAG->getMachineNode(
+                                  INODE::INODE_ADDI_INST, DL, VT,
+                                  {Base, CurDAG->getTargetConstant(0, DL, VT)}),
+                              0);
+        for (int i = 0; i < Count; i++) {
+          Result =
+              SDValue(CurDAG->getMachineNode(
+                          INODE::INODE_ADDI_INST, DL, VT,
+                          {New, CurDAG->getTargetConstant(MaxValue, DL, VT)}),
+                      0);
           New = Result;
         }
 
@@ -342,7 +385,10 @@ bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base, SDValue &O
     }
     return true;
   } else {
-    llvm_unreachable("Unhandled address operand");
+    // maybe only register?
+    Base = Addr.getOperand(0);
+    Offset = CurDAG->getTargetConstant(0, DL, VT);
+    // llvm_unreachable("Unhandled address operand");
   }
 }
 

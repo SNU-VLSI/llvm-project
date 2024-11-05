@@ -1,22 +1,15 @@
 int test(int *addr) {
-  int a = addr[3];
+  int a, b, c, d, e;
+  a = addr[3];
+
+  // constant
+  addr[5] = 1;
 
   // add inst
-  // int b = a + 1;
-
-  // add with big imm
-  // int c = b + (1<<20)+1;
-  int c = a + -((1<<20)+1);
+  b = a + 1;
 
   // mul inst
-  // int d = a * 3;
+  d = b * 3;
 
-  // mul with big imm
-  // int e = a * ((1<<20)+1);
-  // int e = a * -((1<<20)+1);
-
-  // big imm
-  // addr[5] = (0b11<<21) + 1234;
-
-  return c;
+  return d;
 }

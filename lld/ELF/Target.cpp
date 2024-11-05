@@ -93,6 +93,8 @@ TargetInfo *elf::getTarget() {
     return getX86_64TargetInfo();
   case EM_IMCE:
     return getIMCETargetInfo();
+  case EM_INODE:
+    return getINODETargetInfo();
   default:
     fatal("unsupported e_machine value: " + Twine(config->emachine));
   }

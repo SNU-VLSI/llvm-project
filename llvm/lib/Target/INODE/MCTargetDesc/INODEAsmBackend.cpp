@@ -191,9 +191,11 @@ bool INODEAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
   default:
     return false;
   case INODE::fixup_INODE_PC9:
-    return Offset > 255 || Offset < -256;
+    // return Offset > 1023 || Offset < -1024;
+    return Offset > 3 || Offset < -4;
   case INODE::fixup_INODE_PC20:
-    return Offset > 1048575 || Offset < -1048576;
+    // return Offset > 2097151 || Offset < -2097152;
+    return Offset > 3 || Offset < -4;
   }
 };
 
@@ -230,6 +232,14 @@ void INODEAsmBackend::relaxInstruction(MCInst &Inst,
     Res.addOperand(Inst.getOperand(0));
     Res.addOperand(Inst.getOperand(1));
     Res.addOperand(Inst.getOperand(2));
+    break;
+  }
+  case INODE::INODE_BNE_UPDATE_INST: {
+    Res.setOpcode(INODE::INODE_LONG_BNE_UPDATE);
+    Res.addOperand(Inst.getOperand(0));
+    Res.addOperand(Inst.getOperand(1));
+    Res.addOperand(Inst.getOperand(2));
+    Res.addOperand(Inst.getOperand(3));
     break;
   }
   }

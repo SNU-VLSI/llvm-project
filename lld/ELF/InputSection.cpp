@@ -73,7 +73,7 @@ InputSectionBase::InputSectionBase(InputFile *file, uint64_t flags,
   // If SHF_COMPRESSED is set, parse the header. The legacy .zdebug format is no
   // longer supported.
   if (flags & SHF_COMPRESSED)
-    invokeELFT(parseCompressedHeader,);
+    invokeELFT(parseCompressedHeader, );
 }
 
 // SHF_INFO_LINK and SHF_GROUP are normally resolved and not copied to the
@@ -935,6 +935,8 @@ uint64_t InputSectionBase::getRelocTargetVA(const InputFile *file, RelType type,
     return in.got->getTlsIndexVA() + a - p;
   case R_IMCE_ADD_PC_TO_OFFSET:
     return a + p; // VINN: this seems a lot awkward
+  case R_INODE_ADD_PC_TO_OFFSET:
+    return a + p; // VINN: this seems a lot awkward
   default:
     llvm_unreachable("invalid expression");
   }
@@ -1190,7 +1192,8 @@ void InputSectionBase::adjustSplitStackFunctionPrologues(uint8_t *buf,
     // conservative.
     if (Defined *d = dyn_cast<Defined>(rel.sym))
       if (InputSection *isec = cast_or_null<InputSection>(d->section))
-        if (!isec || !isec->getFile<ELFT>() || isec->getFile<ELFT>()->splitStack)
+        if (!isec || !isec->getFile<ELFT>() ||
+            isec->getFile<ELFT>()->splitStack)
           continue;
 
     if (enclosingPrologueAttempted(rel.offset, prologues))

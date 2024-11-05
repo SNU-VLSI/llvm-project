@@ -1,4 +1,5 @@
-//===-- INODE.h - Top-level interface for INODE representation ----*- C++ -*-===//
+//===-- INODE.h - Top-level interface for INODE representation ----*- C++
+//-*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -10,16 +11,20 @@
 // INODE back-end.
 //
 //===----------------------------------------------------------------------===//
-//TODO:
+// TODO:
 /*
-  LUI. when big constant is used, it is split into two instructions. LUI and ADDI. -> dagtodag isel (o)
-  load and store address pattern. if imm is too big, ?
+  LUI. when big constant is used, it is split into two instructions. LUI and
+  ADDI. -> dagtodag isel (o) load and store address pattern. if imm is too big,
+  ?
 
-  When using super big imm, how can we handle it? I type instruction, B type instruction
-  
+  When using super big imm, how can we handle it? I type instruction, B type
+  instruction
+
   select IR lowering (o)
 
   support function call. frame lowering and frame index elimination
+
+  load and store regimm select pattern more advance...
 */
 
 #ifndef LLVM_LIB_TARGET_INODEK_INODEK_H
@@ -35,7 +40,8 @@ class FunctionPass;
 class InstructionSelector;
 class PassRegistry;
 
-FunctionPass *createINODEISelDag(INODETargetMachine &TM, CodeGenOptLevel OptLevel);
+FunctionPass *createINODEISelDag(INODETargetMachine &TM,
+                                 CodeGenOptLevel OptLevel);
 
 void initializeINODEDAGToDAGISelPass(PassRegistry &);
 void initializeINODEDAGToDAGISelLegacyPass(PassRegistry &);
@@ -44,7 +50,7 @@ void initializeINODELoopConversionPass(PassRegistry &);
 FunctionPass *createINODELoopConversionPass();
 
 void initializeINODEPrintMachineFunctionPass(PassRegistry &);
-FunctionPass *createINODEPrintMachineFunctionPass(); 
+FunctionPass *createINODEPrintMachineFunctionPass();
 
 void initializeINODECountedLoopMIRPass(PassRegistry &);
 FunctionPass *createINODECountedLoopMIRPass();
