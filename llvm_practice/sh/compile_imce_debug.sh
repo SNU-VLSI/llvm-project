@@ -38,6 +38,7 @@ ld.lld -e 0 -Ttext 0x0 --verbose -o output/$fn_no_ext output/$fn_no_ext.o
 
 # dump .o to .dump
 llvm-objdump -dr --triple=IMCE output/$fn_no_ext.o > output/$fn_no_ext.dump
+llvm-objdump -dr --triple=IMCE output/$fn_no_ext > output/$fn_no_ext.reloc.dump
 
 # generate binary with llvm-objcopy
 llvm-objcopy -O binary --only-section=.text output/$fn_no_ext.o output/$fn_no_ext.bin
