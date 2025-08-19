@@ -37,7 +37,7 @@ def retglue          : SDNode<"INODEISD::RET_GLUE", SDTNone,
 
 def INODECloopBeginValue :
   SDNode<"INODEISD::CLOOP_BEGIN_VALUE",
-         SDTypeProfile<1, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>, SDTCisVT<2, i32>]>, // loop_indvar_reg, loop_bound_constant, meta_id 
+         SDTypeProfile<1, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>, SDTCisVT<2, i32>]>, // loop_indvar_reg, loop_bound_constant, meta_id
          [SDNPHasChain]>;
 def INODECloopBeginTerminator :
   SDNode<"INODEISD::CLOOP_BEGIN_TERMINATOR",
@@ -384,7 +384,7 @@ let hasSideEffects=1 in {
     let rs1 = 0;
     let imm = 0;
     let policy = 0;
-    let fifo_id = 0; 
+    let fifo_id = 0;
   }
 }
 
@@ -392,7 +392,7 @@ let hasSideEffects=1 in {
   def INODE_IMCE_COMPUTE_INST : InstCType<0b100000, (outs), (ins uimm13:$imm), "imce_compute", "$imm", []> {
     let rs1 = 0;
     let policy = 0;
-    let fifo_id = 0; 
+    let fifo_id = 0;
   }
 }
 
@@ -413,17 +413,17 @@ let hasSideEffects=1 in {
   def INODE_SET_ADDR_CNT_INST : InstCType<0b10100, (outs), (ins uimm13:$imm), "set_addr_cnt", "$imm", []> {
     let rs1 = 0;
     let policy = 0;
-    let fifo_id = 0; 
+    let fifo_id = 0;
     let Defs = [AddrCntReg];
   }
 }
 
 let hasSideEffects=1 in {
   def INODE_SET_FLAG_INST : InstSType<0b011, (outs), (ins SGPROpnd:$flag_value_rs), "set_flag", "$flag_value_rs", []> {
-    let rs1 = 0;
+    let target_id = 0;
   }
 
-  def INODE_STANDBY_INST  : InstSType<0b100, (outs), (ins uimm7:$rs1, SGPROpnd:$flag_value_rs), "set_flag", "$rs1, $flag_value_rs", []>;
+  def INODE_STANDBY_INST  : InstSType<0b100, (outs), (ins uimm7:$target_id, SGPROpnd:$flag_value_rs), "standby", "$target_id, $flag_value_rs", []>;
 }
 
 // X type
@@ -539,7 +539,7 @@ def : Pat<(int_INODE_SET_ADDR_CNT uimm13:$imm), (INODE_SET_ADDR_CNT_INST uimm13:
 
 // S type pattern
 def : Pat<(int_INODE_SET_FLAG SGPROpnd:$flag_value_rs), (INODE_SET_FLAG_INST SGPROpnd:$flag_value_rs)>;
-def : Pat<(int_INODE_STANDBY uimm7:$rs1, SGPROpnd:$flag_value_rs), (INODE_STANDBY_INST uimm7:$rs1, SGPROpnd:$flag_value_rs)>;
+def : Pat<(int_INODE_STANDBY uimm7:$target_id, SGPROpnd:$flag_value_rs), (INODE_STANDBY_INST uimm7:$target_id, SGPROpnd:$flag_value_rs)>;
 
 // X type Pattern
 def : Pat<(int_INODE_DONE), (INODE_DONE_INST)>;

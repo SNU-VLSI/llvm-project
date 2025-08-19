@@ -307,6 +307,7 @@ def IMCE_LONG_BNE : Pseudo<(outs HWLOOPREGOpnd:$rs2),
 }
 
 // C type
+// TODO: change imm2 to policy_addr, flag_value to rs2(storing cmd, addr), python simulator also?
 class CInst<string opname, int opcode> : InstCType<opcode, (outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), opname, "$imm2 $rs1 $fifo_id, $flag_value", []>;
 let hasSideEffects=1 in {
   def IMCE_SEND_INST : InstIMCE<(outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), "send", "$imm2 $rs1 $fifo_id, $flag_value", []> {
