@@ -95,11 +95,11 @@ class InstCType<int op, dag outs, dag ins, string asm, string operands, list<dag
 
 class InstSType<int op, dag outs, dag ins, string asm, string operands, list<dag> pattern = []>
    : InstINODE<outs, ins, asm, operands, pattern> {
-  bits<7> rs1;
+  bits<7> target_id;
   bits<3> flag_value_rs;
 
   let Inst{5-0} = op;
-  let Inst{12-6} = rs1;
+  let Inst{12-6} = target_id;
   let Inst{15-13} = flag_value_rs;
   let Inst{31-16} = 0;
 }
