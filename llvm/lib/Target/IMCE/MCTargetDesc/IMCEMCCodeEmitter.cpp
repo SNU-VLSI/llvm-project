@@ -55,7 +55,7 @@ void IMCEMCCodeEmitter::expandLongBNE(const MCInst &MI,
   MCInst TmpInst =
       MCInstBuilder(IMCE::IMCE_BNE_INST).addReg(OutReg).addImm(8).addReg(SrcReg).addImm(SrcImm);
   uint32_t Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-  support::endian::write(CB, Binary, llvm::endianness::big);
+  support::endian::write(CB, Binary, llvm::endianness::little);
 
   // Emit an unconditional jump to skip the next instruction.
   int64_t TargetOffset = 8;
@@ -64,13 +64,13 @@ void IMCEMCCodeEmitter::expandLongBNE(const MCInst &MI,
   TmpInst =
       MCInstBuilder(IMCE::IMCE_JMP_INST).addExpr(OffsetExpr);
   Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-  support::endian::write(CB, Binary, llvm::endianness::big);
+  support::endian::write(CB, Binary, llvm::endianness::little);
 
   // Emit an unconditional jump to the destination.
   TmpInst =
       MCInstBuilder(IMCE::IMCE_JMP_INST).addOperand(SrcSymbol);
   Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-  support::endian::write(CB, Binary, llvm::endianness::big);
+  support::endian::write(CB, Binary, llvm::endianness::little);
 
   // override the fixups.
   Fixups.clear();
@@ -102,7 +102,7 @@ void IMCEMCCodeEmitter::encodeInstruction(const MCInst &MI, SmallVectorImpl<char
   uint64_t Bits = getBinaryCodeForInstr(MI, Fixups, STI);
   ++MCNumEmitted; // Keep track of the number of emitted insns.
 
-  support::endian::write<uint32_t>(CB, Bits, endianness::big);
+  support::endian::write<uint32_t>(CB, Bits, endianness::little);
 }
 
 unsigned IMCEMCCodeEmitter::getMachineOpValue(const MCInst &MI, const MCOperand &MO,

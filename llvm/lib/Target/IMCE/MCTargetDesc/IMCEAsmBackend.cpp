@@ -74,7 +74,7 @@ std::unique_ptr<MCObjectTargetWriter> IMCEAsmBackend::createObjectTargetWriter()
 const MCFixupKindInfo &IMCEAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
   const static MCFixupKindInfo Infos[] = {
       // This table *must* be in the order that the fixup_* kinds are defined in
-      // IMCEFixupKinds.h. the offset and bits are in big endian.
+      // IMCEFixupKinds.h. the offset and bits are in little endian.
       //
       // name              offset bits  flags
       { "fixup_imce_PC6",       6,   6, MCFixupKindInfo::FKF_IsPCRel  },
@@ -131,7 +131,7 @@ void IMCEAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
   // Number of bytes we need to fixup
   unsigned NumBytes = (TargetSize + TargetOffset + 7) / 8;
   assert(Offset + NumBytes <= Data.size() && "Invalid fixup offset!");
-  // Used to point to big endian bytes.
+  // Used to point to little endian bytes.
   unsigned FullSizeBytes = 4;
 
   // For each byte of the fragment that the fixup touches, mask in the bits

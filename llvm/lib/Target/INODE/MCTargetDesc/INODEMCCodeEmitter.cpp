@@ -78,7 +78,7 @@ void INODEMCCodeEmitter::expandLongBR(const MCInst &MI,
   // Emit a bne where if not taken, proceed to first JMP_INST, if taken jump to
   // the second.
   uint32_t Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-  support::endian::write(CB, Binary, llvm::endianness::big);
+  support::endian::write(CB, Binary, llvm::endianness::little);
 
   // Emit an unconditional jump to skip the next instruction.
   int64_t TargetOffset = 8;
@@ -86,12 +86,12 @@ void INODEMCCodeEmitter::expandLongBR(const MCInst &MI,
 
   TmpInst = MCInstBuilder(INODE::INODE_JMP_INST).addExpr(OffsetExpr);
   Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-  support::endian::write(CB, Binary, llvm::endianness::big);
+  support::endian::write(CB, Binary, llvm::endianness::little);
 
   // Emit an unconditional jump to the destination.
   TmpInst = MCInstBuilder(INODE::INODE_JMP_INST).addOperand(SrcSymbol);
   Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
-  support::endian::write(CB, Binary, llvm::endianness::big);
+  support::endian::write(CB, Binary, llvm::endianness::little);
 
   // override the fixups.
   Fixups.clear();
@@ -140,7 +140,7 @@ void INODEMCCodeEmitter::encodeInstruction(const MCInst &MI,
   uint64_t Bits = getBinaryCodeForInstr(MI, Fixups, STI);
   ++MCNumEmitted; // Keep track of the number of emitted insns.
 
-  support::endian::write<uint32_t>(CB, Bits, endianness::big);
+  support::endian::write<uint32_t>(CB, Bits, endianness::little);
 }
 
 unsigned

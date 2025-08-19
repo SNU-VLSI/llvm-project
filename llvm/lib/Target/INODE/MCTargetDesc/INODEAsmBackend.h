@@ -31,7 +31,7 @@ class INODEAsmBackend : public MCAsmBackend {
 public:
   INODEAsmBackend(const MCSubtargetInfo &STI, uint8_t OSABI, bool Is64Bit,
                   const MCTargetOptions &Options)
-      : MCAsmBackend(llvm::endianness::big), STI(STI),
+      : MCAsmBackend(llvm::endianness::little), STI(STI),
         OSABI(OSABI), Is64Bit(Is64Bit), TargetOptions(Options) {}
   ~INODEAsmBackend() override = default;
 

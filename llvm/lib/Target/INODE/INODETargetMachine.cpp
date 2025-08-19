@@ -41,8 +41,8 @@ namespace {
 std::string computeDataLayout(const Triple &TT, StringRef CPU, StringRef FS) {
   std::string Ret;
 
-  // big endian.
-  Ret += "E";
+  // little endian.
+  Ret += "e";
 
   // Data mangling.
   Ret += DataLayout::getManglingComponent(TT);
@@ -144,7 +144,7 @@ bool INODEPassConfig::addInstSelector() {
 void INODEPassConfig::addPreRegAlloc() {
   TargetPassConfig::addPreRegAlloc();
   // addPass(&MachineCopyPropagationID);
-  
+
 }
 
 void INODEPassConfig::addPreEmitPass() {

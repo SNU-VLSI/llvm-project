@@ -113,7 +113,7 @@ DecodeStatus INODEDisassembler::getInstruction(MCInst &MI, uint64_t &Size, Array
   Size = 4;
 
   // Construct the instruction.
-  uint32_t insn = support::endian::read32be(Bytes.data());
+  uint32_t insn = support::endian::read32le(Bytes.data());
 
   if (decodeInstruction(DecoderTableINODE32, MI, insn, Address, this, STI) !=
       MCDisassembler::Success) {
