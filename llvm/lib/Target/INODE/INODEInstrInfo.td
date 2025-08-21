@@ -318,18 +318,18 @@ let mayLoad = 0, mayStore = 0 in {
 // I type
 class IInst<string opname, int opcode> : InstIType<opcode, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm20:$imm), opname, "$rd $rs1 $imm", []>;
 let mayLoad=0, mayStore=0 in {
-  def INODE_ADDI_INST   : IInst<"addi"  , 0b10001>;
-  def INODE_MULI_INST : IInst<"muli", 0b10010>;
+  def INODE_ADDI_INST   : IInst<"addi"  , 0b010001>;
+  def INODE_MULI_INST : IInst<"muli", 0b010010>;
 }
-def INODE_LUI_INST : InstIType<0b10011, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, uimm12:$imm), "lui", "$rd $rs1 $imm", []> {
+def INODE_LUI_INST : InstIType<0b010011, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, uimm12:$imm), "lui", "$rd $rs1 $imm", []> {
   let mayLoad = 0;
   let mayStore = 0;
 }
-def INODE_LOAD_INST : InstIType<0b101, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm20:$imm), "load", "$rd, $rs1, $imm", []> {
+def INODE_LOAD_INST : InstIType<0b000101, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm20:$imm), "load", "$rd, $rs1, $imm", []> {
   let mayLoad = 1;
   let hasSideEffects = 1;
 }
-def INODE_STORE_INST : InstIType<0b110, (outs), (ins SGPROpnd:$rd, simm20:$imm, SGPROpnd:$rs1), "store", "$rd, $imm, $rs1", []> {
+def INODE_STORE_INST : InstIType<0b000110, (outs), (ins SGPROpnd:$rd, simm20:$imm, SGPROpnd:$rs1), "store", "$rd, $imm, $rs1", []> {
   let mayStore = 1;
   let hasSideEffects = 1;
 }
@@ -337,10 +337,10 @@ def INODE_STORE_INST : InstIType<0b110, (outs), (ins SGPROpnd:$rd, simm20:$imm, 
 // B type
 class BInst<string opname, int opcode> : InstBType<opcode, (outs), (ins SGPROpnd:$rs1, SGPROpnd:$rs2, brtarget:$imm), opname, "$rs1 $rs2 $imm", []>;
 let mayLoad=0, mayStore=0, isBranch=1, isTerminator=1 in {
-  def INODE_BEQ : BInst<"beq", 0b1001>;
-  def INODE_BNE : BInst<"bne", 0b1010>;
-  def INODE_BLT : BInst<"blt", 0b1100>;
-  def INODE_BGE : BInst<"bge", 0b1101>;
+  def INODE_BEQ : BInst<"beq", 0b001001>;
+  def INODE_BNE : BInst<"bne", 0b001010>;
+  def INODE_BLT : BInst<"blt", 0b001100>;
+  def INODE_BGE : BInst<"bge", 0b001101>;
 }
 
 let isBarrier = 1, isBranch = 1, hasSideEffects = 0, mayStore = 0, mayLoad = 0, isAsmParserOnly = 1, hasNoSchedulingInfo = 1 in {
@@ -351,7 +351,7 @@ let isBarrier = 1, isBranch = 1, hasSideEffects = 0, mayStore = 0, mayLoad = 0, 
 }
 
 class BIInst<string opname, int opcode> : InstBIType<opcode, (outs SGPROpnd:$indvar_o), (ins SGPROpnd:$rs1, uimm14:$imm, brtarget9:$offset), opname, "$rs1 $imm $offset", []>;
-def INODE_BNE_UPDATE_INST : BIInst<"bne_update", 0b1011> {
+def INODE_BNE_UPDATE_INST : BIInst<"bne_update", 0b001011> {
   let mayLoad=0;
   let mayStore=0;
   let isBranch = 1;
@@ -372,15 +372,15 @@ def INODE_LONG_BNE_UPDATE : Pseudo<(outs SGPROpnd:$indvar_o), (ins SGPROpnd:$ind
 // C type
 class CCommInst<string opname, int opcode> : InstCType<opcode, (outs), (ins SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id), opname, "$rs1 $imm $policy, $fifo_id", []>;
 let hasSideEffects=1, mayLoad=1 in {
-  def INODE_SEND_INST : CCommInst<"send", 0b01>;
+  def INODE_SEND_INST : CCommInst<"send", 0b000001>;
 }
 
 let hasSideEffects=1, mayStore=1 in {
-  def INODE_RECV_INST : CCommInst<"recv", 0b10>;
+  def INODE_RECV_INST : CCommInst<"recv", 0b000010>;
 }
 
 let hasSideEffects=1 in {
-  def INODE_LAYERINIT_INST : InstCType<0b11111, (outs), (ins), "layerinit", "", []> {
+  def INODE_LAYERINIT_INST : InstCType<0b011111, (outs), (ins), "layerinit", "", []> {
     let rs1 = 0;
     let imm = 0;
     let policy = 0;
@@ -410,7 +410,7 @@ let hasSideEffects=1, mayLoad=1 in {
 }
 
 let hasSideEffects=1 in {
-  def INODE_SET_ADDR_CNT_INST : InstCType<0b10100, (outs), (ins uimm13:$imm), "set_addr_cnt", "$imm", []> {
+  def INODE_SET_ADDR_CNT_INST : InstCType<0b010100, (outs), (ins uimm13:$imm), "set_addr_cnt", "$imm", []> {
     let rs1 = 0;
     let policy = 0;
     let fifo_id = 0;
@@ -419,11 +419,11 @@ let hasSideEffects=1 in {
 }
 
 let hasSideEffects=1 in {
-  def INODE_SET_FLAG_INST : InstSType<0b011, (outs), (ins SGPROpnd:$flag_value_rs), "set_flag", "$flag_value_rs", []> {
+  def INODE_SET_FLAG_INST : InstSType<0b000011, (outs), (ins SGPROpnd:$flag_value_rs), "set_flag", "$flag_value_rs", []> {
     let target_id = 0;
   }
 
-  def INODE_STANDBY_INST  : InstSType<0b100, (outs), (ins uimm7:$target_id, SGPROpnd:$flag_value_rs), "standby", "$target_id, $flag_value_rs", []>;
+  def INODE_STANDBY_INST  : InstSType<0b000100, (outs), (ins uimm7:$target_id, SGPROpnd:$flag_value_rs), "standby", "$target_id, $flag_value_rs", []>;
 }
 
 // X type
@@ -434,18 +434,18 @@ class XNoOpInst<string opname, int opcode> : InstXType<opcode, (outs), (ins), op
 def INODE_DONE_INST : XNoOpInst<"done", 0b100001>;
 def INODE_HALT_INST : XNoOpInst<"halt", 0b100010>;
 
-def INODE_INTRT_INST : InstXType<0b111101, (outs), (ins uimm26:$intr_id), "intrt", "$intr_id", []> {
+def INODE_INTRT_INST : InstXType<0b011100, (outs), (ins uimm26:$intr_id), "intrt", "$intr_id", []> {
   let hasSideEffects = 1;
 }
 
 // J type
-def INODE_JMP_INST : InstJType<0b11100, (outs), (ins jumptarget:$imm), "jmp", "$imm", []> {
+def INODE_JMP_INST : InstJType<0b001110, (outs), (ins jumptarget:$imm), "jmp", "$imm", []> {
   let isTerminator=1;
   let isBarrier=1;
 }
 
 // U type
-def INODE_PU_INST : InstUType<0b11011, (outs), (ins SGPROpnd:$rs1, simm13:$imm, SGPROpnd:$entry_addr, uimm4:$node_col_id), "pu", "$rs1 $imm $entry_addr $node_col_id", []>;
+def INODE_PU_INST : InstUType<0b011011, (outs), (ins SGPROpnd:$rs1, simm13:$imm, SGPROpnd:$entry_addr, uimm4:$node_col_id), "pu", "$rs1 $imm $entry_addr $node_col_id", []>;
 
 // ================================================
 // Patterns
