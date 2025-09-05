@@ -327,7 +327,7 @@ let hasSideEffects=1 in {
     bits<6> rd;
     bits<6> fifo_id;
 
-    let Inst{5-0} = 0b110010;
+    let Inst{5-0} = 0b110011;
     let Inst{11-6} = rd;
     let Inst{17-12} = 0;
     let Inst{23-18} = fifo_id;

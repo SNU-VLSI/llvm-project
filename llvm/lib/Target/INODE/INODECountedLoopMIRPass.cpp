@@ -534,11 +534,22 @@ void lowerToBNE(MachineBasicBlock *header, MachineBasicBlock *body,
   // }
   assert(hw_loop_cnt != 0);
 
+  // Initialize/reset the exact loop-counter register used by bne_update.
+  // This guarantees a known start value at loop entry, regardless of prior uses.
+  {
+    Register LoopReg = bodyEndBranch->getOperand(0).getReg();
+    // Insert before we erase CLOOP_BEGIN_VALUE, so the init sits in the header/preheader.
+    BuildMI(*header, headerBeginValue, dl, TII.get(INODE::INODE_ADDI_INST), LoopReg)
+        .addReg(INODE::SReg0) // zero register
+        .addImm(1);
+  }
+
   headerBeginValue->eraseFromParent();
   headerBeginTerminator->eraseFromParent();
   bodyEndValue->eraseFromParent();
 
   // VINN: get the immediate value from instruction prior to headerBeginValue?
+  // Should the imm value is higher than $rs1???
   BuildMI(*body, bodyEndBranch, dl, TII.get(INODE::INODE_BNE_UPDATE_INST),
           bodyEndBranch->getOperand(0).getReg()) // $rs2 == $rs1
       .add(bodyEndBranch->getOperand(0))         // $rs1

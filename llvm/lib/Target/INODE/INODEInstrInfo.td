@@ -389,9 +389,8 @@ let hasSideEffects=1 in {
 }
 
 let hasSideEffects=1 in {
-  def INODE_IMCE_COMPUTE_INST : InstCType<0b100000, (outs), (ins uimm13:$imm), "imce_compute", "$imm", []> {
+  def INODE_IMCE_COMPUTE_INST : InstCType<0b100000, (outs), (ins uimm13:$imm, uimm6:$policy), "imce_compute", "$imm $policy", []> {
     let rs1 = 0;
-    let policy = 0;
     let fifo_id = 0;
   }
 }
@@ -529,7 +528,7 @@ def : Pat<(int_INODE_SEND SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo
 def : Pat<(int_INODE_RECV SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id), (INODE_RECV_INST SGPROpnd:$rs1, simm13:$imm, uimm6:$policy, uimm3:$fifo_id)>;
 
 def : Pat<(int_INODE_LAYERINIT), (INODE_LAYERINIT_INST)>;
-def : Pat<(int_INODE_IMCE_COMPUTE uimm13:$imm), (INODE_IMCE_COMPUTE_INST uimm13:$imm)>;
+def : Pat<(int_INODE_IMCE_COMPUTE uimm13:$imm, uimm6:$policy), (INODE_IMCE_COMPUTE_INST uimm13:$imm, uimm6:$policy)>;
 
 def : Pat<(int_INODE_WR_IMEM SGPROpnd:$rs1, simm13:$imm, uimm6:$policy), (INODE_WR_IMEM_INST SGPROpnd:$rs1, simm13:$imm, uimm6:$policy)>;
 def : Pat<(int_INODE_WR_IMCU SGPROpnd:$rs1, simm13:$imm, uimm6:$policy), (INODE_WR_IMCU_INST SGPROpnd:$rs1, simm13:$imm, uimm6:$policy)>;

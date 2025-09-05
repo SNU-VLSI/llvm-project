@@ -12,7 +12,7 @@ TARGET_BUILTIN(__builtin_INODE_SEND, "viiii", "", "")
 TARGET_BUILTIN(__builtin_INODE_RECV, "viiii", "", "")
 
 TARGET_BUILTIN(__builtin_INODE_LAYERINIT, "v", "", "")
-TARGET_BUILTIN(__builtin_INODE_IMCE_COMPUTE, "vi", "", "")
+TARGET_BUILTIN(__builtin_INODE_IMCE_COMPUTE, "vii", "", "")
 TARGET_BUILTIN(__builtin_INODE_WR_IMEM, "viii", "", "")
 TARGET_BUILTIN(__builtin_INODE_WR_IMCU, "viii", "", "")
 TARGET_BUILTIN(__builtin_INODE_WR_REG, "viii", "", "")

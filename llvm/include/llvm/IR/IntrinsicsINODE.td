@@ -3,7 +3,7 @@ let TargetPrefix = "INODE" in {
   def int_INODE_SEND : Intrinsic<[], [llvm_i32_ty, llvm_i32_ty, llvm_i32_ty, llvm_i32_ty], [ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>, IntrHasSideEffects]>;
   def int_INODE_RECV : Intrinsic<[], [llvm_i32_ty, llvm_i32_ty, llvm_i32_ty, llvm_i32_ty], [ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>, ImmArg<ArgIndex<3>>, IntrHasSideEffects]>;
   def int_INODE_LAYERINIT : Intrinsic<[], [], [IntrHasSideEffects]>;
-  def int_INODE_IMCE_COMPUTE : Intrinsic<[], [llvm_i32_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
+  def int_INODE_IMCE_COMPUTE : Intrinsic<[], [llvm_i32_ty, llvm_i32_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<1>>, IntrHasSideEffects]>;
   def int_INODE_WR_IMEM : Intrinsic<[], [llvm_i32_ty, llvm_i32_ty, llvm_i32_ty], [ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>, IntrHasSideEffects]>;
   def int_INODE_WR_IMCU : Intrinsic<[], [llvm_i32_ty, llvm_i32_ty, llvm_i32_ty], [ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>, IntrHasSideEffects]>;
   def int_INODE_WR_REG : Intrinsic<[], [llvm_i32_ty, llvm_i32_ty, llvm_i32_ty], [ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>, IntrHasSideEffects]>;
