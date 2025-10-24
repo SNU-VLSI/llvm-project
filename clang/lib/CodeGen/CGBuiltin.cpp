@@ -22208,6 +22208,26 @@ Value *CodeGenFunction::EmitIMCEBuiltinExpr(unsigned BuiltinID,
     ID = Intrinsic::IMCE_RECV;
     break;
   }
+  case IMCE::BI__builtin_IMCE_RECV_MIN: {
+    ID = Intrinsic::IMCE_RECV_MIN;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_RECV_MAX: {
+    ID = Intrinsic::IMCE_RECV_MAX;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_RECV_CFG: {
+    ID = Intrinsic::IMCE_RECV_CFG;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_RECV_SREG0: {
+    ID = Intrinsic::IMCE_RECV_SREG0;
+    break;
+  }
+  case IMCE::BI__builtin_IMCE_RECV_SREG1: {
+    ID = Intrinsic::IMCE_RECV_SREG1;
+    break;
+  }
   case IMCE::BI__builtin_IMCE_SETFLAG: {
     ID = Intrinsic::IMCE_SETFLAG;
     break;

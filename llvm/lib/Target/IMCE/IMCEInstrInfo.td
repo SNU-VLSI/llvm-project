@@ -370,6 +370,30 @@ let hasSideEffects=1 in {
     let Inst{31-24} = 0;
   }
 
+  def IMCE_RECV_SREG0_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
+    bits<6> rd;
+    bits<6> fifo_id;
+
+    let Uses = [SCANREG0];
+    let Inst{5-0} = 0b110011;
+    let Inst{11-6} = rd;
+    let Inst{17-12} = 0;
+    let Inst{23-18} = fifo_id;
+    let Inst{31-24} = 0;
+  }
+
+  def IMCE_RECV_SREG1_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
+    bits<6> rd;
+    bits<6> fifo_id;
+
+    let Uses = [SCANREG1];
+    let Inst{5-0} = 0b110011;
+    let Inst{11-6} = rd;
+    let Inst{17-12} = 0;
+    let Inst{23-18} = fifo_id;
+    let Inst{31-24} = 0;
+  }
+
   def IMCE_SET_FLAG_INST : InstIMCE<(outs), (ins VGPROpnd:$rs1), "set_flag", "$rs1", []> {
     bits<6> rs1;
 
@@ -509,6 +533,8 @@ def : Pat<(int_IMCE_RECV uimm6:$fifo_id), (IMCE_RECV_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_RECV_MIN uimm6:$fifo_id), (IMCE_RECV_MIN_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_RECV_MAX uimm6:$fifo_id), (IMCE_RECV_MAX_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_RECV_CFG uimm6:$fifo_id), (IMCE_RECV_CFG_INST uimm6:$fifo_id)>;
+def : Pat<(int_IMCE_RECV_QREG uimm6:$fifo_id), (IMCE_RECV_QREG_INST uimm6:$fifo_id)>;
+def : Pat<(int_IMCE_RECV_SREG uimm6:$fifo_id), (IMCE_RECV_SREG_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_SETFLAG VGPROpnd:$rs1), (IMCE_SET_FLAG_INST VGPROpnd:$rs1)>;
 def : Pat<(int_IMCE_STANDBY uimm6:$reg_id, VGPROpnd:$rs1), (IMCE_STANDBY_INST uimm6:$reg_id, VGPROpnd:$rs1)>;
 def : Pat<(int_IMCE_LOAD_LB uimm6:$fifo_id), (IMCE_LOAD_LB uimm6:$fifo_id)>;
