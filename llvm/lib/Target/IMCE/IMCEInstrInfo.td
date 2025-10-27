@@ -334,62 +334,62 @@ let hasSideEffects=1 in {
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_MIN_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
+  def IMCE_RECV_MIN_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_min", "$rd $fifo_id", []> {
     bits<6> rd;
     bits<6> fifo_id;
 
-    let Uses = [MINREG];
+    let Defs = [MINREG];
     let Inst{5-0} = 0b110011;
     let Inst{11-6} = rd;
-    let Inst{17-12} = 0;
+    let Inst{17-12} = 0b000001;
     let Inst{23-18} = fifo_id;
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_MAX_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
+  def IMCE_RECV_MAX_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_max", "$rd $fifo_id", []> {
     bits<6> rd;
     bits<6> fifo_id;
 
-    let Uses = [MAXREG];
+    let Defs = [MAXREG];
     let Inst{5-0} = 0b110011;
     let Inst{11-6} = rd;
-    let Inst{17-12} = 0;
+    let Inst{17-12} = 0b000010;
     let Inst{23-18} = fifo_id;
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_CFG_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
+  def IMCE_RECV_CFG_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_cfg", "$rd $fifo_id", []> {
     bits<6> rd;
     bits<6> fifo_id;
 
-    let Uses = [CFGREG];
+    let Defs = [CFGREG];
     let Inst{5-0} = 0b110011;
     let Inst{11-6} = rd;
-    let Inst{17-12} = 0;
+    let Inst{17-12} = 0b000011;
     let Inst{23-18} = fifo_id;
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_SREG0_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
+  def IMCE_RECV_SREG0_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_sreg0", "$rd $fifo_id", []> {
     bits<6> rd;
     bits<6> fifo_id;
 
-    let Uses = [SCANREG0];
+    let Defs = [SCANREG0];
     let Inst{5-0} = 0b110011;
     let Inst{11-6} = rd;
-    let Inst{17-12} = 0;
+    let Inst{17-12} = 0b000100;
     let Inst{23-18} = fifo_id;
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_SREG1_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
+  def IMCE_RECV_SREG1_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_sreg1", "$rd $fifo_id", []> {
     bits<6> rd;
     bits<6> fifo_id;
 
-    let Uses = [SCANREG1];
+    let Defs = [SCANREG1];
     let Inst{5-0} = 0b110011;
     let Inst{11-6} = rd;
-    let Inst{17-12} = 0;
+    let Inst{17-12} = 0b000101;
     let Inst{23-18} = fifo_id;
     let Inst{31-24} = 0;
   }
