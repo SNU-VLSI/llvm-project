@@ -160,3 +160,21 @@ unsigned INODECC::getBrCond(INODECC::CondCode CC, bool Imm) {
 const MCInstrDesc &INODEInstrInfo::getBrCond(INODECC::CondCode CC, bool Imm) const {
   return get(INODECC::getBrCond(CC, Imm));
 }
+
+bool INODEInstrInfo::isReallyTriviallyReMaterializable(const MachineInstr &MI) const {
+  // ADDI with an immediate operand that loads a constant is trivially rematerializable.
+  // This is cheaper than spilling/reloading from stack.
+  if (MI.getOpcode() == INODE::INODE_ADDI_INST) {
+    // Check if this is loading an immediate constant (i.e., adding to %sreg0)
+    // Format: addi rd, rs1, imm
+    if (MI.getNumOperands() >= 3 &&
+        MI.getOperand(1).isReg() &&
+        MI.getOperand(1).getReg() == INODE::SReg0 &&
+        MI.getOperand(2).isImm()) {
+      // This is "addi rd, %sreg0, imm" which is just loading a constant
+      return true;
+    }
+  }
+
+  return false;
+}

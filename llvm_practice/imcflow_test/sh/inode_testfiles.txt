@@ -4,3 +4,4 @@
 ../test_cpp/inode/test_builtins.cpp
 ../test_cpp/inode/test_loop.cpp
 ../test_cpp/inode/test_load_store.cpp
+../test_cpp/inode/test_policyupdate.cpp

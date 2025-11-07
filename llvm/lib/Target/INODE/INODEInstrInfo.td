@@ -318,7 +318,10 @@ let mayLoad = 0, mayStore = 0 in {
 // I type
 class IInst<string opname, int opcode> : InstIType<opcode, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm20:$imm), opname, "$rd $rs1 $imm", []>;
 let mayLoad=0, mayStore=0 in {
-  def INODE_ADDI_INST   : IInst<"addi"  , 0b010001>;
+  def INODE_ADDI_INST   : IInst<"addi"  , 0b010001> {
+    let isReMaterializable = 1;
+    let isAsCheapAsAMove = 1;
+  }
   def INODE_MULI_INST : IInst<"muli", 0b010010>;
 }
 def INODE_LUI_INST : InstIType<0b010011, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, uimm12:$imm), "lui", "$rd $rs1 $imm", []> {

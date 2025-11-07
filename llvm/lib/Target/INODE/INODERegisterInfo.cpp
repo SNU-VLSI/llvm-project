@@ -40,8 +40,10 @@ const MCPhysReg *INODERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF
 BitVector INODERegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
 
-  // R31 is the stack pointer.
+  // SReg7 is the stack pointer.
   Reserved.set(INODE::SReg7);
+  // SReg6 is the frame pointer.
+  Reserved.set(INODE::SReg6);
   // markSuperRegs(Reserved, INODE::S0); // zero
   markSuperRegs(Reserved, INODE::SReg0); // zero
 

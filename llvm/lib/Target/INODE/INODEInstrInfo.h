@@ -68,6 +68,8 @@ public:
                             const TargetRegisterInfo *TRI,
                             Register VReg) const override;
   const MCInstrDesc &getBrCond(INODECC::CondCode CC, bool Imm = false) const;
+
+  bool isReallyTriviallyReMaterializable(const MachineInstr &MI) const override;
 };
 
 } // end namespace llvm
