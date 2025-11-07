@@ -228,10 +228,11 @@ SDValue INODETargetLowering::LowerINTRINSIC_VOID(SDValue Op, SelectionDAG &DAG) 
 SDValue INODETargetLowering::LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG) const {
   static int BeginValueNum = 0;
 
-  auto isValidCloopMetadata = [&](SDValue x) {
-    auto metadata = dyn_cast<ConstantSDNode>(x);
-    return metadata && (metadata->getZExtValue() <= UINT16_MAX);
-  };
+  // Note: isValidCloopMetadata validation is currently disabled (see commented checks below)
+  // auto isValidCloopMetadata = [&](SDValue x) {
+  //   auto metadata = dyn_cast<ConstantSDNode>(x);
+  //   return metadata && (metadata->getZExtValue() <= UINT16_MAX);
+  // };
 
   SDLoc dl(Op);
 
@@ -519,13 +520,12 @@ SDValue INODETargetLowering::lowerSELECT(SDValue Op, SelectionDAG &DAG) const {
   SDValue FalseV = Op.getOperand(2);
   SDLoc DL(Op);
   MVT VT = Op.getSimpleValueType();
-  MVT XLenVT = MVT::i32;
 
-  // If the CondV is the output of a SETCC node which operates on XLenVT inputs,
+  // If the CondV is the output of a SETCC node which operates on i32 inputs,
   // then merge the SETCC node into the lowered INODEISD::SELECT_CC to take
   // advantage of the integer compare+branch instructions. i.e.:
   // (select (setcc lhs, rhs, cc), truev, falsev)
-  // -> (riscvisd::select_cc lhs, rhs, cc, truev, falsev)
+  // -> (inodeisd::select_cc lhs, rhs, cc, truev, falsev)
   SDValue LHS = CondV.getOperand(0);
   SDValue RHS = CondV.getOperand(1);
   ISD::CondCode CCVal = cast<CondCodeSDNode>(CondV.getOperand(2))->get();
@@ -574,7 +574,6 @@ static MachineBasicBlock *emitSelectPseudo(MachineInstr &MI,
                                            const INODESubtarget &Subtarget) {
 
   // out = select_cc %LHS, %RHS, %CC, %TrueValue, %FalseValue
-  auto Next = next_nodbg(MI.getIterator(), BB->instr_end());
   Register LHS = MI.getOperand(1).getReg();
   Register RHS;
   if (MI.getOperand(2).isReg())

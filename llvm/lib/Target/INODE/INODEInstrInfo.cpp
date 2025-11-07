@@ -62,7 +62,6 @@ void INODEInstrInfo::copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iter
                                 const DebugLoc &DL, MCRegister DestReg, MCRegister SrcReg,
                                 bool KillSrc) const {
 
-  const TargetRegisterInfo *TRI = STI.getRegisterInfo();
   if(INODE::SGPRRegClass.contains(DestReg, SrcReg)) {
     BuildMI(MBB, I, DL, get(INODE::INODE_ADDI_INST), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc))

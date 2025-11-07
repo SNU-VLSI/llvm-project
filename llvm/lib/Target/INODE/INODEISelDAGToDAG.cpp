@@ -59,7 +59,7 @@ public:
       return true;
     } else {
       bool isReg = true;
-      for (int i = 0; i < val->getNumOperands(); i++) {
+      for (unsigned i = 0; i < val->getNumOperands(); i++) {
         isReg &= isRegisterEquivalent(val.getOperand(i));
       }
       return isReg;
@@ -269,7 +269,7 @@ void INODEDAGToDAGISel::Select(SDNode *Node) {
 
     SDValue Result;
     SDValue New = Node->getOperand(0);
-    for (int i = 0; i < Factors.size(); i++) {
+    for (size_t i = 0; i < Factors.size(); i++) {
       Result =
           SDValue(CurDAG->getMachineNode(
                       INODE::INODE_MULI_INST, DL, VT,
@@ -316,7 +316,7 @@ void INODEDAGToDAGISel::Select(SDNode *Node) {
     std::vector<int> Factors = getBigMulFactors(IsPositive ? Imm : -Imm);
 
     SDValue New = Node->getOperand(0);
-    for (int i = 0; i < Factors.size(); i++) {
+    for (size_t i = 0; i < Factors.size(); i++) {
       Result =
           SDValue(CurDAG->getMachineNode(
                       INODE::INODE_MULI_INST, DL, VT,
