@@ -30,9 +30,9 @@ short16 test_builtins(short16 a, short16 b) {
   short16 var26 = __builtin_IMCE_DWCONV(var25, 1, 0, 1, 1);
   __builtin_IMCE_SEND(1, var26, 2, 3);
   short16 var27 = __builtin_IMCE_RECV(0);
-  __bulitin_IMCE_RECV_MIN(1);
-  __bulitin_IMCE_RECV_MAX(1);
-  __bulitin_IMCE_RECV_CFG(1);
+  __builtin_IMCE_RECV_MIN(1);
+  __builtin_IMCE_RECV_MAX(1);
+  __builtin_IMCE_RECV_CFG(1);
   __builtin_IMCE_SETFLAG(1);
   __builtin_IMCE_STANDBY(1, 2);
 

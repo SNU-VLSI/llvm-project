@@ -9,7 +9,7 @@ fn_no_ext=$(echo "$fn_base" | sed 's/\(.*\)\..*/\1/')
 
 # emit llvm ir if .cpp, else move .ll to output
 if [[ $fn_ext == "cpp" ]]; then
-  clang -O1 --target=IMCE -S -emit-llvm $1 -I../test_cpp -o output/$fn_no_ext.ll
+  clang -O1 --target=IMCE -S -emit-llvm $1 -Itest_cpp -o output/$fn_no_ext.ll
 elif [[ $fn_ext == "ll" ]]; then
   cp $1 output/$fn_no_ext.ll
 else
