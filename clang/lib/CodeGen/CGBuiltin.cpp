@@ -22220,14 +22220,14 @@ Value *CodeGenFunction::EmitIMCEBuiltinExpr(unsigned BuiltinID,
     ID = Intrinsic::IMCE_RECV_CFG;
     break;
   }
-  case IMCE::BI__builtin_IMCE_RECV_SREG0: {
-    ID = Intrinsic::IMCE_RECV_SREG0;
-    break;
-  }
-  case IMCE::BI__builtin_IMCE_RECV_SREG1: {
-    ID = Intrinsic::IMCE_RECV_SREG1;
-    break;
-  }
+  // case IMCE::BI__builtin_IMCE_RECV_SREG0: {
+  //   ID = Intrinsic::IMCE_RECV_SREG0;
+  //   break;
+  // }
+  // case IMCE::BI__builtin_IMCE_RECV_SREG1: {
+  //   ID = Intrinsic::IMCE_RECV_SREG1;
+  //   break;
+  // }
   case IMCE::BI__builtin_IMCE_SETFLAG: {
     ID = Intrinsic::IMCE_SETFLAG;
     break;

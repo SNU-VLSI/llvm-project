@@ -334,65 +334,65 @@ let hasSideEffects=1 in {
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_MIN_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_min", "$rd $fifo_id", []> {
-    bits<6> rd;
+  def IMCE_RECV_MIN_INST : InstIMCE<(outs), (ins uimm6:$fifo_id), "recv_min", "$fifo_id", []> {
+    // bits<6> rd;
     bits<6> fifo_id;
 
     let Defs = [MINREG];
     let Inst{5-0} = 0b110011;
-    let Inst{11-6} = rd;
-    let Inst{17-12} = 0b000001;
+    let Inst{11-6} = 44;
+    let Inst{17-12} = 0b000000;
     let Inst{23-18} = fifo_id;
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_MAX_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_max", "$rd $fifo_id", []> {
-    bits<6> rd;
+  def IMCE_RECV_MAX_INST : InstIMCE<(outs), (ins uimm6:$fifo_id), "recv_max", "$fifo_id", []> {
+    // bits<6> rd;
     bits<6> fifo_id;
 
     let Defs = [MAXREG];
     let Inst{5-0} = 0b110011;
-    let Inst{11-6} = rd;
-    let Inst{17-12} = 0b000010;
+    let Inst{11-6} = 45;
+    let Inst{17-12} = 0b000000;
     let Inst{23-18} = fifo_id;
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_CFG_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_cfg", "$rd $fifo_id", []> {
+  def IMCE_RECV_CFG_INST : InstIMCE<(outs), (ins uimm6:$fifo_id), "recv_cfg", "$fifo_id", []> {
     bits<6> rd;
     bits<6> fifo_id;
 
     let Defs = [CFGREG];
     let Inst{5-0} = 0b110011;
-    let Inst{11-6} = rd;
-    let Inst{17-12} = 0b000011;
+    let Inst{11-6} = 46;
+    let Inst{17-12} = 0b000000;
     let Inst{23-18} = fifo_id;
     let Inst{31-24} = 0;
   }
 
-  def IMCE_RECV_SREG0_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_sreg0", "$rd $fifo_id", []> {
-    bits<6> rd;
-    bits<6> fifo_id;
+  // def IMCE_RECV_SREG0_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_sreg0", "$rd $fifo_id", []> {
+  //   bits<6> rd;
+  //   bits<6> fifo_id;
 
-    let Defs = [SCANREG0];
-    let Inst{5-0} = 0b110011;
-    let Inst{11-6} = rd;
-    let Inst{17-12} = 0b000100;
-    let Inst{23-18} = fifo_id;
-    let Inst{31-24} = 0;
-  }
+  //   let Defs = [SCANREG0];
+  //   let Inst{5-0} = 0b110011;
+  //   let Inst{11-6} = rd;
+  //   let Inst{17-12} = 0b000100;
+  //   let Inst{23-18} = fifo_id;
+  //   let Inst{31-24} = 0;
+  // }
 
-  def IMCE_RECV_SREG1_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_sreg1", "$rd $fifo_id", []> {
-    bits<6> rd;
-    bits<6> fifo_id;
+  // def IMCE_RECV_SREG1_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv_sreg1", "$rd $fifo_id", []> {
+  //   bits<6> rd;
+  //   bits<6> fifo_id;
 
-    let Defs = [SCANREG1];
-    let Inst{5-0} = 0b110011;
-    let Inst{11-6} = rd;
-    let Inst{17-12} = 0b000101;
-    let Inst{23-18} = fifo_id;
-    let Inst{31-24} = 0;
-  }
+  //   let Defs = [SCANREG1];
+  //   let Inst{5-0} = 0b110011;
+  //   let Inst{11-6} = rd;
+  //   let Inst{17-12} = 0b000101;
+  //   let Inst{23-18} = fifo_id;
+  //   let Inst{31-24} = 0;
+  // }
 
   def IMCE_SET_FLAG_INST : InstIMCE<(outs), (ins VGPROpnd:$rs1), "set_flag", "$rs1", []> {
     bits<6> rs1;
@@ -533,8 +533,8 @@ def : Pat<(int_IMCE_RECV uimm6:$fifo_id), (IMCE_RECV_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_RECV_MIN uimm6:$fifo_id), (IMCE_RECV_MIN_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_RECV_MAX uimm6:$fifo_id), (IMCE_RECV_MAX_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_RECV_CFG uimm6:$fifo_id), (IMCE_RECV_CFG_INST uimm6:$fifo_id)>;
-def : Pat<(int_IMCE_RECV_SREG0 uimm6:$fifo_id), (IMCE_RECV_SREG0_INST uimm6:$fifo_id)>;
-def : Pat<(int_IMCE_RECV_SREG1 uimm6:$fifo_id), (IMCE_RECV_SREG1_INST uimm6:$fifo_id)>;
+// def : Pat<(int_IMCE_RECV_SREG0 uimm6:$fifo_id), (IMCE_RECV_SREG0_INST uimm6:$fifo_id)>;
+// def : Pat<(int_IMCE_RECV_SREG1 uimm6:$fifo_id), (IMCE_RECV_SREG1_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_SETFLAG VGPROpnd:$rs1), (IMCE_SET_FLAG_INST VGPROpnd:$rs1)>;
 def : Pat<(int_IMCE_STANDBY uimm6:$reg_id, VGPROpnd:$rs1), (IMCE_STANDBY_INST uimm6:$reg_id, VGPROpnd:$rs1)>;
 def : Pat<(int_IMCE_LOAD_LB uimm6:$fifo_id), (IMCE_LOAD_LB uimm6:$fifo_id)>;
