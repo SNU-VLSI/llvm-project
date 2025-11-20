@@ -100,7 +100,9 @@ Value *IMCELoopConversion::processIterIntr(BasicBlock *BB,
 
   IRBuilder<> SLIIBuilder(II);
   Value *counter = II->getOperand(0);
-  Value *zextTruncCounter = SLIIBuilder.CreateZExtOrTrunc(counter, I32Ty);
+  ConstantInt *C = cast<ConstantInt>(counter);
+  Value *counterMinus1 = ConstantInt::get(I32Ty, C->getZExtValue() - 1);
+  Value *zextTruncCounter = SLIIBuilder.CreateZExtOrTrunc(counterMinus1, I32Ty);
   Function *func =
       Intrinsic::getDeclaration(M, Intrinsic::IMCE_cloop_begin);
   CallInst *cloopBeginCall =
@@ -152,6 +154,15 @@ void IMCELoopConversion::processSetIntr(BasicBlock *Preheader,
                                             IntrinsicInst *II) {
   auto I32Ty = Type::getInt32Ty(*ctx);
   Value *counter = processIterIntr(Preheader, II, md::tripCountOKForRpt);
+  // Value *counter = nullptr;
+  // if (auto *C = dyn_cast<ConstantInt>(counterOrig)) {
+  //   counter = ConstantInt::get(I32Ty, C->getSExtValue() - 1);
+  // } else {
+  //   IRBuilder<> Builder(Preheader->getTerminator());
+  //   Value *one = ConstantInt::get(I32Ty, 1);
+  //   counter = Builder.CreateSub(counterOrig, one, "counter_minus_1");
+  // }
+
   auto metadata =
       ConstantInt::get(I32Ty, static_cast<uint16_t>(md::tripCountOKForRpt));
   II->eraseFromParent();
