@@ -686,3 +686,35 @@ MachineBasicBlock *INODETargetLowering::EmitInstrWithCustomInserter(MachineInstr
     return emitSelectPseudo(MI, BB, Subtarget);
   }
 }
+
+//===----------------------------------------------------------------------===//
+// Inline Assembly Support
+//===----------------------------------------------------------------------===//
+
+TargetLowering::ConstraintType
+INODETargetLowering::getConstraintType(StringRef Constraint) const {
+  if (Constraint.size() == 1) {
+    switch (Constraint[0]) {
+    case 'r':
+      return C_RegisterClass;
+    default:
+      break;
+    }
+  }
+  return TargetLowering::getConstraintType(Constraint);
+}
+
+std::pair<unsigned, const TargetRegisterClass *>
+INODETargetLowering::getRegForInlineAsmConstraint(
+    const TargetRegisterInfo *TRI, StringRef Constraint, MVT VT) const {
+
+  // First, see if this is a constraint that directly corresponds to an INODE register class
+  if (Constraint.size() == 1) {
+    switch (Constraint[0]) {
+    case 'r': // General purpose register
+      return std::make_pair(0U, &INODE::SGPRRegClass);
+    }
+  }
+
+  return TargetLowering::getRegForInlineAsmConstraint(TRI, Constraint, VT);
+}

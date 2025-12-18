@@ -315,6 +315,12 @@ let mayLoad = 0, mayStore = 0 in {
   }
 }
 
+// NOP instruction - opcode 0x00, no operands
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def NOP : InstINODE<(outs), (ins), "nop", "", []> {
+  let Inst = 0b00000000000000000000000000000000; // All zeros
+}
+
 // I type
 class IInst<string opname, int opcode> : InstIType<opcode, (outs SGPROpnd:$rd), (ins SGPROpnd:$rs1, simm20:$imm), opname, "$rd $rs1 $imm", []>;
 let mayLoad=0, mayStore=0 in {
