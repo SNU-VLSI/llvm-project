@@ -696,8 +696,15 @@ bool INODECountedLoopMIR::traverseLoop(MachineLoop &L) {
   }
 
   // Some pass(es) may cause the branch to exist in the header. If that's the
-  // case, bail out.
+  // case, bail out. Also, if this is a normal loop (not a hardware loop),
+  // there won't be any CLOOP_END_BRANCH - just skip processing.
   if (!EndBranchBB) {
+    // Check if this is simply a normal loop without hardware loop intrinsics
+    // (e.g., when TTI rejected hardware loop conversion due to variable trip count)
+    if (!Preheader || !containsPseudos(Preheader, {INODE::CLOOP_BEGIN_TERMINATOR})) {
+      // This is a normal loop, not a hardware loop - nothing to do
+      return changed;
+    }
     llvm_unreachable("No loop latch with CLOOP_END_BRANCH");
     // EndBranchBB = L.getHeader();
     // if (!containsPseudos(EndBranchBB,

@@ -12,6 +12,7 @@
 #include "INODE.h"
 #include "INODETargetMachine.h"
 #include "INODECoreIDAssign.h"
+#include "INODETargetTransformInfo.h"
 #include "TargetInfo/INODETargetInfo.h"
 #include "llvm/CodeGen/GlobalISel/IRTranslator.h"
 #include "llvm/CodeGen/GlobalISel/InstructionSelect.h"
@@ -110,6 +111,10 @@ public:
 
 TargetPassConfig *INODETargetMachine::createPassConfig(PassManagerBase &PM) {
   return new INODEPassConfig(*this, PM);
+}
+
+TargetTransformInfo INODETargetMachine::getTargetTransformInfo(const Function &F) const {
+  return TargetTransformInfo(INODETTIImpl(this, F));
 }
 
 void INODETargetMachine::registerPassBuilderCallbacks(PassBuilder &PB) {

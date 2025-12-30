@@ -35,6 +35,8 @@ public:
 
   TargetLoweringObjectFile *getObjFileLowering() const override { return TLOF.get(); }
 
+  TargetTransformInfo getTargetTransformInfo(const Function &F) const override;
+
   void registerPassBuilderCallbacks(PassBuilder &PB) override;
 };
 

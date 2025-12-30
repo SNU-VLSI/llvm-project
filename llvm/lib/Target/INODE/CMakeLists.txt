@@ -24,6 +24,7 @@ add_llvm_target(INODECodeGen
   INODERegisterInfo.cpp
   INODESubtarget.cpp
   INODETargetMachine.cpp
+  INODETargetTransformInfo.cpp
   INODEIRPasses.cpp
   INODEMIRPasses.cpp
   INODECountedLoopMIRPass.cpp

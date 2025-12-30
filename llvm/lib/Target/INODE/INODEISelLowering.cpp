@@ -50,6 +50,7 @@ INODETargetLowering::INODETargetLowering(const TargetMachine &TM, const INODESub
 
   setOperationAction(ISD::SELECT, MVT::i32, Custom);
   setOperationAction(ISD::SELECT_CC, MVT::i32, Custom);
+  setOperationAction(ISD::BR_CC, MVT::i32, Custom);
 
   setOperationAction({ISD::INTRINSIC_WO_CHAIN, ISD::INTRINSIC_W_CHAIN, ISD::INTRINSIC_VOID},
                      MVT::Other, Custom);
@@ -213,6 +214,9 @@ SDValue INODETargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const
   }
   case ISD::SELECT: {
     return lowerSELECT(Op, DAG);
+  }
+  case ISD::BR_CC: {
+    return lowerBR_CC(Op, DAG);
   }
   }
 }
@@ -558,6 +562,18 @@ SDValue INODETargetLowering::lowerSELECT(SDValue Op, SelectionDAG &DAG) const {
 
   SDValue Ops[] = {LHS, RHS, TargetCC, TrueV, FalseV};
   return DAG.getNode(INODEISD::SELECT_CC, DL, VT, Ops);
+}
+
+SDValue INODETargetLowering::lowerBR_CC(SDValue Op, SelectionDAG &DAG) const {
+  SDLoc DL(Op);
+  SDValue Chain = Op.getOperand(0);
+  ISD::CondCode CC = cast<CondCodeSDNode>(Op.getOperand(1))->get();
+  SDValue LHS = Op.getOperand(2);
+  SDValue RHS = Op.getOperand(3);
+  SDValue Dest = Op.getOperand(4);
+
+  return DAG.getNode(INODEISD::BR_CC, DL, MVT::Other, 
+                     Chain, LHS, RHS, DAG.getCondCode(CC), Dest);
 }
 
 static bool isSelectPseudo(MachineInstr &MI) {
