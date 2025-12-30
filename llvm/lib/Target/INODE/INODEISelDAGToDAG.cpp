@@ -385,6 +385,48 @@ bool INODEDAGToDAGISel::SelectAddrRegImm(SDValue Addr, SDValue &Base,
     } else {
       llvm_unreachable("Unhandled ADD operand");
     }
+  } else if (Addr.getOpcode() == ISD::Constant) {
+    // Handle constant addresses (e.g., from inttoptr)
+    // Materialize the constant into a register
+    auto *ConstNode = dyn_cast<ConstantSDNode>(Addr);
+    int64_t Imm = ConstNode->getSExtValue();
+
+    if (Imm == 0) {
+      // Use zero register (SReg0) for address 0
+      Base = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, INODE::SReg0, VT);
+      Offset = CurDAG->getTargetConstant(0, DL, VT);
+      return true;
+    }
+
+    bool NeedLUI = (Imm >= (1 << 19)) || Imm < -(1 << 19);
+    if (!NeedLUI) {
+      // Small constant: materialize using ADDI from zero register
+      SDValue Zero = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL,
+                                            INODE::SReg0, VT);
+      Base = SDValue(CurDAG->getMachineNode(
+                         INODE::INODE_ADDI_INST, DL, VT,
+                         {Zero, CurDAG->getTargetConstant(Imm, DL, VT)}),
+                     0);
+      Offset = CurDAG->getTargetConstant(0, DL, VT);
+      return true;
+    } else {
+      // Large constant: materialize using ADDI + LUI
+      int unsigned ImmUpper = ((int unsigned)Imm >> 20) & 0xfff;
+      int unsigned SignExtend = ((Imm & 0x80000) >> 19) ? 0xfff00000 : 0;
+      int ImmLower = SignExtend | (Imm & 0xfffff);
+      SDValue Zero = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL,
+                                            INODE::SReg0, VT);
+      SDValue Add = SDValue(CurDAG->getMachineNode(
+                                INODE::INODE_ADDI_INST, DL, VT,
+                                {Zero, CurDAG->getTargetConstant(ImmLower, DL, VT)}),
+                            0);
+      Base = SDValue(CurDAG->getMachineNode(
+                         INODE::INODE_LUI_INST, DL, VT,
+                         {Add, CurDAG->getTargetConstant(ImmUpper, DL, VT)}),
+                     0);
+      Offset = CurDAG->getTargetConstant(0, DL, VT);
+      return true;
+    }
   } else {
     // maybe only register?
     if (Addr.getOpcode() == ISD::CopyFromReg ||
