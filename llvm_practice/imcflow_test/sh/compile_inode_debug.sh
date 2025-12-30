@@ -8,8 +8,10 @@ fn_ext=$(echo "$fn_base" | sed 's/.*\.\(.*\)/\1/')
 fn_no_ext=$(echo "$fn_base" | sed 's/\(.*\)\..*/\1/')
 
 # emit llvm ir if .cpp, else move .ll to output
+
 if [[ $fn_ext == "cpp" ]]; then
-  clang -O1 --target=INODE -S -emit-llvm $1 -I../test_cpp -o output/$fn_no_ext.ll
+  clang -O1 --target=INODE -S -emit-llvm -mllvm=-INODE_hid=3 -mllvm=-INODE_wid=0 $1 -I../test_cpp -o output/$fn_no_ext.ll
+  # clang -O1 --target=INODE -S -emit-llvm $1 -I../test_cpp -o output/$fn_no_ext.ll
   # clang -O0 --target=INODE -S -emit-llvm $1 -I../test_cpp -o output/$fn_no_ext.ll
 elif [[ $fn_ext == "ll" ]]; then
   cp $1 output/$fn_no_ext.ll
