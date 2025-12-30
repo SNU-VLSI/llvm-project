@@ -13,3 +13,11 @@ void test_load_store_3() {
   int data2 = a[2];
   a[1] = data2;
 }
+
+void test_load_store_4() {
+  int *a;
+  int data2;
+  a = (int *)(32768);
+  data2 = a[2];
+  a[1] = data2;
+}
