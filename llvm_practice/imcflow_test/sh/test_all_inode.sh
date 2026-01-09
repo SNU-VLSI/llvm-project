@@ -3,6 +3,8 @@
 mkdir -p ./logs
 script_dir=$(dirname "$0")
 debug=''
+failed_tests=()
+failed=0
 
 
 print_usage() {
@@ -18,7 +20,7 @@ while getopts 'd' flag; do
 done
 
 # read lines from "./testfiles" and compile the files
-echo "Reading from $script_dir/testfiles.txt"
+echo "Reading from $script_dir/inode_testfiles.txt"
 while IFS= read -r fn || [[ -n "$fn" ]]; do
   # get filename without ext
   fn_base=$(basename $fn)
@@ -27,10 +29,32 @@ while IFS= read -r fn || [[ -n "$fn" ]]; do
   # compile with debug flag if -d is set
   if [ "$debug" = 'true' ]; then
     echo "Testing with -d: $fn"
-    $script_dir/compile_inode_debug.sh $fn 2> ./logs/$fn_no_ext.debug.log
+    if ! $script_dir/compile_inode_debug.sh $fn 2> ./logs/$fn_no_ext.debug.log; then
+      echo "  FAILED: $fn"
+      failed_tests+=("$fn")
+      failed=1
+    fi
   else
     echo "Testing: $fn"
-    $script_dir/compile_inode.sh $fn 2> ./logs/$fn_no_ext.log
+    if ! $script_dir/compile_inode.sh $fn 2> ./logs/$fn_no_ext.log; then
+      echo "  FAILED: $fn"
+      failed_tests+=("$fn")
+      failed=1
+    fi
   fi
 
 done < $script_dir/inode_testfiles.txt
+
+# Report summary
+if [ $failed -eq 1 ]; then
+  echo ""
+  echo "======================================"
+  echo "FAILED TESTS:"
+  for test in "${failed_tests[@]}"; do
+    echo "  - $test"
+  done
+  echo "======================================"
+  exit 1
+fi
+
+echo "All tests passed!"

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e  # Exit immediately if any command fails
+set -o pipefail  # Catch errors in pipelines
 
 mkdir -p ./output
 

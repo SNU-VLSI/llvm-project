@@ -8,6 +8,9 @@
 ../test_ll/test_imce_qinst.ll
 ../test_ll/test_imce_iinst.ll
 ../test_ll/test_imce_rinst.ll
-../test_cpp/test_relu.cpp
-../test_cpp/test_conv.cpp
-../test_cpp/test_builtins.cpp
+../test_cpp/imce/test_relu.cpp
+../test_cpp/imce/test_loop.cpp
+../test_cpp/imce/test_conv.cpp
+../test_cpp/imce/test_core_id.cpp
+../test_cpp/imce/test_long_branch.cpp
+../test_cpp/imce/test_builtins.cpp
