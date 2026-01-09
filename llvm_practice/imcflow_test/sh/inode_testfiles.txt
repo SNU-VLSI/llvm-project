@@ -3,5 +3,7 @@
 ../test_cpp/inode/test_br.cpp
 ../test_cpp/inode/test_builtins.cpp
 ../test_cpp/inode/test_loop.cpp
+../test_cpp/inode/test_loop_from_load.cpp
+../test_cpp/inode/test_loop_unrolled.cpp
 ../test_cpp/inode/test_load_store.cpp
 ../test_cpp/inode/test_policyupdate.cpp

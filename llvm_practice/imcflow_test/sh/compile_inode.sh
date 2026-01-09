@@ -12,12 +12,10 @@ fn_no_ext=$(echo "$fn_base" | sed 's/\(.*\)\..*/\1/')
 # compile with clang/llc and output to .o
 if [[ $fn_ext == "cpp" ]]; then
   clang -O1 --target=INODE -c \
-        -mllvm="-force-hardware-loops" \
         -mllvm="-force-nested-hardware-loop" \
         $1 -o output/$fn_no_ext.o
 elif [[ $fn_ext == "ll" ]]; then
   llc --march=INODE \
-      -force-hardware-loops \
       -force-nested-hardware-loop \
       -filetype=obj \
       $1 -o output/$fn_no_ext.o
