@@ -471,6 +471,10 @@ def : Pat<(mul SGPROpnd:$rs1, ntsimm20:$imm), (INODE_MULI_INST SGPROpnd:$rs1, (C
 // def : Pat<(add SGPROpnd:$rs1, ntsimm_over20:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm_over20:$imm))>;
 // def : Pat<(mul SGPROpnd:$rs1, ntsimm_over20:$imm), (INODE_MULI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm_over20:$imm))>;
 
+// Map OR operations to ADDI (or disjoint is equivalent to add when bits don't overlap)
+def : Pat<(or SGPROpnd:$rs1, simm20:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, simm20:$imm)>;
+def : Pat<(or SGPROpnd:$rs1, ntsimm20:$imm), (INODE_ADDI_INST SGPROpnd:$rs1, (ConvertToTargetImm ntsimm20:$imm))>;
+
 def AddrRegImm : ComplexPattern<iPTR, 2, "SelectAddrRegImm">;
 class LdPat<PatFrag LoadOp, InstINODE Inst>
     : Pat<(i32 (LoadOp (AddrRegImm (i32 SGPROpnd:$rs1), simm20:$imm20))),
