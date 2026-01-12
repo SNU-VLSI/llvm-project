@@ -409,7 +409,7 @@ let hasSideEffects=1 in {
     bits<6> rs1;
     bits<6> reg_id;
 
-    let Inst{5-0} = 0b110100;
+    let Inst{5-0} = 0b110101;
     let Inst{11-6} = reg_id;
     let Inst{17-12} = 0;
     let Inst{23-18} = 0;
