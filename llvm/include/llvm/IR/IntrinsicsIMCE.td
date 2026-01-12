@@ -42,7 +42,7 @@ let TargetPrefix = "IMCE" in {
   // def int_IMCE_RECV_SREG0 : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
   // def int_IMCE_RECV_SREG1 : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
   def int_IMCE_SETFLAG  : Intrinsic<[], [llvm_i16_ty], [IntrHasSideEffects]>;
-  def int_IMCE_STANDBY  : Intrinsic<[], [llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<1>>, IntrHasSideEffects]>;
+  def int_IMCE_STANDBY  : Intrinsic<[], [llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, IntrHasSideEffects]>;
 
   // P type
   def int_IMCE_MAXPOOL : Intrinsic<[llvm_v16i16_ty], [llvm_i16_ty, llvm_i16_ty, llvm_i16_ty], [ImmArg<ArgIndex<0>>, ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>]>;
