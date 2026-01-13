@@ -29,6 +29,7 @@ add_llvm_target(IMCECodeGen
   IMCECountedLoopMIRPass.cpp
   IMCECountedLoopOptions.cpp
   IMCECoreIDAssign.cpp
+  IMCEInsertNopForStandby.cpp
   SCCPLegacy.cpp
 
   LINK_COMPONENTS

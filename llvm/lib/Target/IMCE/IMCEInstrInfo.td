@@ -307,20 +307,18 @@ def IMCE_LONG_BNE : Pseudo<(outs HWLOOPREGOpnd:$rs2),
 }
 
 // C type
-// TODO: change imm2 to policy_addr, flag_value to rs2(storing cmd, addr), python simulator also?
-class CInst<string opname, int opcode> : InstCType<opcode, (outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), opname, "$imm2 $rs1 $fifo_id, $flag_value", []>;
 let hasSideEffects=1 in {
-  def IMCE_SEND_INST : InstIMCE<(outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), "send", "$imm2 $rs1 $fifo_id, $flag_value", []> {
+  def IMCE_SEND_INST : InstIMCE<(outs), (ins uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$imm), "send", "$imm2 $rs1 $fifo_id, $imm", []> {
     bits<6> imm2;
     bits<6> rs1;
     bits<6> fifo_id;
-    bits<8> flag_value;
+    bits<8> imm;
 
     let Inst{5-0} = 0b110010;
     let Inst{11-6} = imm2;
     let Inst{17-12} = rs1;
     let Inst{23-18} = fifo_id;
-    let Inst{31-24} = flag_value;
+    let Inst{31-24} = imm;
   }
 
   def IMCE_RECV_INST : InstIMCE<(outs VGPROpnd:$rd), (ins uimm6:$fifo_id), "recv", "$rd $fifo_id", []> {
@@ -335,7 +333,6 @@ let hasSideEffects=1 in {
   }
 
   def IMCE_RECV_MIN_INST : InstIMCE<(outs), (ins uimm6:$fifo_id), "recv_min", "$fifo_id", []> {
-    // bits<6> rd;
     bits<6> fifo_id;
 
     let Defs = [MINREG];
@@ -347,7 +344,6 @@ let hasSideEffects=1 in {
   }
 
   def IMCE_RECV_MAX_INST : InstIMCE<(outs), (ins uimm6:$fifo_id), "recv_max", "$fifo_id", []> {
-    // bits<6> rd;
     bits<6> fifo_id;
 
     let Defs = [MAXREG];
@@ -359,7 +355,6 @@ let hasSideEffects=1 in {
   }
 
   def IMCE_RECV_CFG_INST : InstIMCE<(outs), (ins uimm6:$fifo_id), "recv_cfg", "$fifo_id", []> {
-    bits<6> rd;
     bits<6> fifo_id;
 
     let Defs = [CFGREG];
@@ -394,26 +389,26 @@ let hasSideEffects=1 in {
   //   let Inst{31-24} = 0;
   // }
 
-  def IMCE_SET_FLAG_INST : InstIMCE<(outs), (ins VGPROpnd:$rs1), "set_flag", "$rs1", []> {
-    bits<6> rs1;
+  def IMCE_SET_FLAG_INST : InstIMCE<(outs), (ins VGPROpnd:$rs2), "set_flag", "$rs2", []> {
+    bits<6> rs2;
 
     let Inst{5-0} = 0b110100;
     let Inst{11-6} = 0;
     let Inst{17-12} = 0;
     let Inst{23-18} = 0;
-    let Inst{29-24} = rs1;
+    let Inst{29-24} = rs2;
     let Inst{31-30} = 0;
   }
 
-  def IMCE_STANDBY_INST  : InstIMCE<(outs), (ins uimm6:$reg_id, VGPROpnd:$rs1), "standby", "$reg_id $rs1", []> {
-    bits<6> rs1;
-    bits<6> reg_id;
+  def IMCE_STANDBY_INST  : InstIMCE<(outs), (ins uimm6:$sync_target, VGPROpnd:$rs2), "standby", "$sync_target $rs2", []> {
+    bits<6> sync_target;
+    bits<6> rs2;
 
     let Inst{5-0} = 0b110101;
-    let Inst{11-6} = reg_id;
-    let Inst{17-12} = 0;
+    let Inst{11-6} = 0;
+    let Inst{17-12} = sync_target;
     let Inst{23-18} = 0;
-    let Inst{29-24} = rs1;
+    let Inst{29-24} = rs2;
     let Inst{31-30} = 0;
   }
 }
@@ -527,8 +522,7 @@ def : APat<int_IMCE_DWCONV, IMCE_DWCONV_INST>;
 // def : BPat<int_IMCE_BNE, IMCE_BNE_INST>;
 
 // C type pattern
-// class CPat<SDPatternOperator intrin_op, Instruction inst> : Pat<(intrin_op uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (inst uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
-def : Pat<(int_IMCE_SEND uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value), (IMCE_SEND_INST uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$flag_value)>;
+def : Pat<(int_IMCE_SEND uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$imm), (IMCE_SEND_INST uimm6:$imm2, VGPROpnd:$rs1, uimm6:$fifo_id, uimm8:$imm)>;
 def : Pat<(int_IMCE_RECV uimm6:$fifo_id), (IMCE_RECV_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_RECV_MIN uimm6:$fifo_id), (IMCE_RECV_MIN_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_RECV_MAX uimm6:$fifo_id), (IMCE_RECV_MAX_INST uimm6:$fifo_id)>;
@@ -536,7 +530,7 @@ def : Pat<(int_IMCE_RECV_CFG uimm6:$fifo_id), (IMCE_RECV_CFG_INST uimm6:$fifo_id
 // def : Pat<(int_IMCE_RECV_SREG0 uimm6:$fifo_id), (IMCE_RECV_SREG0_INST uimm6:$fifo_id)>;
 // def : Pat<(int_IMCE_RECV_SREG1 uimm6:$fifo_id), (IMCE_RECV_SREG1_INST uimm6:$fifo_id)>;
 def : Pat<(int_IMCE_SETFLAG VGPROpnd:$rs1), (IMCE_SET_FLAG_INST VGPROpnd:$rs1)>;
-def : Pat<(int_IMCE_STANDBY uimm6:$reg_id, VGPROpnd:$rs1), (IMCE_STANDBY_INST uimm6:$reg_id, VGPROpnd:$rs1)>;
+def : Pat<(int_IMCE_STANDBY uimm6:$sync_target, VGPROpnd:$rs2), (IMCE_STANDBY_INST uimm6:$sync_target, VGPROpnd:$rs2)>;
 def : Pat<(int_IMCE_LOAD_LB uimm6:$fifo_id), (IMCE_LOAD_LB uimm6:$fifo_id)>;
 
 // P type Pattern

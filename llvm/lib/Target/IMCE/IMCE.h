@@ -54,5 +54,8 @@ FunctionPass *createIMCECoreIDAssignPass();
 void initializeSCCPLegacyPass(PassRegistry &);
 FunctionPass *createSCCPLegacyPass();
 
+void initializeIMCEInsertNopForStandbyPass(PassRegistry &);
+FunctionPass *createIMCEInsertNopForStandbyPass();
+
 } // end namespace llvm
 #endif

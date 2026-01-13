@@ -14,3 +14,4 @@
 ../test_cpp/imce/test_core_id.cpp
 ../test_cpp/imce/test_long_branch.cpp
 ../test_cpp/imce/test_builtins.cpp
+../test_cpp/imce/test_standby_nop.cpp

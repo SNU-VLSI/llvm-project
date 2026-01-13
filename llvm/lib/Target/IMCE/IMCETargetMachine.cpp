@@ -155,6 +155,7 @@ void IMCEPassConfig::addPreRegAlloc() {
 
 void IMCEPassConfig::addPreEmitPass() {
   addPass(createIMCECountedLoopMIRPass());
+  addPass(createIMCEInsertNopForStandbyPass());
   if (getOptLevel() != CodeGenOptLevel::None) {
     addPass(&FinalizeMachineBundlesID);
   }
