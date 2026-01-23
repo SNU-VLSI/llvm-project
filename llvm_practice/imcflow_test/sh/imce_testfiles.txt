@@ -15,3 +15,5 @@
 ../test_cpp/imce/test_long_branch.cpp
 ../test_cpp/imce/test_builtins.cpp
 ../test_cpp/imce/test_standby_nop.cpp
+../test_cpp/imce/test_compute_after_nop.cpp
+../test_cpp/imce/test_conv_with_nop.cpp

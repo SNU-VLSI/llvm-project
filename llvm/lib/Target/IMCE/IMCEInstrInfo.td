@@ -453,7 +453,10 @@ def IMCE_STEP_INST : InstIMCE<(outs), (ins), "step", "", []> {
   let Defs = [CREG0, CREG1, CREG2, CREG3];
 }
 
-def IMCE_NOP_INST  : XInst<"nop" , 0b111110>;
+def IMCE_NOP_INST  : XInst<"nop" , 0b111110> {
+  let Uses = [BSHR0, BSHR1, BSHR2, BSHR3];
+  let Defs = [CREG0, CREG1, CREG2, CREG3];
+}
 def IMCE_STOP_INST : XInst<"stop", 0b111111>;
 
 // def IMCE_GET_CREG_Pseudo : Pseudo<(outs CREGOpnd:$rd), (ins uimm2:$idx), "# GET_CREG $rd $idx", []> {
