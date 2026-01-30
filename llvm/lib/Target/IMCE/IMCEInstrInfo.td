@@ -451,6 +451,7 @@ def IMCE_STEP_INST : InstIMCE<(outs), (ins), "step", "", []> {
   let Inst{5-0} = 0b111101;
   let Uses = [BSHR0, BSHR1, BSHR2, BSHR3];
   let Defs = [CREG0, CREG1, CREG2, CREG3];
+  let hasSideEffects = 1;
 }
 
 def IMCE_NOP_INST  : XInst<"nop" , 0b111110> {
