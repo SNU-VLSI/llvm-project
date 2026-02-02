@@ -103,12 +103,45 @@ void IMCEDAGToDAGISel::Select(SDNode *Node) {
   }
 
   case ISD::SPLAT_VECTOR: {
-    auto *ConstNode = cast<ConstantSDNode>(Node);
-    int64_t Imm = ConstNode->getSExtValue();
-    if(isInt<14>(Imm)) {
+    // SPLAT_VECTOR has a scalar operand that gets splatted to all lanes
+    SDValue Op = Node->getOperand(0);
+    if (auto *ConstNode = dyn_cast<ConstantSDNode>(Op)) {
+      int64_t Imm = ConstNode->getSExtValue();
+      if (Imm == 0) {
+        // Zero vector - use V0 directly
+        SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::V0, VT);
+        ReplaceNode(Node, New.getNode());
+        return;
+      }
+      if (isInt<14>(Imm)) {
+        SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::V0, VT);
+        SDValue Add = SDValue(CurDAG->getMachineNode(IMCE::IMCE_VADDI_INST, DL, VT, {New, CurDAG->getTargetConstant(Imm, DL, VT)}), 0);
+        ReplaceNode(Node, Add.getNode());
+        return;
+      }
+    }
+    break;
+  }
+
+  case ISD::BUILD_VECTOR: {
+    // Check if all elements are zero constants
+    bool AllZero = true;
+    for (unsigned i = 0; i < Node->getNumOperands(); ++i) {
+      SDValue Op = Node->getOperand(i);
+      if (auto *ConstNode = dyn_cast<ConstantSDNode>(Op)) {
+        if (!ConstNode->isZero()) {
+          AllZero = false;
+          break;
+        }
+      } else {
+        AllZero = false;
+        break;
+      }
+    }
+    if (AllZero) {
+      // Zero vector - use V0 directly
       SDValue New = CurDAG->getCopyFromReg(CurDAG->getEntryNode(), DL, IMCE::V0, VT);
-      SDValue Add = SDValue(CurDAG->getMachineNode(IMCE::IMCE_VADDI_INST, DL, VT, {New, CurDAG->getTargetConstant(Imm, DL, VT)}), 0);
-      ReplaceNode(Node, Add.getNode());
+      ReplaceNode(Node, New.getNode());
       return;
     }
     break;
