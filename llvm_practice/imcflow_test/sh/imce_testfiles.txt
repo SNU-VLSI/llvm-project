@@ -19,3 +19,4 @@
 ../test_cpp/imce/test_conv_with_nop.cpp
 ../test_cpp/imce/test_send_after_multi_step.cpp
 ../test_cpp/imce/test_zero_reg.cpp
+../test_cpp/imce/test_redundant_jmp.cpp
